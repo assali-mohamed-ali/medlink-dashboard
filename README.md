@@ -1,3 +1,34 @@
+# MedLink — Web (front)
+
+Interface React du portail MedLink. Elle parle uniquement à notre API (`api-MedLink`), avec le cookie de session ; aucun token n'est stocké dans le navigateur.
+
+## Prérequis
+
+- Node 22.12 ou plus (voir `.nvmrc`). Sur Windows, installer Node 22 avec nvm-windows ou depuis le site officiel.
+- L'API en local sur `http://localhost:8080`
+
+## Démarrer
+
+    npm ci
+    npm run dev      # http://localhost:5173
+    npm test
+    npm run lint
+    npm run build
+
+Le serveur de développement redirige `/api` vers `http://localhost:8080` : le navigateur ne voit qu'une origine, donc pas de CORS et le cookie `XSRF-TOKEN` reste lisible.
+
+## Lancer l'API
+
+Dans le dépôt `api-MedLink`, lancer `scripts/setup-dev` (voir le README de ce dépôt).
+
+## Structure
+
+- `src/app` : routeur
+- `src/pages` : pages (vides pour l'instant)
+- `src/services` : client API (`apiFetch`, `ApiError`)
+
+---
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
