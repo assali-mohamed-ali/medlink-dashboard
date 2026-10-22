@@ -196,3 +196,16 @@
   .login__card { padding: 28px 20px; border-radius: 22px; }
   .login__title { font-size: 1.6rem; }
 }
+/* Safety rules: the page does not depend on global styles. */
+.login,
+.login *,
+.login *::before,
+.login *::after {
+  box-sizing: border-box;
+}
+.login { text-align: left; }
+.login__title {
+  font-weight: 700;
+  letter-spacing: normal;
+}
+.login__notice p { text-align: left; }
