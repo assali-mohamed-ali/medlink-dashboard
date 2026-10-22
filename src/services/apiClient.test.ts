@@ -91,3 +91,42 @@ test('does not call the unauthorized handler on a 403', async () => {
   await expect(apiFetch('/admin/users')).rejects.toBeInstanceOf(ApiError)
   expect(handler).not.toHaveBeenCalled()
 })
+
+test('calls the unauthorized handler on a 401 SESSION_EXPIRED', async () => {
+  const handler = vi.fn()
+  setUnauthorizedHandler(handler)
+  fetchMock.mockResolvedValue(
+    new Response(JSON.stringify({ code: 'SESSION_EXPIRED' }), { status: 401 }),
+  )
+  await expect(apiFetch('/auth/me')).rejects.toBeInstanceOf(ApiError)
+  expect(handler).toHaveBeenCalledTimes(1)
+})
+
+test('does not call the unauthorized handler on a 401 INVALID_CREDENTIALS', async () => {
+  const handler = vi.fn()
+  setUnauthorizedHandler(handler)
+  fetchMock.mockResolvedValue(
+    new Response(JSON.stringify({ code: 'INVALID_CREDENTIALS' }), { status: 401 }),
+  )
+  await expect(apiFetch('/auth/login', { method: 'POST' })).rejects.toBeInstanceOf(
+    ApiError,
+  )
+  expect(handler).not.toHaveBeenCalled()
+})
+
+test('keeps the per-field details of an error', async () => {
+  fetchMock.mockResolvedValue(
+    new Response(
+      JSON.stringify({
+        code: 'VALIDATION_FAILED',
+        message: 'Données invalides.',
+        details: { email: 'invalide' },
+      }),
+      { status: 400 },
+    ),
+  )
+  await expect(apiFetch('/auth/register', { method: 'POST' })).rejects.toMatchObject({
+    code: 'VALIDATION_FAILED',
+    details: { email: 'invalide' },
+  })
+})
