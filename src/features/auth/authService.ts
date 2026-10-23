@@ -33,3 +33,32 @@ export function resendVerification(email: string) {
     body: { email },
   })
 }
+
+export function fetchMe() {
+  return apiFetch<{ user: AuthUser }>('/auth/me')
+}
+
+export function logout() {
+  return apiFetch('/auth/logout', { method: 'POST' })
+}
+
+export type RegisterPayload = {
+  email: string
+  password: string
+  firstName: string
+  lastName: string
+  dateOfBirth: string
+  phone: string
+  address: string
+}
+
+export type RegisterResponse = {
+  message?: string
+}
+
+export function register(payload: RegisterPayload) {
+  return apiFetch<RegisterResponse>('/auth/register', {
+    method: 'POST',
+    body: payload,
+  })
+}
