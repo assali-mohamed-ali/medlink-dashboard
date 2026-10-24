@@ -6,7 +6,7 @@ repos:
       - id: end-of-file-fixer
       - id: check-yaml
       - id: check-json
-        exclude: '^tsconfig\\..*\\.json$'
+        exclude: '^tsconfig\..*\.json$'
       - id: check-xml
       - id: check-merge-conflict
       - id: check-case-conflict
@@ -30,12 +30,12 @@ repos:
         name: Oxlint changed frontend source files
         entry: npm run lint --
         language: system
-        files: '\\.(?:[cm]?[jt]sx?)$'
+        files: '\.(?:[cm]?[jt]sx?)$'
         pass_filenames: true
 
       - id: frontend-production-build
         name: TypeScript check and Vite production build
         entry: npm run build
         language: system
-        files: '^(src/|vite\\.config\\..*|tsconfig.*|package\\.json$|package-lock\\.json$)'
+        files: '^(src/|vite\.config\..*|tsconfig.*|package\.json$|package-lock\.json$)'
         pass_filenames: false
