@@ -211,9 +211,14 @@ jobs:
           DEPLOY_USER: ${{ vars.DEPLOY_USER }}
           DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
         run: |
+          set -euo pipefail
           test -n "$DEPLOY_HOST" && test -n "$DEPLOY_USER" && test -n "$DEPLOY_PATH"
+          [[ "$DEPLOY_PATH" != *[[:space:]]* ]] || { echo "::error::DEPLOY_PATH must not contain spaces"; exit 1; }
           SSH_OPTS=(-o BatchMode=yes -o StrictHostKeyChecking=yes -o IdentitiesOnly=yes -i "$HOME/.ssh/deploy_key")
-          ssh "${SSH_OPTS[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "mkdir -p '$DEPLOY_PATH'"
+          REMOTE_DEPLOY_DIR="$(printf '%q' "$DEPLOY_PATH")"
+          REMOTE_COMMAND="mkdir -p -- $REMOTE_DEPLOY_DIR"
+          # shellcheck disable=SC2029
+          ssh "${SSH_OPTS[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "$REMOTE_COMMAND"
           scp "${SSH_OPTS[@]}" deploy/docker-compose.frontend.yml "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/docker-compose.frontend.yml"
 
       - name: Deploy the tested image by immutable digest
@@ -226,10 +231,20 @@ jobs:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           IMAGE: ${{ needs.publish-and-attest.outputs.image }}
         run: |
-          test -n "$IMAGE"
+          set -euo pipefail
+          test -n "$IMAGE" && test -n "$DEPLOY_HOST" && test -n "$DEPLOY_USER" && test -n "$DEPLOY_PATH"
+          [[ "$DEPLOY_PATH" != *[[:space:]]* ]] || { echo "::error::DEPLOY_PATH must not contain spaces"; exit 1; }
           SSH_OPTS=(-o BatchMode=yes -o StrictHostKeyChecking=yes -o IdentitiesOnly=yes -i "$HOME/.ssh/deploy_key")
-          printf '%s' "$GHCR_TOKEN" | ssh "${SSH_OPTS[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "docker login ghcr.io --username '$GHCR_USER' --password-stdin"
-          ssh "${SSH_OPTS[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "printf 'FRONTEND_IMAGE=%s\nFRONTEND_HOST_PORT=%s\n' '$IMAGE' '${DEPLOY_PORT:-8081}' > '$DEPLOY_PATH/.frontend.env' && docker compose --env-file '$DEPLOY_PATH/.frontend.env' -f '$DEPLOY_PATH/docker-compose.frontend.yml' pull && docker compose --env-file '$DEPLOY_PATH/.frontend.env' -f '$DEPLOY_PATH/docker-compose.frontend.yml' up -d --remove-orphans"
+          REMOTE_DEPLOY_DIR="$(printf '%q' "$DEPLOY_PATH")"
+          REMOTE_GHCR_USER="$(printf '%q' "$GHCR_USER")"
+          REMOTE_LOGIN="docker login ghcr.io --username $REMOTE_GHCR_USER --password-stdin"
+          # shellcheck disable=SC2029
+          printf '%s' "$GHCR_TOKEN" | ssh "${SSH_OPTS[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "$REMOTE_LOGIN"
+          printf 'FRONTEND_IMAGE=%s\\nFRONTEND_HOST_PORT=%s\\n' "$IMAGE" "${DEPLOY_PORT:-8081}" > "$RUNNER_TEMP/frontend.env"
+          scp "${SSH_OPTS[@]}" "$RUNNER_TEMP/frontend.env" "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/.frontend.env"
+          REMOTE_COMMAND="docker compose --env-file ${REMOTE_DEPLOY_DIR}/.frontend.env -f ${REMOTE_DEPLOY_DIR}/docker-compose.frontend.yml pull && docker compose --env-file ${REMOTE_DEPLOY_DIR}/.frontend.env -f ${REMOTE_DEPLOY_DIR}/docker-compose.frontend.yml up -d --remove-orphans"
+          # shellcheck disable=SC2029
+          ssh "${SSH_OPTS[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "$REMOTE_COMMAND"
 
       - name: Verify deployed health endpoint
         env:
@@ -237,6 +252,7 @@ jobs:
         run: |
           test -n "$HEALTH_URL"
           for attempt in $(seq 1 24); do
+            echo "Health check attempt $attempt/24"
             if curl --fail --silent --show-error "$HEALTH_URL"; then exit 0; fi
             sleep 5
           done
@@ -290,9 +306,14 @@ jobs:
           DEPLOY_USER: ${{ vars.DEPLOY_USER }}
           DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
         run: |
+          set -euo pipefail
           test -n "$DEPLOY_HOST" && test -n "$DEPLOY_USER" && test -n "$DEPLOY_PATH"
+          [[ "$DEPLOY_PATH" != *[[:space:]]* ]] || { echo "::error::DEPLOY_PATH must not contain spaces"; exit 1; }
           SSH_OPTS=(-o BatchMode=yes -o StrictHostKeyChecking=yes -o IdentitiesOnly=yes -i "$HOME/.ssh/deploy_key")
-          ssh "${SSH_OPTS[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "mkdir -p '$DEPLOY_PATH'"
+          REMOTE_DEPLOY_DIR="$(printf '%q' "$DEPLOY_PATH")"
+          REMOTE_COMMAND="mkdir -p -- $REMOTE_DEPLOY_DIR"
+          # shellcheck disable=SC2029
+          ssh "${SSH_OPTS[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "$REMOTE_COMMAND"
           scp "${SSH_OPTS[@]}" deploy/docker-compose.frontend.yml "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/docker-compose.frontend.yml"
 
       - name: Deploy the tested image by immutable digest
@@ -305,10 +326,20 @@ jobs:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           IMAGE: ${{ needs.publish-and-attest.outputs.image }}
         run: |
-          test -n "$IMAGE"
+          set -euo pipefail
+          test -n "$IMAGE" && test -n "$DEPLOY_HOST" && test -n "$DEPLOY_USER" && test -n "$DEPLOY_PATH"
+          [[ "$DEPLOY_PATH" != *[[:space:]]* ]] || { echo "::error::DEPLOY_PATH must not contain spaces"; exit 1; }
           SSH_OPTS=(-o BatchMode=yes -o StrictHostKeyChecking=yes -o IdentitiesOnly=yes -i "$HOME/.ssh/deploy_key")
-          printf '%s' "$GHCR_TOKEN" | ssh "${SSH_OPTS[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "docker login ghcr.io --username '$GHCR_USER' --password-stdin"
-          ssh "${SSH_OPTS[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "printf 'FRONTEND_IMAGE=%s\nFRONTEND_HOST_PORT=%s\n' '$IMAGE' '${DEPLOY_PORT:-8081}' > '$DEPLOY_PATH/.frontend.env' && docker compose --env-file '$DEPLOY_PATH/.frontend.env' -f '$DEPLOY_PATH/docker-compose.frontend.yml' pull && docker compose --env-file '$DEPLOY_PATH/.frontend.env' -f '$DEPLOY_PATH/docker-compose.frontend.yml' up -d --remove-orphans"
+          REMOTE_DEPLOY_DIR="$(printf '%q' "$DEPLOY_PATH")"
+          REMOTE_GHCR_USER="$(printf '%q' "$GHCR_USER")"
+          REMOTE_LOGIN="docker login ghcr.io --username $REMOTE_GHCR_USER --password-stdin"
+          # shellcheck disable=SC2029
+          printf '%s' "$GHCR_TOKEN" | ssh "${SSH_OPTS[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "$REMOTE_LOGIN"
+          printf 'FRONTEND_IMAGE=%s\\nFRONTEND_HOST_PORT=%s\\n' "$IMAGE" "${DEPLOY_PORT:-8081}" > "$RUNNER_TEMP/frontend.env"
+          scp "${SSH_OPTS[@]}" "$RUNNER_TEMP/frontend.env" "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/.frontend.env"
+          REMOTE_COMMAND="docker compose --env-file ${REMOTE_DEPLOY_DIR}/.frontend.env -f ${REMOTE_DEPLOY_DIR}/docker-compose.frontend.yml pull && docker compose --env-file ${REMOTE_DEPLOY_DIR}/.frontend.env -f ${REMOTE_DEPLOY_DIR}/docker-compose.frontend.yml up -d --remove-orphans"
+          # shellcheck disable=SC2029
+          ssh "${SSH_OPTS[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "$REMOTE_COMMAND"
 
       - name: Verify deployed health endpoint
         env:
