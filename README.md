@@ -30,3 +30,14 @@ If you are developing a production application, we recommend enabling type-aware
 ```
 
 See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+
+
+## Local development checks
+
+Install the repository's Git pre-commit hook by following [CONTRIBUTING.md](CONTRIBUTING.md):
+
+```bash
+bash scripts/setup-pre-commit.sh
+```
+
+The hook checks staged files before each commit. CI also runs all pre-commit hooks across the repository.
