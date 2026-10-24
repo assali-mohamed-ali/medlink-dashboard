@@ -347,6 +347,7 @@ jobs:
         run: |
           test -n "$HEALTH_URL"
           for attempt in $(seq 1 24); do
+            echo "Health check attempt $attempt/24"
             if curl --fail --silent --show-error "$HEALTH_URL"; then exit 0; fi
             sleep 5
           done
