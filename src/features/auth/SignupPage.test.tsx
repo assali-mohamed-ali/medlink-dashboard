@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, expect, test, vi } from 'vitest'
@@ -95,7 +95,7 @@ test('shows the verify-email screen on 201', async () => {
     password: 'Secret-12345!',
     firstName: 'Amel',
     lastName: 'Ben Salah',
-    dateOfBirth: '1990-05-12',
+    birthDate: '1990-05-12',
     phone: '+216 71 000 000',
     address: '12 rue de la Santé, Tunis',
   })
@@ -108,7 +108,7 @@ test('shows the verify-email screen on 201', async () => {
 
 test('shows server field errors on 400', async () => {
   register.mockRejectedValue(
-    new ApiError(400, 'VALIDATION_ERROR', 'Données invalides.', {
+    new ApiError(400, 'VALIDATION_FAILED', 'Données invalides.', {
       email: 'Cette adresse e-mail est invalide.',
       phone: 'Numéro de téléphone incorrect.',
     }),
@@ -123,9 +123,28 @@ test('shows server field errors on 400', async () => {
   expect(screen.getByText('Numéro de téléphone incorrect.')).toBeInTheDocument()
 })
 
-test('shows the existing-account message on 409 with a login link', async () => {
+test('the confirmation never says whether the account already existed', async () => {
+  register.mockResolvedValue({
+    message: 'Vérifiez votre boîte mail pour activer votre compte.',
+  })
+  const user = userEvent.setup()
+  renderPage()
+
+  await fillValidForm(user)
+  await user.click(screen.getByRole('button', { name: 'Créer mon compte' }))
+
+  await screen.findByRole('heading', { name: 'Vérifiez votre boîte mail' })
+  expect(screen.queryByText(/existe déjà/i)).toBeNull()
+  expect(screen.queryByText(/compte (a été )?créé/i)).toBeNull()
+})
+
+test('shows the password policy message under the password field', async () => {
   register.mockRejectedValue(
-    new ApiError(409, 'EMAIL_ALREADY_EXISTS', 'Un compte existe déjà avec cet e-mail'),
+    new ApiError(
+      400,
+      'PASSWORD_POLICY',
+      'Le mot de passe ne respecte pas la politique de sécurité.',
+    ),
   )
   const user = userEvent.setup()
   renderPage()
@@ -133,10 +152,37 @@ test('shows the existing-account message on 409 with a login link', async () => 
   await fillValidForm(user)
   await user.click(screen.getByRole('button', { name: 'Créer mon compte' }))
 
-  const alert = await screen.findByRole('alert')
-  expect(alert).toHaveTextContent('Un compte existe déjà avec cet e-mail')
-  expect(within(alert).getByRole('link', { name: 'Se connecter' })).toHaveAttribute(
-    'href',
-    '/connexion',
+  expect(
+    await screen.findByText('Le mot de passe ne respecte pas la politique de sécurité.'),
+  ).toBeInTheDocument()
+})
+
+test('shows the message in a banner when a 400 has no field details', async () => {
+  register.mockRejectedValue(
+    new ApiError(400, 'VALIDATION_FAILED', 'Certains champs sont invalides.'),
+  )
+  const user = userEvent.setup()
+  renderPage()
+
+  await fillValidForm(user)
+  await user.click(screen.getByRole('button', { name: 'Créer mon compte' }))
+
+  expect(await screen.findByRole('alert')).toHaveTextContent(
+    'Certains champs sont invalides.',
+  )
+})
+
+test('shows the API message when the service is unavailable', async () => {
+  register.mockRejectedValue(
+    new ApiError(503, 'IDENTITY_UNAVAILABLE', 'Service momentanément indisponible.'),
+  )
+  const user = userEvent.setup()
+  renderPage()
+
+  await fillValidForm(user)
+  await user.click(screen.getByRole('button', { name: 'Créer mon compte' }))
+
+  expect(await screen.findByRole('alert')).toHaveTextContent(
+    'Service momentanément indisponible.',
   )
 })

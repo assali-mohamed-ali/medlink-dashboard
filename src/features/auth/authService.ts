@@ -47,7 +47,7 @@ export type RegisterPayload = {
   password: string
   firstName: string
   lastName: string
-  dateOfBirth: string
+  birthDate: string
   phone: string
   address: string
 }

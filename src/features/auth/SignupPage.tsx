@@ -35,8 +35,16 @@ const signupSchema = z.object({
   password: z.string().min(1, 'Saisissez un mot de passe.'),
   firstName: z.string().trim().min(1, 'Saisissez votre prénom.'),
   lastName: z.string().trim().min(1, 'Saisissez votre nom.'),
-  dateOfBirth: z.string().min(1, 'Saisissez votre date de naissance.'),
-  phone: z.string().trim().min(1, 'Saisissez votre numéro de téléphone.'),
+  birthDate: z.string().min(1, 'Saisissez votre date de naissance.'),
+  phone: z
+    .string()
+    .trim()
+    .min(1, 'Saisissez votre numéro de téléphone.')
+    .max(30, 'Le numéro de téléphone est trop long.')
+    .regex(
+      /^\+?[0-9 ]*$/,
+      'Le numéro ne peut contenir que des chiffres, des espaces et un + au début.',
+    ),
   address: z.string().trim().min(1, 'Saisissez votre adresse.'),
 })
 
@@ -47,42 +55,19 @@ type FieldErrors = Partial<Record<keyof SignupValues, string>>
 function fieldErrorsFromApi(details: unknown): FieldErrors {
   if (!details || typeof details !== 'object') return {}
   const out: FieldErrors = {}
-  const map: Record<string, keyof SignupValues> = {
-    email: 'email',
-    password: 'password',
-    firstName: 'firstName',
-    lastName: 'lastName',
-    dateOfBirth: 'dateOfBirth',
-    phone: 'phone',
-    address: 'address',
+  const fields = [
+    'email',
+    'password',
+    'firstName',
+    'lastName',
+    'birthDate',
+    'phone',
+    'address',
+  ] as const
+  for (const field of fields) {
+    const value = (details as Record<string, unknown>)[field]
+    if (typeof value === 'string' && value.trim()) out[field] = value
   }
-
-  // { email: "msg", password: "msg" }
-  for (const [key, value] of Object.entries(details as Record<string, unknown>)) {
-    const field = map[key]
-    if (field && typeof value === 'string' && value.trim()) {
-      out[field] = value
-    }
-  }
-
-  // { fields: [{ field: "email", message: "..." }] } or array
-  const list = Array.isArray(details)
-    ? details
-    : Array.isArray((details as { fields?: unknown }).fields)
-      ? (details as { fields: unknown[] }).fields
-      : null
-
-  if (list) {
-    for (const item of list) {
-      if (!item || typeof item !== 'object') continue
-      const entry = item as { field?: string; message?: string }
-      const field = entry.field ? map[entry.field] : undefined
-      if (field && typeof entry.message === 'string' && entry.message.trim()) {
-        out[field] = entry.message
-      }
-    }
-  }
-
   return out
 }
 
@@ -105,7 +90,7 @@ export default function SignupPage() {
       password: '',
       firstName: '',
       lastName: '',
-      dateOfBirth: '',
+      birthDate: '',
       phone: '',
       address: '',
     },
@@ -143,7 +128,7 @@ export default function SignupPage() {
         password: values.password,
         firstName: values.firstName.trim(),
         lastName: values.lastName.trim(),
-        dateOfBirth: values.dateOfBirth,
+        birthDate: values.birthDate,
         phone: values.phone.trim(),
         address: values.address.trim(),
       })
@@ -155,23 +140,15 @@ export default function SignupPage() {
         return
       }
 
-      if (error.status === 409) {
-        setFormError('Un compte existe déjà avec cet e-mail')
-        return
-      }
-
       if (error.status === 400) {
+        if (error.code === 'PASSWORD_POLICY') {
+          setFieldErrors({ password: error.message })
+          return
+        }
         const fromServer = fieldErrorsFromApi(error.details)
-        if (Object.keys(fromServer).length > 0) {
-          setFieldErrors(fromServer)
-        }
-        // Global message if no field mapping, or always keep server message as banner
-        // when details didn't cover everything.
-        if (Object.keys(fromServer).length === 0 && error.message) {
-          setFormError(error.message)
-        } else if (error.message && !fromServer.email && error.message.toLowerCase().includes('e-mail')) {
-          setFormError(error.message)
-        }
+        setFieldErrors(fromServer)
+        // No field to attach the message to: show it in the banner.
+        if (Object.keys(fromServer).length === 0) setFormError(error.message)
         return
       }
 
@@ -242,12 +219,6 @@ export default function SignupPage() {
           {formError && (
             <p className="signup__form-error" role="alert">
               {formError}
-              {formError === 'Un compte existe déjà avec cet e-mail' && (
-                <>
-                  {' '}
-                  <Link to="/connexion">Se connecter</Link>
-                </>
-              )}
             </p>
           )}
 
@@ -381,24 +352,24 @@ export default function SignupPage() {
           </div>
 
           <div className="signup__field">
-            <label className="signup__label" htmlFor="dateOfBirth">
+            <label className="signup__label" htmlFor="birthDate">
               <Calendar size={18} aria-hidden="true" />
               Date de naissance
             </label>
             <input
-              id="dateOfBirth"
+              id="birthDate"
               className="signup__input"
               type="date"
               autoComplete="bday"
-              aria-invalid={fieldMessage('dateOfBirth') ? 'true' : 'false'}
+              aria-invalid={fieldMessage('birthDate') ? 'true' : 'false'}
               aria-describedby={
-                fieldMessage('dateOfBirth') ? 'dateOfBirth-error' : undefined
+                fieldMessage('birthDate') ? 'birthDate-error' : undefined
               }
-              {...register('dateOfBirth')}
+              {...register('birthDate')}
             />
-            {fieldMessage('dateOfBirth') && (
-              <p id="dateOfBirth-error" className="signup__field-error" role="alert">
-                {fieldMessage('dateOfBirth')}
+            {fieldMessage('birthDate') && (
+              <p id="birthDate-error" className="signup__field-error" role="alert">
+                {fieldMessage('birthDate')}
               </p>
             )}
           </div>
