@@ -1,0 +1,323 @@
+name: Frontend Container Security
+
+on:
+  pull_request:
+    branches: [master, main, develop, staging, prod]
+  push:
+    branches: [master, main, staging, prod]
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Environment to deploy after security checks
+        required: true
+        default: staging
+        type: choice
+        options: [staging, production]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-container-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-scan:
+    name: Build, scan and create release bundle
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    outputs:
+      image_tag: ${{ steps.image.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Define immutable build tag
+        id: image
+        env:
+          REPOSITORY: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          echo "tag=ghcr.io/${REPOSITORY,,}:${SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Build production image once
+        env:
+          IMAGE: ${{ steps.image.outputs.tag }}
+        run: docker build --pull --tag "$IMAGE" .
+
+      - name: Scan exact image (block on HIGH/CRITICAL)
+        id: trivy
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: ${{ steps.image.outputs.tag }}
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: '1'
+          ignore-unfixed: true
+          scanners: vuln,secret,misconfig
+
+      - name: Generate CycloneDX SBOM from exact image
+        if: steps.trivy.outcome == 'success' || steps.trivy.outcome == 'failure'
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: ${{ steps.image.outputs.tag }}
+          format: cyclonedx
+          output: sbom.cdx.json
+          exit-code: '0'
+          scanners: vuln
+
+      - name: Save the scanned image for promotion
+        if: success()
+        env:
+          IMAGE: ${{ steps.image.outputs.tag }}
+        run: docker save --output image.tar "$IMAGE"
+
+      - name: Upload SBOM for audit even when the vulnerability gate blocks
+        if: always() && hashFiles('sbom.cdx.json') != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: dashboard-sbom-${{ github.sha }}
+          path: sbom.cdx.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload exact scanned image
+        if: success()
+        uses: actions/upload-artifact@v7
+        with:
+          name: dashboard-image-${{ github.sha }}
+          path: image.tar
+          if-no-files-found: error
+          retention-days: 2
+
+  publish-and-attest:
+    name: Publish verified artifact and attest it
+    needs: build-and-scan
+    if: (github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/prod' || startsWith(github.ref, 'refs/tags/v'))) || (github.event_name == 'workflow_dispatch' && ((inputs.target == 'staging' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging')) || (inputs.target == 'production' && (github.ref == 'refs/heads/prod' || startsWith(github.ref, 'refs/tags/v')))))
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    outputs:
+      digest: ${{ steps.publish.outputs.digest }}
+      image: ${{ steps.publish.outputs.ref }}
+    steps:
+      - name: Download the exact scanned image
+        uses: actions/download-artifact@v7
+        with:
+          name: dashboard-image-${{ github.sha }}
+          path: bundle
+
+      - name: Download the SBOM for the same image
+        uses: actions/download-artifact@v7
+        with:
+          name: dashboard-sbom-${{ github.sha }}
+          path: bundle
+
+      - name: Load scanned image
+        run: docker load --input bundle/image.tar
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish the already-scanned image and capture registry digest
+        id: publish
+        env:
+          IMAGE: ${{ needs.build-and-scan.outputs.image_tag }}
+        run: |
+          set -o pipefail
+          docker push "$IMAGE" 2>&1 | tee push.log
+          DIGEST="$(grep -Eo 'digest: sha256:[0-9a-f]{64}' push.log | tail -n 1 | cut -d' ' -f2)"
+          test -n "$DIGEST" || { echo "::error::Could not obtain the GHCR digest from docker push."; exit 1; }
+          echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
+          echo "ref=ghcr.io/${{ github.repository }}@$DIGEST" >> "$GITHUB_OUTPUT"
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-name: ghcr.io/${{ github.repository }}
+          subject-digest: ${{ steps.publish.outputs.digest }}
+          push-to-registry: true
+
+      - name: Attest SBOM for the published digest
+        uses: actions/attest-sbom@v3
+        with:
+          subject-name: ghcr.io/${{ github.repository }}
+          subject-digest: ${{ steps.publish.outputs.digest }}
+          sbom-path: bundle/sbom.cdx.json
+          push-to-registry: true
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3.10.0
+
+      - name: Sign the published image digest
+        env:
+          IMAGE: ${{ steps.publish.outputs.ref }}
+        run: cosign sign --yes "$IMAGE"
+
+  deploy-staging:
+    needs: publish-and-attest
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/staging') || (github.event_name == 'workflow_dispatch' && inputs.target == 'staging' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: staging
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Log in to GHCR for signature verification
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3.10.0
+
+      - name: Verify image signature before deployment
+        env:
+          IMAGE: ${{ needs.publish-and-attest.outputs.image }}
+        run: |
+          test -n "$IMAGE"
+          cosign verify --certificate-identity-regexp '^https://github.com/assali-mohamed-ali/medlink-dashboard/.github/workflows/container-security.yml@refs/(heads/(master|main|staging|prod)|tags/v.*)$' --certificate-oidc-issuer https://token.actions.githubusercontent.com "$IMAGE"
+
+      - name: Configure SSH with pinned host keys
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          test -n "$DEPLOY_SSH_KEY" && test -n "$DEPLOY_KNOWN_HOSTS"
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$DEPLOY_SSH_KEY" > "$HOME/.ssh/deploy_key"
+          chmod 600 "$HOME/.ssh/deploy_key"
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 644 "$HOME/.ssh/known_hosts"
+
+      - name: Copy Compose definition
+        env:
+          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+        run: |
+          test -n "$DEPLOY_HOST" && test -n "$DEPLOY_USER" && test -n "$DEPLOY_PATH"
+          SSH_OPTS=(-o BatchMode=yes -o StrictHostKeyChecking=yes -o IdentitiesOnly=yes -i "$HOME/.ssh/deploy_key")
+          ssh "${SSH_OPTS[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "mkdir -p '$DEPLOY_PATH'"
+          scp "${SSH_OPTS[@]}" deploy/docker-compose.frontend.yml "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/docker-compose.frontend.yml"
+
+      - name: Deploy the tested image by immutable digest
+        env:
+          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+          DEPLOY_PORT: ${{ vars.FRONTEND_HOST_PORT }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IMAGE: ${{ needs.publish-and-attest.outputs.image }}
+        run: |
+          test -n "$IMAGE"
+          SSH_OPTS=(-o BatchMode=yes -o StrictHostKeyChecking=yes -o IdentitiesOnly=yes -i "$HOME/.ssh/deploy_key")
+          printf '%s' "$GHCR_TOKEN" | ssh "${SSH_OPTS[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "docker login ghcr.io --username '$GHCR_USER' --password-stdin"
+          ssh "${SSH_OPTS[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "printf 'FRONTEND_IMAGE=%s\nFRONTEND_HOST_PORT=%s\n' '$IMAGE' '${DEPLOY_PORT:-8081}' > '$DEPLOY_PATH/.frontend.env' && docker compose --env-file '$DEPLOY_PATH/.frontend.env' -f '$DEPLOY_PATH/docker-compose.frontend.yml' pull && docker compose --env-file '$DEPLOY_PATH/.frontend.env' -f '$DEPLOY_PATH/docker-compose.frontend.yml' up -d --remove-orphans"
+
+      - name: Verify deployed health endpoint
+        env:
+          HEALTH_URL: ${{ vars.DEPLOY_HEALTH_URL }}
+        run: |
+          test -n "$HEALTH_URL"
+          for attempt in $(seq 1 24); do
+            if curl --fail --silent --show-error "$HEALTH_URL"; then exit 0; fi
+            sleep 5
+          done
+          echo "::error::Frontend health check failed after deployment."
+          exit 1
+
+  deploy-prod:
+    needs: publish-and-attest
+    if: (github.event_name == 'push' && (github.ref == 'refs/heads/prod' || startsWith(github.ref, 'refs/tags/v'))) || (github.event_name == 'workflow_dispatch' && inputs.target == 'production' && (github.ref == 'refs/heads/prod' || startsWith(github.ref, 'refs/tags/v')))
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Log in to GHCR for signature verification
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3.10.0
+
+      - name: Verify image signature before deployment
+        env:
+          IMAGE: ${{ needs.publish-and-attest.outputs.image }}
+        run: |
+          test -n "$IMAGE"
+          cosign verify --certificate-identity-regexp '^https://github.com/assali-mohamed-ali/medlink-dashboard/.github/workflows/container-security.yml@refs/(heads/(master|main|staging|prod)|tags/v.*)$' --certificate-oidc-issuer https://token.actions.githubusercontent.com "$IMAGE"
+
+      - name: Configure SSH with pinned host keys
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          test -n "$DEPLOY_SSH_KEY" && test -n "$DEPLOY_KNOWN_HOSTS"
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$DEPLOY_SSH_KEY" > "$HOME/.ssh/deploy_key"
+          chmod 600 "$HOME/.ssh/deploy_key"
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 644 "$HOME/.ssh/known_hosts"
+
+      - name: Copy Compose definition
+        env:
+          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+        run: |
+          test -n "$DEPLOY_HOST" && test -n "$DEPLOY_USER" && test -n "$DEPLOY_PATH"
+          SSH_OPTS=(-o BatchMode=yes -o StrictHostKeyChecking=yes -o IdentitiesOnly=yes -i "$HOME/.ssh/deploy_key")
+          ssh "${SSH_OPTS[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "mkdir -p '$DEPLOY_PATH'"
+          scp "${SSH_OPTS[@]}" deploy/docker-compose.frontend.yml "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/docker-compose.frontend.yml"
+
+      - name: Deploy the tested image by immutable digest
+        env:
+          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+          DEPLOY_PORT: ${{ vars.FRONTEND_HOST_PORT }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IMAGE: ${{ needs.publish-and-attest.outputs.image }}
+        run: |
+          test -n "$IMAGE"
+          SSH_OPTS=(-o BatchMode=yes -o StrictHostKeyChecking=yes -o IdentitiesOnly=yes -i "$HOME/.ssh/deploy_key")
+          printf '%s' "$GHCR_TOKEN" | ssh "${SSH_OPTS[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "docker login ghcr.io --username '$GHCR_USER' --password-stdin"
+          ssh "${SSH_OPTS[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "printf 'FRONTEND_IMAGE=%s\nFRONTEND_HOST_PORT=%s\n' '$IMAGE' '${DEPLOY_PORT:-8081}' > '$DEPLOY_PATH/.frontend.env' && docker compose --env-file '$DEPLOY_PATH/.frontend.env' -f '$DEPLOY_PATH/docker-compose.frontend.yml' pull && docker compose --env-file '$DEPLOY_PATH/.frontend.env' -f '$DEPLOY_PATH/docker-compose.frontend.yml' up -d --remove-orphans"
+
+      - name: Verify deployed health endpoint
+        env:
+          HEALTH_URL: ${{ vars.DEPLOY_HEALTH_URL }}
+        run: |
+          test -n "$HEALTH_URL"
+          for attempt in $(seq 1 24); do
+            if curl --fail --silent --show-error "$HEALTH_URL"; then exit 0; fi
+            sleep 5
+          done
+          echo "::error::Frontend health check failed after deployment."
+          exit 1

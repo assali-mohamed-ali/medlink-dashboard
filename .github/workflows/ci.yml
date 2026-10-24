@@ -1,0 +1,41 @@
+name: Frontend CI
+
+on:
+  pull_request:
+    branches: [master, main, develop, staging, prod]
+  push:
+    branches: [master, main, develop, staging, prod]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Lint, type-check and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: TypeScript and production build
+        run: npm run build
+      - name: Dependency audit
+        run: npm audit --audit-level=high
+      - name: Upload production bundle
+        uses: actions/upload-artifact@v7
+        with:
+          name: dashboard-dist-${{ github.sha }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 7
