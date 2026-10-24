@@ -1,0 +1,40 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-xml
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: detect-private-key
+      - id: check-added-large-files
+        args: [--maxkb=1024]
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.24.0
+    hooks:
+      - id: gitleaks
+
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.7
+    hooks:
+      - id: actionlint
+
+  - repo: local
+    hooks:
+      - id: oxlint
+        name: Oxlint changed frontend source files
+        entry: npm run lint --
+        language: system
+        files: '\.(?:[cm]?[jt]sx?)$'
+        pass_filenames: true
+
+      - id: frontend-production-build
+        name: TypeScript check and Vite production build
+        entry: npm run build
+        language: system
+        files: '^(src/|vite\.config\..*|tsconfig.*|package\.json$|package-lock\.json$)'
+        pass_filenames: false
