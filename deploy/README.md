@@ -56,11 +56,16 @@ The Compose deployment file is intentionally image-only: the remote server pulls
 
 ## Local pre-commit hooks
 
-Install the required tools once from the repository root:
+Prerequisites: Node.js 22, Python/pipx, and Go (the Gitleaks and actionlint hooks build Go tools). Install/enable the hooks once from the repository root:
 
 ```bash
-npm ci
+sudo apt update
+sudo apt install -y pipx golang-go
+pipx ensurepath
+# Open a new shell if pipx added a PATH entry.
 pipx install pre-commit
+npm ci
+pre-commit validate-config
 pre-commit install
 ```
 
