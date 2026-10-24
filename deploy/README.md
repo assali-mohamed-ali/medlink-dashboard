@@ -52,3 +52,24 @@ Environment secrets:
 Production must use required reviewers. Ensure the server has Docker Engine and the Compose plugin installed, can reach GHCR, and allows the configured port from the intended reverse proxy/firewall. Do not generate `known_hosts` with an unauthenticated `ssh-keyscan` inside the workflow.
 
 The Compose deployment file is intentionally image-only: the remote server pulls an immutable digest; it does not build source code during deployment.
+
+
+## Local pre-commit hooks
+
+Install the required tools once from the repository root:
+
+```bash
+npm ci
+pipx install pre-commit
+pre-commit install
+```
+
+Run all hooks manually before opening a PR:
+
+```bash
+pre-commit run --all-files
+```
+
+The installed Git hook checks whitespace, EOF/newline hygiene, YAML/JSON/XML syntax, merge markers, private keys, large files, staged secrets with Gitleaks, GitHub Actions workflow syntax with actionlint, Oxlint, and the TypeScript/Vite production build when relevant files change.
+
+The frontend CI workflow also runs `pre-commit run --all-files`, so the configuration is verified in pull requests rather than relying only on developer machines. The dedicated Gitleaks workflow remains responsible for repository-history secret scanning.
