@@ -2,9 +2,9 @@ name: Frontend CI
 
 on:
   pull_request:
-    branches: [master, main, develop, staging, prod]
+    branches: [master, main,  staging, prod]
   push:
-    branches: [master, main, develop, staging, prod]
+    branches: [master, main,  staging, prod]
   workflow_dispatch:
 
 permissions:
