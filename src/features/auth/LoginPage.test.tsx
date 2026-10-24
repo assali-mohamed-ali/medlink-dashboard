@@ -3,32 +3,38 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, expect, test, vi } from 'vitest'
 import { ApiError } from '../../services/apiClient'
+import AuthProvider from './AuthProvider'
 import * as authService from './authService'
 import LoginPage from './LoginPage'
 
 vi.mock('./authService', () => ({
   fetchCsrf: vi.fn(),
+  fetchMe: vi.fn(),
   login: vi.fn(),
+  logout: vi.fn(),
   resendVerification: vi.fn(),
 }))
 
 const fetchCsrf = vi.mocked(authService.fetchCsrf)
+const fetchMe = vi.mocked(authService.fetchMe)
 const login = vi.mocked(authService.login)
 const resendVerification = vi.mocked(authService.resendVerification)
 
 function renderPage() {
   return render(
-    <MemoryRouter initialEntries={['/connexion']}>
-      <Routes>
-        <Route path="/connexion" element={<LoginPage />} />
-        <Route path="/patient" element={<p>Espace patient</p>} />
-        <Route path="/praticien" element={<p>Espace praticien</p>} />
-        <Route path="/admin" element={<p>Espace administratif</p>} />
-        <Route path="/double-authentification" element={<p>Page MFA</p>} />
-        <Route path="/mot-de-passe" element={<p>Page mot de passe</p>} />
-        <Route path="/inscription" element={<p>Page inscription</p>} />
-      </Routes>
-    </MemoryRouter>,
+    <AuthProvider>
+      <MemoryRouter initialEntries={['/connexion']}>
+        <Routes>
+          <Route path="/connexion" element={<LoginPage />} />
+          <Route path="/patient" element={<p>Espace patient</p>} />
+          <Route path="/praticien" element={<p>Espace praticien</p>} />
+          <Route path="/admin" element={<p>Espace administratif</p>} />
+          <Route path="/double-authentification" element={<p>Page MFA</p>} />
+          <Route path="/mot-de-passe" element={<p>Page mot de passe</p>} />
+          <Route path="/inscription" element={<p>Page inscription</p>} />
+        </Routes>
+      </MemoryRouter>
+    </AuthProvider>,
   )
 }
 
@@ -52,6 +58,7 @@ function userWithRole(role: 'PATIENT' | 'PRACTITIONER' | 'ADMINISTRATIVE_STAFF')
 beforeEach(() => {
   vi.resetAllMocks()
   fetchCsrf.mockResolvedValue(undefined)
+  fetchMe.mockRejectedValue(new ApiError(401, 'UNAUTHENTICATED', 'Non connecté.'))
 })
 
 test('asks for the CSRF cookie when the page opens', () => {

@@ -5,9 +5,10 @@ import { z } from 'zod'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowRight, Eye, EyeOff, Lock, Mail, Plus, ShieldCheck } from 'lucide-react'
 import { ApiError } from '../../services/apiClient'
-import { fetchCsrf, login, resendVerification } from './authService'
+import { fetchCsrf, resendVerification } from './authService'
 import type { LoginResponse } from './authService'
 import { roleHome } from './roles'
+import { useAuth } from './useAuth'
 import './LoginPage.css'
 
 const loginSchema = z.object({
@@ -19,6 +20,7 @@ type LoginValues = z.infer<typeof loginSchema>
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const { login } = useAuth()
   const [formError, setFormError] = useState<string | null>(null)
   const [needsVerification, setNeedsVerification] = useState(false)
   const [resendMessage, setResendMessage] = useState<string | null>(null)
@@ -70,7 +72,7 @@ export default function LoginPage() {
     } else if (result.passwordChangeRequired) {
       navigate('/mot-de-passe', { state: { forced: true } })
     } else if (result.user) {
-      // TODO MLink-56: store result.user in AuthProvider before navigating.
+      // login() has already stored the user in the auth state.
       navigate(roleHome(result.user.roles))
     }
   }
