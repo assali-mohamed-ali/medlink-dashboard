@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Link } from 'react-router-dom'
@@ -81,7 +81,7 @@ export default function SignupPage() {
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<SignupValues>({
     resolver: zodResolver(signupSchema),
@@ -97,8 +97,8 @@ export default function SignupPage() {
     mode: 'onSubmit',
   })
 
-  const email = watch('email')
-  const password = watch('password')
+  const email = useWatch({ control, name: 'email' })
+  const password = useWatch({ control, name: 'password' })
 
   const ruleStates = useMemo(
     () => evaluatePasswordRules(password ?? '', email ?? ''),
