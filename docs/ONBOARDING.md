@@ -415,6 +415,16 @@ a year, the app shell revalidated on each visit. The HTTPS reverse proxy in fron
 browser sees one origin. Details, the proxy example and a local one-origin test (`http://localhost:8090`):
 [deploy/README.md](../deploy/README.md).
 
-## 13. Work in progress (MLink-128)
+## 13. Team rules
 
-This foundation is being built on PR #11. Coming next: the team rules (CONTRIBUTING, CLAUDE.md, PR template) and the hand-over of the password pages (MLink-89).
+The full list is in [CONTRIBUTING.md](../CONTRIBUTING.md#team-rules): structure and imports, the one API and
+error path, security, tests and definition of done, Git and shared files. `npm run lint` enforces the import
+direction (`.oxlintrc.json`: a feature imported through its index only, `@/` across folders, nothing upward); the
+PR template (`.github/pull_request_template.md`) carries the checklist and the AI disclosure. AI sessions follow
+[CLAUDE.md](../CLAUDE.md).
+
+## 14. Work in progress
+
+Still to build on this foundation: the password pages (MLink-89, Ahlem: `/mot-de-passe`, own and forced change),
+the account activation page (`/activer-compte`, once the API's MLink-71 lands) and the back-office accounts page
+(MLink-73, `/admin/comptes`, once the API's MLink-69/70 land). Each follows the recipes above.
