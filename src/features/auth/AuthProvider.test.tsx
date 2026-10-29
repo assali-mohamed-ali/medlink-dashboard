@@ -2,14 +2,14 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, expect, test, vi } from 'vitest'
-import SpacePage from '../../pages/SpacePage'
-import { ApiError } from '../../services/apiClient'
+import SpacePage from '@/pages/SpacePage'
+import { ApiError } from '@/shared/api/apiClient'
 import AuthProvider from './AuthProvider'
 import ProtectedRoute from './ProtectedRoute'
-import * as authService from './authService'
+import * as authService from './api'
 import type { Role } from './roles'
 
-vi.mock('./authService', () => ({
+vi.mock('./api', () => ({
   fetchMe: vi.fn(),
   login: vi.fn(),
   logout: vi.fn(),

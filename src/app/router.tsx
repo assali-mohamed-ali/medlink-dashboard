@@ -1,10 +1,10 @@
 import { createBrowserRouter } from 'react-router-dom'
-import LoginPage from '../features/auth/LoginPage'
-import SignupPage from '../features/auth/SignupPage'
-import ProtectedRoute from '../features/auth/ProtectedRoute'
-import HomePage from '../pages/HomePage'
-import PlaceholderPage from '../pages/PlaceholderPage'
-import SpacePage from '../pages/SpacePage'
+import LoginPage from '@/features/auth/pages/LoginPage'
+import SignupPage from '@/features/auth/pages/SignupPage'
+import { ProtectedRoute } from '@/features/auth'
+import HomePage from '@/pages/HomePage'
+import PlaceholderPage from '@/pages/PlaceholderPage'
+import SpacePage from '@/pages/SpacePage'
 
 export const routes = [
   { path: '/', element: <HomePage /> },

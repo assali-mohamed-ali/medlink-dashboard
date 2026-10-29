@@ -5,8 +5,8 @@ import {
   fetchMe,
   login as loginRequest,
   logout as logoutRequest,
-} from './authService'
-import type { AuthUser, LoginResponse } from './authService'
+} from './api'
+import type { AuthUser, LoginResponse } from './types'
 
 export default function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)

@@ -1,20 +1,7 @@
-import { apiFetch } from '../../services/apiClient'
-import type { Role } from './roles'
+import { apiFetch } from '@/shared/api/apiClient'
+import type { AuthUser, LoginResponse, RegisterPayload, RegisterResponse } from './types'
 
-export type AuthUser = {
-  id: string
-  email: string
-  firstName: string
-  lastName: string
-  roles: Role[]
-}
-
-export type LoginResponse = {
-  user?: AuthUser
-  mfaRequired?: boolean
-  mfaSetupRequired?: boolean
-  passwordChangeRequired?: boolean
-}
+// One function per endpoint of plan.md §4 (api-MedLink). Components never call fetch() themselves.
 
 export function fetchCsrf() {
   return apiFetch('/auth/csrf')
@@ -40,20 +27,6 @@ export function fetchMe() {
 
 export function logout() {
   return apiFetch('/auth/logout', { method: 'POST' })
-}
-
-export type RegisterPayload = {
-  email: string
-  password: string
-  firstName: string
-  lastName: string
-  birthDate: string
-  phone: string
-  address: string
-}
-
-export type RegisterResponse = {
-  message?: string
 }
 
 export function register(payload: RegisterPayload) {

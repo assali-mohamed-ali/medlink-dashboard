@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../features/auth/useAuth'
+import { useAuth } from '@/features/auth'
 
 export default function SpacePage({ title }: { title: string }) {
   const { user, logout } = useAuth()

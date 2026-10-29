@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import PublicHeader from '../components/layout/PublicHeader'
+import PublicHeader from '@/shared/layout/PublicHeader'
 import {
   ArrowRight,
   Building2,

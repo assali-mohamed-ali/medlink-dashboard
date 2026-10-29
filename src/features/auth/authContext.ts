@@ -1,5 +1,5 @@
 import { createContext } from 'react'
-import type { AuthUser, LoginResponse } from './authService'
+import type { AuthUser, LoginResponse } from './types'
 import type { Role } from './roles'
 
 export type AuthState = {

@@ -24,14 +24,14 @@ import {
   UserPlus,
   X,
 } from 'lucide-react'
-import MedLinkShell from '../../components/layout/MedLinkShell'
-import PublicHeader from '../../components/layout/PublicHeader'
-import { ApiError } from '../../services/apiClient'
-import { fetchCsrf, register as registerRequest } from './authService'
+import MedLinkShell from '@/shared/layout/MedLinkShell'
+import PublicHeader from '@/shared/layout/PublicHeader'
+import { ApiError } from '@/shared/api/apiClient'
+import { fetchCsrf, register as registerRequest } from '../api'
 import {
   allPasswordRulesPass,
   evaluatePasswordRules,
-} from './passwordRules'
+} from '../passwordRules'
 import './SignupPage.css'
 
 const GOUVERNORATS = [

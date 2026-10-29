@@ -2,12 +2,12 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, expect, test, vi } from 'vitest'
-import { ApiError } from '../../services/apiClient'
-import AuthProvider from './AuthProvider'
-import * as authService from './authService'
+import { ApiError } from '@/shared/api/apiClient'
+import AuthProvider from '../AuthProvider'
+import * as authService from '../api'
 import LoginPage from './LoginPage'
 
-vi.mock('./authService', () => ({
+vi.mock('../api', () => ({
   fetchCsrf: vi.fn(),
   fetchMe: vi.fn(),
   login: vi.fn(),
