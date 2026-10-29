@@ -1,6 +1,6 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { beforeEach, expect, test, vi } from 'vitest'
 import { ApiError } from '@/shared/api/apiClient'
 import AuthProvider from '../AuthProvider'
@@ -200,4 +200,39 @@ test('says the session expired when the app sent the user here for that reason',
 test('says nothing about a session on a normal visit', () => {
   renderPage()
   expect(screen.queryByText(/session a expiré/)).toBeNull()
+})
+
+test('after an expired code step, the login page says why', async () => {
+  render(
+    <AuthProvider>
+      <MemoryRouter initialEntries={[{ pathname: '/connexion', state: { stepExpired: true } }]}>
+        <Routes>
+          <Route path="/connexion" element={<LoginPage />} />
+        </Routes>
+      </MemoryRouter>
+    </AuthProvider>,
+  )
+  expect(await screen.findByRole('status')).toHaveTextContent(
+    'Votre étape de connexion a expiré (5 minutes). Reconnectez-vous.',
+  )
+})
+
+test('logging in again for a code setup link goes back to the setup, token in memory', async () => {
+  login.mockResolvedValue({ mfaRequired: true, mfaSetupRequired: true })
+  function SetupStub() {
+    const state = useLocation().state as { setupToken?: string } | null
+    return <p>Page configuration ({state?.setupToken})</p>
+  }
+  render(
+    <AuthProvider>
+      <MemoryRouter initialEntries={[{ pathname: '/connexion', state: { setupToken: 'tok-1' } }]}>
+        <Routes>
+          <Route path="/connexion" element={<LoginPage />} />
+          <Route path="/configurer-code" element={<SetupStub />} />
+        </Routes>
+      </MemoryRouter>
+    </AuthProvider>,
+  )
+  await fillAndSubmit()
+  expect(await screen.findByText('Page configuration (tok-1)')).toBeInTheDocument()
 })
