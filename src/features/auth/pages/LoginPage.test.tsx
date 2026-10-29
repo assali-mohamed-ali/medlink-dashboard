@@ -181,3 +181,23 @@ test('the eye button shows and hides the password', async () => {
   await user.click(screen.getByRole('button', { name: 'Masquer le mot de passe' }))
   expect(field).toHaveAttribute('type', 'password')
 })
+
+test('says the session expired when the app sent the user here for that reason', async () => {
+  render(
+    <AuthProvider>
+      <MemoryRouter initialEntries={[{ pathname: '/connexion', state: { sessionExpired: true } }]}>
+        <Routes>
+          <Route path="/connexion" element={<LoginPage />} />
+        </Routes>
+      </MemoryRouter>
+    </AuthProvider>,
+  )
+  expect(await screen.findByRole('status')).toHaveTextContent(
+    'Votre session a expiré. Reconnectez-vous pour continuer.',
+  )
+})
+
+test('says nothing about a session on a normal visit', () => {
+  renderPage()
+  expect(screen.queryByText(/session a expiré/)).toBeNull()
+})
