@@ -130,3 +130,54 @@ test('keeps the per-field details of an error', async () => {
     details: { email: 'invalide' },
   })
 })
+
+test('turns a network failure into a NETWORK_ERROR ApiError', async () => {
+  fetchMock.mockRejectedValue(new TypeError('Failed to fetch'))
+  await expect(apiFetch('/auth/me')).rejects.toMatchObject({
+    status: 0,
+    code: 'NETWORK_ERROR',
+    message: 'Impossible de joindre le serveur. Veuillez réessayer.',
+  })
+})
+
+test('gives up when the API does not answer in time', async () => {
+  fetchMock.mockRejectedValue(new DOMException('timed out', 'TimeoutError'))
+  await expect(apiFetch('/auth/me')).rejects.toMatchObject({ status: 0, code: 'TIMEOUT' })
+  expect(fetchMock.mock.calls[0][1].signal).toBeInstanceOf(AbortSignal)
+})
+
+function clearXsrfCookie() {
+  document.cookie = 'XSRF-TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+}
+
+// The API sets the XSRF-TOKEN cookie when /auth/csrf is called; the mock does the same
+function answerLikeTheApi(url: string) {
+  if (url === '/api/auth/csrf') document.cookie = 'XSRF-TOKEN=fresh-token'
+  return Promise.resolve(new Response(null, { status: 204 }))
+}
+
+test('fetches the CSRF cookie before the first write when there is none', async () => {
+  clearXsrfCookie()
+  fetchMock.mockImplementation(answerLikeTheApi)
+  await apiFetch('/auth/login', { method: 'POST', body: {} })
+  expect(fetchMock.mock.calls.map(([url]) => url)).toEqual(['/api/auth/csrf', '/api/auth/login'])
+  expect(fetchMock.mock.calls[1][1].headers['X-XSRF-TOKEN']).toBe('fresh-token')
+})
+
+test('fetches the CSRF cookie only once for parallel writes', async () => {
+  clearXsrfCookie()
+  fetchMock.mockImplementation(answerLikeTheApi)
+  await Promise.all([
+    apiFetch('/auth/login', { method: 'POST' }),
+    apiFetch('/auth/logout', { method: 'POST' }),
+  ])
+  const csrfCalls = fetchMock.mock.calls.filter(([url]) => url === '/api/auth/csrf')
+  expect(csrfCalls).toHaveLength(1)
+})
+
+test('does not fetch the CSRF cookie for a GET', async () => {
+  clearXsrfCookie()
+  fetchMock.mockImplementation(answerLikeTheApi)
+  await apiFetch('/auth/me')
+  expect(fetchMock.mock.calls.map(([url]) => url)).toEqual(['/api/auth/me'])
+})
