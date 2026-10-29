@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { paths } from '@/shared/config/paths'
 import { Plus, User } from 'lucide-react'
 import './PublicHeader.css'
 
@@ -15,7 +16,7 @@ export default function PublicHeader({ variant = 'home' }: PublicHeaderProps) {
     <header className="public-header">
       <div className="public-header__inner">
         <div className="public-header__left">
-          <Link to="/" className="public-header__brand">
+          <Link to={paths.home} className="public-header__brand">
             <span className="public-header__brand-icon" aria-hidden="true">
               <Plus size={22} strokeWidth={3} />
             </span>
@@ -38,7 +39,7 @@ export default function PublicHeader({ variant = 'home' }: PublicHeaderProps) {
         <div className="public-header__actions">
           {variant !== 'login' && (
             <Link
-              to="/connexion"
+              to={paths.login}
               className={
                 variant === 'signup'
                   ? 'public-header__btn public-header__btn--primary'
@@ -50,7 +51,7 @@ export default function PublicHeader({ variant = 'home' }: PublicHeaderProps) {
           )}
           {variant !== 'signup' && (
             <Link
-              to="/inscription"
+              to={paths.signup}
               className={
                 variant === 'login'
                   ? 'public-header__btn public-header__btn--primary'

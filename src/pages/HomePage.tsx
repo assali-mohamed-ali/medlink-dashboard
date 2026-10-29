@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import PublicHeader from '@/shared/layout/PublicHeader'
+import { paths } from '@/shared/config/paths'
 import {
   ArrowRight,
   Building2,
@@ -158,7 +159,7 @@ export default function HomePage() {
 
           <div className="home__ctas">
             <div className="home__cta-block">
-              <Link to="/inscription" className="home__btn-primary">
+              <Link to={paths.signup} className="home__btn-primary">
                 <User size={18} aria-hidden="true" />
                 Créer un compte patient
               </Link>
@@ -404,13 +405,13 @@ export default function HomePage() {
               </ul>
             </div>
             <div className="home__banner-actions">
-              <Link to="/inscription" className="home__btn-yellow">
+              <Link to={paths.signup} className="home__btn-yellow">
                 Créer mon compte patient gratuitement
               </Link>
-              <Link to="/connexion" className="home__btn-ghost">
+              <Link to={paths.login} className="home__btn-ghost">
                 Accéder à mon espace sécurisé
               </Link>
-              <Link to="/connexion" className="home__banner-prac">
+              <Link to={paths.login} className="home__banner-prac">
                 Vous êtes médecin conventionné ? Accès au portail praticien
               </Link>
             </div>

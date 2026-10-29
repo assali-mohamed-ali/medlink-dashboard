@@ -7,6 +7,7 @@ import PublicHeader from '@/shared/layout/PublicHeader'
 import { ArrowRight, Lock, Mail, Plus, ShieldCheck } from 'lucide-react'
 import { ApiError } from '@/shared/api/apiClient'
 import { messageFor } from '@/shared/api/errors'
+import { paths } from '@/shared/config/paths'
 import { Alert, Button, PasswordField, TextField } from '@/shared/ui'
 import { resendVerification } from '../api'
 import type { LoginResponse } from '../types'
@@ -64,11 +65,11 @@ export default function LoginPage() {
     resetField('password')
 
     if (result.mfaRequired) {
-      navigate('/double-authentification', {
+      navigate(paths.mfa, {
         state: { mfaSetupRequired: Boolean(result.mfaSetupRequired) },
       })
     } else if (result.passwordChangeRequired) {
-      navigate('/mot-de-passe', { state: { forced: true } })
+      navigate(paths.password, { state: { forced: true } })
     } else if (result.user) {
       // login() has already stored the user in the auth state.
       navigate(roleHome(result.user.roles))
@@ -167,7 +168,7 @@ export default function LoginPage() {
         </div>
 
         <p className="login__signup">
-          Pas encore de compte ? <Link to="/inscription">Créer un compte</Link>
+          Pas encore de compte ? <Link to={paths.signup}>Créer un compte</Link>
         </p>
       </div>
 

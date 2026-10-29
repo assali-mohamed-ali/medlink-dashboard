@@ -53,39 +53,55 @@ CI runs pre-commit, lint, tests, build and `npm audit` on every pull request: ru
 ```
 src/
 ├─ main.tsx                 entry: providers + router
-├─ app/                     wiring only: the router (and soon providers, paths, error pages)
+├─ app/                     wiring only
+│   ├─ routes.tsx           the whole route table: public pages, one branch per role space, 404
+│   └─ router.ts            the browser router built from routes.tsx
+├─ spaces/                  the role spaces: one layout, configured per role
+│   ├─ spaces.ts            SPACES: each role's title and menu (data only)
+│   ├─ SpaceLayout.tsx      header (title, who is logged in, logout) + menu + <Outlet />
+│   └─ SpaceHome.tsx        the first page of a space
 ├─ features/<domain>/       one folder per business area
-│   └─ auth/                identity: login, signup, session, roles
+│   └─ auth/                identity: login, signup, session, roles, guards
 │       ├─ api.ts           one function per API endpoint (the contract of api-MedLink plan.md §4)
 │       ├─ types.ts         the shapes the API sends and receives
 │       ├─ AuthProvider.tsx the session state (who is logged in), useAuth.ts to read it
+│       ├─ guards.tsx       RequireAuth (logged in, optional role), GuestOnly (visitors only)
 │       ├─ roles.ts         the three roles and each role's home page
+│       ├─ routes.tsx       the feature's routes (lazy pages)
 │       ├─ pages/           LoginPage, SignupPage (+ their .css and .test.tsx)
 │       └─ index.ts         the feature's public API
-├─ pages/                   pages that belong to no feature (Home, placeholders)
+├─ pages/                   pages of no feature: Home, AccessDenied, NotFound, RouteError, placeholders
 ├─ shared/                  reusable code that knows nothing about MedLink's business
 │   ├─ api/apiClient.ts     apiFetch() and ApiError: the only place that calls fetch()
 │   ├─ api/errors.ts        messageFor(error), fieldErrors(details, fields): the French text to show
+│   ├─ config/paths.ts      every URL of the app, once
+│   ├─ lib/lazyPage.ts      the lazy-route helper
 │   ├─ layout/              PublicHeader, MedLinkShell
 │   ├─ styles/              tokens.css (colours, radii, shadows, type), global.css
 │   └─ ui/                  our component library: Button, TextField, PasswordField, Alert, Spinner, PageLoader
 └─ test/setup.ts            test setup (jest-dom matchers, cleanup)
 ```
 
-**Imports go one way:** `app` → `features` → `shared`.
+**Imports go one way:** `app` → `spaces` / `pages` → `features` → `shared`.
 
 ```mermaid
 flowchart LR
-  app["app/ (router, wiring)"] --> features["features/* (business)"]
-  app --> shared
-  features --> shared["shared/ (generic)"]
-  pages["pages/"] --> features
+  app["app/ (routes, wiring)"] --> spaces["spaces/ (role layouts)"]
+  app --> pages["pages/"]
+  app --> features
+  spaces --> features["features/* (business)"]
+  pages --> features
+  spaces --> shared
   pages --> shared
+  features --> shared["shared/ (generic)"]
 ```
 
-- `shared/` never imports from `features/` or `app/`.
+- `shared/` never imports from any other folder; a feature never imports from `app/`, `spaces/` or `pages/`.
 - Another folder imports a feature only through its `index.ts` (`import { useAuth } from '@/features/auth'`).
-  Pages are the one exception: the router imports them directly so each can be lazy-loaded.
+  Pages are the one exception: routes load them lazily (`lazyPage(() => import('./pages/LoginPage'))`) so
+  each page is its own download.
+- **No URL strings in code:** use `paths` (`navigate(paths.login)`, `<Link to={paths.signup}>`). The pages the
+  API mails (`verifyEmail`, `configureCode`, `activateAccount`) are part of the API contract: never rename them.
 - Inside a feature, use relative imports (`'../api'`); across folders, use the `@/` alias
   (`'@/shared/api/apiClient'`). `@/` means `src/` (`tsconfig.app.json` `paths` + `vite.config.ts` `alias`).
 
@@ -191,7 +207,50 @@ sequenceDiagram
 - Wait for `status !== 'loading'` before deciding anything about access (the guards do this and show
   a `PageLoader`).
 
-## 5. Our UI library (`shared/ui`) and design tokens
+## 5. Role spaces and route guards (RBAC)
+
+Each role has **one space**, a branch of the route table with **one guard and one layout at its top**:
+
+| Role | Space | Title |
+|---|---|---|
+| `PATIENT` | `/patient` | Espace patient |
+| `PRACTITIONER` | `/praticien` | Espace praticien |
+| `ADMINISTRATIVE_STAFF` | `/admin` | Espace administratif |
+
+```mermaid
+flowchart TD
+  open["someone opens /admin/comptes"] --> loading{"session known?"}
+  loading -- "not yet (GET /api/auth/me)" --> loader["PageLoader"]
+  loading -- "nobody logged in" --> login["/connexion (remembers the page;<br/>says 'session expirée' if the API ended it)"]
+  loading -- "logged in" --> role{"role = ADMINISTRATIVE_STAFF?"}
+  role -- no --> denied["/acces-refuse (link back to their own space)"]
+  role -- yes --> layout["SpaceLayout (header, menu) → the page"]
+```
+
+- `RequireAuth role="…"` guards a whole space (`app/routes.tsx`, function `space()`): a page added under a
+  space cannot forget the check. `RequireAuth` without `role` = any logged-in person.
+- `GuestOnly` wraps login and signup: a logged-in person is sent to their space.
+- **The front's guards are for comfort, the API is the security**: every endpoint checks the role server
+  side. Never show data because "the guard already checked"; let the API answer 403.
+- A route that crashes or fails to load shows `RouteErrorPage` (never the error itself); an unknown URL shows
+  `NotFoundPage`.
+
+### Recipe: add a page to a space
+
+1. Create the page in its feature: `features/appointments/pages/MyAppointmentsPage.tsx` (+ `.test.tsx`).
+2. Add its URL to `shared/config/paths.ts`: `patient: { root: '/patient', appointments: '/patient/rendez-vous' }`.
+3. Add the route under the space in `app/routes.tsx`:
+   `space('PATIENT', paths.patient.root, [{ path: paths.patient.appointments, lazy: lazyPage(() => import('@/features/appointments/pages/MyAppointmentsPage')) }])`.
+   (When a feature has several routes, export them from `features/x/routes.tsx` like `authRoutes`.)
+4. Add the menu entry in `spaces/spaces.ts`: `{ label: 'Mes rendez-vous', to: paths.patient.appointments }`.
+5. Test it in `app/routes.test.tsx` style: the right role sees it, another role gets "Accès refusé".
+
+### Recipe: add a public page
+
+Add the URL to `paths.ts`, the page in its feature, and the route in the feature's `routes.tsx` (inside
+`GuestOnly` if a logged-in person has nothing to do there).
+
+## 6. Our UI library (`shared/ui`) and design tokens
 
 Build screens from these, not from raw `<input>`/`<button>` with page CSS:
 
@@ -225,7 +284,7 @@ import { Alert, Button, PasswordField, TextField } from '@/shared/ui'
 - `HomePage.css`, `MedLinkShell.css` and `PublicHeader.css` still hold local copies of the same token
   values (from before `tokens.css`); new code reads the tokens.
 
-## 6. Where do I put…?
+## 7. Where do I put…?
 
 | I want to… | Put it in |
 |---|---|
@@ -234,9 +293,11 @@ import { Alert, Button, PasswordField, TextField } from '@/shared/ui'
 | a new business area | a new `features/<area>/` with `api.ts`, `types.ts`, `pages/`, `index.ts` |
 | a component used by one feature | `features/<area>/components/` (create it when needed) |
 | a component used by two features or more | `shared/ui/` (it must not mention MedLink's business) |
-| a route | `app/router.tsx` |
+| a URL | `shared/config/paths.ts` (then use `paths.x`, never the string) |
+| a route | the feature's `routes.tsx`, or the space's list in `app/routes.tsx` |
+| a space menu entry | `spaces/spaces.ts` |
 
-## 7. Tests
+## 8. Tests
 
 - Each page has a `.test.tsx` next to it. Test what the user sees: find elements by role and label
   (`getByRole('button', { name: … })`, `getByLabelText(…)`), not by CSS class.
@@ -251,7 +312,7 @@ import { Alert, Button, PasswordField, TextField } from '@/shared/ui'
 - One test per answer the API can give (200 and each error code of the contract).
 - `shared/api/apiClient.test.ts` is the only test that mocks `fetch` itself.
 
-## 8. Troubleshooting
+## 9. Troubleshooting
 
 | Symptom | Cause and fix |
 |---|---|
@@ -261,7 +322,7 @@ import { Alert, Button, PasswordField, TextField } from '@/shared/ui'
 | `npm run dev` shows network errors | The API is not running on `localhost:8080`: start its dev stack. |
 | A test can't find a label | Required labels end with `*`: match the start with a regex, `getByLabelText(/^Prénom/)`. |
 
-## 9. Glossary
+## 10. Glossary
 
 - **BFF (Backend For Frontend):** our API logs users in with Keycloak on their behalf and keeps the
   tokens; the browser only holds a session cookie.
@@ -270,8 +331,9 @@ import { Alert, Button, PasswordField, TextField } from '@/shared/ui'
 - **TOTP:** the 6-digit code from an authenticator app (Google Authenticator, FreeOTP…), asked of
   practitioners and staff after their password.
 - **Space:** the part of the app for one role (`/patient`, `/praticien`, `/admin`).
+- **Guard:** a component on a route that decides who may see it (`RequireAuth`, `GuestOnly`).
 
-## 10. Work in progress (MLink-128)
+## 11. Work in progress (MLink-128)
 
-This foundation is being built on PR #11. Coming next, and documented here as each lands: role spaces with guards, the MFA screens
+This foundation is being built on PR #11. Coming next, and documented here as each lands: the MFA screens
 (MLink-64), the verify-e-mail page (MLink-80), and the production nginx setup.

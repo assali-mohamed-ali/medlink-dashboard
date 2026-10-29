@@ -23,12 +23,13 @@ Dans le dépôt `api-MedLink`, lancer `scripts/setup-dev` (voir le README de ce 
 
 ## Structure
 
-- `src/app` : le routeur (le câblage seulement)
-- `src/features/<domaine>` : un dossier par domaine métier (`auth` pour l'instant) : appels API, types, pages
-- `src/shared` : le code réutilisable sans métier (`api/apiClient.ts` : `apiFetch`, `ApiError` ; `layout/`)
-- `src/pages` : les pages sans domaine (accueil)
+- `src/app` : le câblage (la table des routes, le routeur)
+- `src/spaces` : les espaces par rôle (patient, praticien, administratif) : une mise en page, un menu par rôle
+- `src/features/<domaine>` : un dossier par domaine métier (`auth` pour l'instant) : appels API, types, pages, routes
+- `src/pages` : les pages sans domaine (accueil, accès refusé, page introuvable, erreur)
+- `src/shared` : le code réutilisable sans métier (client API, messages d'erreur, URLs, composants UI, styles)
 
-Les imports vont dans un seul sens : `app` → `features` → `shared`. Le guide complet (premier lancement,
+Les imports vont dans un seul sens : `app` → `spaces`/`pages` → `features` → `shared`. Le guide complet (premier lancement,
 architecture, flux d'une requête, sécurité, tests, dépannage) : **[docs/ONBOARDING.md](docs/ONBOARDING.md)**.
 
 ## Local development checks

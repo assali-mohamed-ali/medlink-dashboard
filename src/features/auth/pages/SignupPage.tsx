@@ -28,6 +28,7 @@ import MedLinkShell from '@/shared/layout/MedLinkShell'
 import PublicHeader from '@/shared/layout/PublicHeader'
 import { ApiError } from '@/shared/api/apiClient'
 import { fieldErrors as pickFieldErrors, messageFor } from '@/shared/api/errors'
+import { paths } from '@/shared/config/paths'
 import { register as registerRequest } from '../api'
 import {
   allPasswordRulesPass,
@@ -253,7 +254,7 @@ export default function SignupPage() {
             Vous ne trouvez pas le message ? Vérifiez vos spams ou dossier
             indésirables.
           </p>
-          <Link to="/connexion" className="signup__submit">
+          <Link to={paths.login} className="signup__submit">
             Retour à la connexion
             <ChevronRight size={18} aria-hidden="true" />
           </Link>
@@ -287,7 +288,7 @@ export default function SignupPage() {
   const footer = (
     <p className="signup__footer">
       <Home size={14} aria-hidden="true" />
-      <Link to="/">Retour à l&apos;accueil</Link>
+      <Link to={paths.home}>Retour à l&apos;accueil</Link>
       <span aria-hidden="true">·</span>
       Réseau de cliniques MedLink · Données de santé hébergées en Tunisie
     </p>
@@ -707,7 +708,7 @@ export default function SignupPage() {
 
           <div className="signup__actions">
             <p className="signup__login-link">
-              Déjà inscrit ? <Link to="/connexion">Se connecter</Link>
+              Déjà inscrit ? <Link to={paths.login}>Se connecter</Link>
             </p>
             <button
               className="signup__submit"
