@@ -61,6 +61,10 @@ src/
 │   ├─ SpaceLayout.tsx      header (title, who is logged in, logout) + menu + <Outlet />
 │   └─ SpaceHome.tsx        the first page of a space
 ├─ features/<domain>/       one folder per business area
+│   ├─ mfa/                 the code step of practitioners and staff (MLink-64)
+│   │   ├─ api.ts           setupMfa(token), verifyMfa(code)
+│   │   ├─ components/      CodeForm: the 6-digit code, shared by both pages
+│   │   └─ pages/           MfaPage (/double-authentification), ConfigureCodePage (/configurer-code)
 │   └─ auth/                identity: login, signup, session, roles, guards
 │       ├─ api.ts           one function per API endpoint (the contract of api-MedLink plan.md §4)
 │       ├─ types.ts         the shapes the API sends and receives
@@ -207,7 +211,58 @@ sequenceDiagram
 - Wait for `status !== 'loading'` before deciding anything about access (the guards do this and show
   a `PageLoader`).
 
-## 5. Role spaces and route guards (RBAC)
+## 5. The login flows
+
+```mermaid
+sequenceDiagram
+  actor U as Person
+  participant L as LoginPage
+  participant M as MfaPage / ConfigureCodePage
+  participant S as api-MedLink
+  U->>L: e-mail + password
+  L->>S: POST /api/auth/login
+  alt patient
+    S-->>L: 200 { user } + session cookie
+    L-->>U: their space (/patient)
+  else practitioner or staff
+    S-->>L: 200 { mfaRequired, mfaSetupRequired } (no session yet, a 5-minute code step)
+    alt first login (mfaSetupRequired)
+      S--)U: mail with /configurer-code?token=… (30 minutes, single use)
+      L-->>U: /double-authentification: "ouvrez le lien envoyé par e-mail"
+      U->>M: opens the mail link (same browser)
+      M->>S: POST /api/auth/mfa/setup { token } (once)
+      S-->>M: QR code + manual key
+      U->>U: scans with the authenticator app
+    else already enrolled
+      L-->>U: /double-authentification: the code field
+    end
+    U->>M: 6-digit code
+    M->>S: POST /api/auth/mfa/verify { code }
+    S-->>M: 200 { user } + session cookie
+    M-->>U: completeLogin(user), their space
+  else forced password change
+    S-->>L: 200 { passwordChangeRequired }
+    L-->>U: /mot-de-passe (MLink-89)
+  end
+```
+
+| Answer at the code step | What the screen does |
+|---|---|
+| 401 `INVALID_CODE` | "Code incorrect", clears the field, stays |
+| 423 `MFA_LOCKED` (5th wrong code, 15 minutes, across logins) | explains, hides the form, link back to login |
+| 401 `UNAUTHORIZED` (the 5 minutes are over) | back to `/connexion`, which says "Votre étape de connexion a expiré" |
+| setup: 400 `INVALID_TOKEN`, 410 `TOKEN_EXPIRED` | explains, "Se reconnecter" (a new login mails a new link, at most one per 15 minutes) |
+| setup: 409 `MFA_ALREADY_ENROLLED` | "déjà configurée", link to the code field |
+| setup: 401 `UNAUTHORIZED` | back to `/connexion` with the token **in memory** (router state); after the password, back to the setup |
+
+Security rules these pages follow (keep them when you touch them):
+- The mail token leaves the address bar as soon as the page reads it (history, screenshots, shared screens).
+- Setup is called **once**: a second call replaces the secret behind the QR code. React's StrictMode runs
+  effects twice in development, so the page keeps the request in a `useRef`.
+- Only an inline `data:image/png;base64,…` QR is displayed, never an address from the answer.
+- The code, the token and the secret are never logged or stored.
+
+## 6. Role spaces and route guards (RBAC)
 
 Each role has **one space**, a branch of the route table with **one guard and one layout at its top**:
 
@@ -250,7 +305,7 @@ flowchart TD
 Add the URL to `paths.ts`, the page in its feature, and the route in the feature's `routes.tsx` (inside
 `GuestOnly` if a logged-in person has nothing to do there).
 
-## 6. Our UI library (`shared/ui`) and design tokens
+## 7. Our UI library (`shared/ui`) and design tokens
 
 Build screens from these, not from raw `<input>`/`<button>` with page CSS:
 
@@ -284,7 +339,7 @@ import { Alert, Button, PasswordField, TextField } from '@/shared/ui'
 - `HomePage.css`, `MedLinkShell.css` and `PublicHeader.css` still hold local copies of the same token
   values (from before `tokens.css`); new code reads the tokens.
 
-## 7. Where do I put…?
+## 8. Where do I put…?
 
 | I want to… | Put it in |
 |---|---|
@@ -297,7 +352,7 @@ import { Alert, Button, PasswordField, TextField } from '@/shared/ui'
 | a route | the feature's `routes.tsx`, or the space's list in `app/routes.tsx` |
 | a space menu entry | `spaces/spaces.ts` |
 
-## 8. Tests
+## 9. Tests
 
 - Each page has a `.test.tsx` next to it. Test what the user sees: find elements by role and label
   (`getByRole('button', { name: … })`, `getByLabelText(…)`), not by CSS class.
@@ -312,7 +367,7 @@ import { Alert, Button, PasswordField, TextField } from '@/shared/ui'
 - One test per answer the API can give (200 and each error code of the contract).
 - `shared/api/apiClient.test.ts` is the only test that mocks `fetch` itself.
 
-## 9. Troubleshooting
+## 10. Troubleshooting
 
 | Symptom | Cause and fix |
 |---|---|
@@ -322,7 +377,7 @@ import { Alert, Button, PasswordField, TextField } from '@/shared/ui'
 | `npm run dev` shows network errors | The API is not running on `localhost:8080`: start its dev stack. |
 | A test can't find a label | Required labels end with `*`: match the start with a regex, `getByLabelText(/^Prénom/)`. |
 
-## 10. Glossary
+## 11. Glossary
 
 - **BFF (Backend For Frontend):** our API logs users in with Keycloak on their behalf and keeps the
   tokens; the browser only holds a session cookie.
@@ -333,7 +388,6 @@ import { Alert, Button, PasswordField, TextField } from '@/shared/ui'
 - **Space:** the part of the app for one role (`/patient`, `/praticien`, `/admin`).
 - **Guard:** a component on a route that decides who may see it (`RequireAuth`, `GuestOnly`).
 
-## 11. Work in progress (MLink-128)
+## 12. Work in progress (MLink-128)
 
-This foundation is being built on PR #11. Coming next, and documented here as each lands: the MFA screens
-(MLink-64), the verify-e-mail page (MLink-80), and the production nginx setup.
+This foundation is being built on PR #11. Coming next, and documented here as each lands: the verify-e-mail page (MLink-80), and the production nginx setup.

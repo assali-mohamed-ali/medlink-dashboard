@@ -1,5 +1,6 @@
 import type { RouteObject } from 'react-router-dom'
 import { RequireAuth, authRoutes, type Role } from '@/features/auth'
+import { mfaRoutes } from '@/features/mfa'
 import AccessDeniedPage from '@/pages/AccessDeniedPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 import PlaceholderPage from '@/pages/PlaceholderPage'
@@ -33,9 +34,9 @@ export const routes: RouteObject[] = [
     children: [
       { path: paths.home, lazy: lazyPage(() => import('@/pages/HomePage')) },
       ...authRoutes,
-      // Pages of flows still to build (MLink-80, MLink-64, MLink-89, MLink-71)
+      ...mfaRoutes,
+      // Pages of flows still to build (MLink-80, MLink-89, MLink-71)
       { path: paths.verifyEmail, element: <PlaceholderPage title="Vérification de l’e-mail" /> },
-      { path: paths.mfa, element: <PlaceholderPage title="Double authentification" /> },
       { path: paths.password, element: <PlaceholderPage title="Mot de passe" /> },
       { path: paths.activateAccount, element: <PlaceholderPage title="Activation du compte" /> },
       { path: paths.accessDenied, element: <AccessDeniedPage /> },

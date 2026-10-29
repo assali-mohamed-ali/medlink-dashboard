@@ -24,10 +24,15 @@ type LoginValues = z.infer<typeof loginSchema>
 
 export default function LoginPage() {
   const navigate = useNavigate()
-  // Set by the guards when the API ended the session (MLink-85)
-  const sessionExpired = Boolean(
-    (useLocation().state as { sessionExpired?: boolean } | null)?.sessionExpired,
-  )
+  // Why the app sent the person here, if it did: the guards (ended session, MLink-85), the code step
+  // (its 5 minutes are over), or the code setup page (log in again, then back to it with the token)
+  const arrival = useLocation().state as {
+    sessionExpired?: boolean
+    stepExpired?: boolean
+    setupToken?: string
+  } | null
+  const sessionExpired = Boolean(arrival?.sessionExpired)
+  const stepExpired = Boolean(arrival?.stepExpired)
   const { login } = useAuth()
   const [formError, setFormError] = useState<string | null>(null)
   const [needsVerification, setNeedsVerification] = useState(false)
@@ -64,7 +69,9 @@ export default function LoginPage() {
 
     resetField('password')
 
-    if (result.mfaRequired) {
+    if (result.mfaRequired && arrival?.setupToken) {
+      navigate(paths.configureCode, { state: { setupToken: arrival.setupToken } })
+    } else if (result.mfaRequired) {
       navigate(paths.mfa, {
         state: { mfaSetupRequired: Boolean(result.mfaSetupRequired) },
       })
@@ -108,6 +115,9 @@ export default function LoginPage() {
         <form className="login__form" onSubmit={handleSubmit(onSubmit)} noValidate>
           {sessionExpired && !formError && (
             <Alert tone="info">Votre session a expiré. Reconnectez-vous pour continuer.</Alert>
+          )}
+          {stepExpired && !formError && (
+            <Alert tone="info">Votre étape de connexion a expiré (5 minutes). Reconnectez-vous.</Alert>
           )}
           {formError && <Alert tone="error">{formError}</Alert>}
 

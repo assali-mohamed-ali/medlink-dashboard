@@ -94,7 +94,9 @@ test.each([
 test('already configured: goes on to the code', async () => {
   setupMfa.mockRejectedValue(new ApiError(409, 'MFA_ALREADY_ENROLLED', 'Déjà configuré.'))
   renderPage('/configurer-code?token=t')
-  expect(await screen.findByRole('status')).toHaveTextContent('déjà configurée')
+  // The loader is a status too: wait for the message itself, then check it is announced politely
+  const message = await screen.findByText('Votre application est déjà configurée.')
+  expect(message.closest('[role="status"]')).not.toBeNull()
   expect(screen.getByRole('link', { name: 'Saisir mon code' })).toHaveAttribute('href', '/double-authentification')
 })
 
