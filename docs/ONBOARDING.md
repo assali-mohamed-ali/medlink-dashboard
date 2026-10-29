@@ -66,7 +66,9 @@ src/
 ├─ shared/                  reusable code that knows nothing about MedLink's business
 │   ├─ api/apiClient.ts     apiFetch() and ApiError: the only place that calls fetch()
 │   ├─ api/errors.ts        messageFor(error), fieldErrors(details, fields): the French text to show
-│   └─ layout/              PublicHeader, MedLinkShell
+│   ├─ layout/              PublicHeader, MedLinkShell
+│   ├─ styles/              tokens.css (colours, radii, shadows, type), global.css
+│   └─ ui/                  our component library: Button, TextField, PasswordField, Alert, Spinner, PageLoader
 └─ test/setup.ts            test setup (jest-dom matchers, cleanup)
 ```
 
@@ -149,7 +151,41 @@ message the API already sends in French.
   endpoint enforces the role server side.
 - **Never** log or display a password, a TOTP code, a token from a mail link, or a full API response.
 
-## 5. Where do I put…?
+## 5. Our UI library (`shared/ui`) and design tokens
+
+Build screens from these, not from raw `<input>`/`<button>` with page CSS:
+
+| Component | Use it for | Accessibility it gives you for free |
+|---|---|---|
+| `Button` | every button; `variant` `primary` / `secondary` / `ghost`, `fullWidth`, `loading` | `type="button"` by default (no accidental submit); `loading` disables it and sets `aria-busy` |
+| `TextField` | every text input; `label`, `hint`, `error` | label linked to the input, `aria-invalid`, hint and error read with the field, error announced (`role="alert"`) |
+| `PasswordField` | passwords | everything of `TextField` + a show/hide toggle (`aria-pressed`, French labels) |
+| `Alert` | messages: `tone` `error` / `success` / `info` | error interrupts the screen reader (`role="alert"`), the others wait (`role="status"`) |
+| `Spinner`, `PageLoader` | something is loading | announced as "Chargement…" (or your `label`) |
+
+```tsx
+import { Alert, Button, PasswordField, TextField } from '@/shared/ui'
+
+<form onSubmit={handleSubmit(onSubmit)} noValidate>
+  {formError && <Alert tone="error">{formError}</Alert>}
+  <TextField label="Adresse e-mail" type="email" error={errors.email?.message} {...register('email')} />
+  <PasswordField label="Mot de passe" error={errors.password?.message} {...register('password')} />
+  <Button type="submit" fullWidth loading={isSubmitting}>Se connecter</Button>
+</form>
+```
+
+- Every native prop passes through (`autoComplete`, `onChange`, `ref`…), so `{...register('field')}` from
+  react-hook-form just works.
+- **Styles:** components use CSS Modules (`X.module.css`, class names can't clash) and only
+  `var(--token)` values from `shared/styles/tokens.css`. Never a raw colour in a component: change the
+  token and the whole app follows. Page layout CSS (`LoginPage.css`) is fine for page-specific layout.
+- **Adding a component:** start it inside your feature (`features/x/components/`). Move it to
+  `shared/ui` the second time another feature needs it, with a test (label, error, keyboard) and a line
+  in `shared/ui/index.ts` and in this table.
+- `HomePage.css`, `MedLinkShell.css` and `PublicHeader.css` still hold local copies of the same token
+  values (from before `tokens.css`); new code reads the tokens.
+
+## 6. Where do I put…?
 
 | I want to… | Put it in |
 |---|---|
@@ -157,10 +193,10 @@ message the API already sends in French.
 | a call to a new endpoint | a function in `features/<area>/api.ts`, its types in `types.ts` |
 | a new business area | a new `features/<area>/` with `api.ts`, `types.ts`, `pages/`, `index.ts` |
 | a component used by one feature | `features/<area>/components/` (create it when needed) |
-| a component used by two features or more | `shared/` (it must not mention MedLink's business) |
+| a component used by two features or more | `shared/ui/` (it must not mention MedLink's business) |
 | a route | `app/router.tsx` |
 
-## 6. Tests
+## 7. Tests
 
 - Each page has a `.test.tsx` next to it. Test what the user sees: find elements by role and label
   (`getByRole('button', { name: … })`, `getByLabelText(…)`), not by CSS class.
@@ -175,7 +211,7 @@ message the API already sends in French.
 - One test per answer the API can give (200 and each error code of the contract).
 - `shared/api/apiClient.test.ts` is the only test that mocks `fetch` itself.
 
-## 7. Troubleshooting
+## 8. Troubleshooting
 
 | Symptom | Cause and fix |
 |---|---|
@@ -185,7 +221,7 @@ message the API already sends in French.
 | `npm run dev` shows network errors | The API is not running on `localhost:8080`: start its dev stack. |
 | A test can't find a label | Required labels end with `*`: match the start with a regex, `getByLabelText(/^Prénom/)`. |
 
-## 8. Glossary
+## 9. Glossary
 
 - **BFF (Backend For Frontend):** our API logs users in with Keycloak on their behalf and keeps the
   tokens; the browser only holds a session cookie.
@@ -195,7 +231,7 @@ message the API already sends in French.
   practitioners and staff after their password.
 - **Space:** the part of the app for one role (`/patient`, `/praticien`, `/admin`).
 
-## 9. Work in progress (MLink-128)
+## 10. Work in progress (MLink-128)
 
-This foundation is being built on PR #11. Coming next, and documented here as each lands: a UI component library, role spaces with guards, the MFA screens
+This foundation is being built on PR #11. Coming next, and documented here as each lands: role spaces with guards, the MFA screens
 (MLink-64), the verify-e-mail page (MLink-80), and the production nginx setup.

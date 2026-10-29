@@ -4,9 +4,10 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Link, useNavigate } from 'react-router-dom'
 import PublicHeader from '@/shared/layout/PublicHeader'
-import { ArrowRight, Eye, EyeOff, Lock, Mail, Plus, ShieldCheck } from 'lucide-react'
+import { ArrowRight, Lock, Mail, Plus, ShieldCheck } from 'lucide-react'
 import { ApiError } from '@/shared/api/apiClient'
 import { messageFor } from '@/shared/api/errors'
+import { Alert, Button, PasswordField, TextField } from '@/shared/ui'
 import { resendVerification } from '../api'
 import type { LoginResponse } from '../types'
 import { roleHome } from '../roles'
@@ -27,7 +28,7 @@ export default function LoginPage() {
   const [needsVerification, setNeedsVerification] = useState(false)
   const [resendMessage, setResendMessage] = useState<string | null>(null)
   const [submittedEmail, setSubmittedEmail] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
+  const [failedTries, setFailedTries] = useState(0)
 
   const {
     register,
@@ -48,7 +49,7 @@ export default function LoginPage() {
     } catch (error) {
       // The password is never kept after a submit.
       resetField('password')
-      setShowPassword(false)
+      setFailedTries((tries) => tries + 1)
       if (error instanceof ApiError && error.code === 'EMAIL_NOT_VERIFIED') {
         setNeedsVerification(true)
       }
@@ -99,83 +100,41 @@ export default function LoginPage() {
         <h1 className="login__title">Bienvenue sur MedLink</h1>
         <p className="login__subtitle">Connectez-vous à votre espace santé</p>
 
-        <form onSubmit={handleSubmit(onSubmit)} noValidate>
-          {formError && (
-            <p className="login__form-error" role="alert">
-              {formError}
-            </p>
-          )}
+        <form className="login__form" onSubmit={handleSubmit(onSubmit)} noValidate>
+          {formError && <Alert tone="error">{formError}</Alert>}
 
-          <div className="login__field">
-            <label className="login__label" htmlFor="email">
-              <Mail size={18} aria-hidden="true" />
-              Adresse e-mail
-            </label>
-            <input
-              id="email"
-              className="login__input"
-              type="email"
-              autoComplete="username"
-              placeholder="prenom.nom@email.tn"
-              aria-invalid={errors.email ? 'true' : 'false'}
-              aria-describedby={errors.email ? 'email-error' : undefined}
-              {...register('email')}
-            />
-            {errors.email && (
-              <p id="email-error" className="login__field-error" role="alert">
-                {errors.email.message}
-              </p>
-            )}
-          </div>
-
-          <div className="login__field">
-            <label className="login__label" htmlFor="password">
-              <Lock size={18} aria-hidden="true" />
-              Mot de passe
-            </label>
-            <div className="login__input-wrap">
-              <input
-                id="password"
-                className="login__input"
-                type={showPassword ? 'text' : 'password'}
-                autoComplete="current-password"
-                aria-invalid={errors.password ? 'true' : 'false'}
-                aria-describedby={errors.password ? 'password-error' : undefined}
-                {...register('password')}
-              />
-              <button
-                type="button"
-                className="login__toggle"
-                onClick={() => setShowPassword((visible) => !visible)}
-                aria-label={
-                  showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'
-                }
-                aria-pressed={showPassword}
-              >
-                {showPassword ? (
-                  <EyeOff size={20} aria-hidden="true" />
-                ) : (
-                  <Eye size={20} aria-hidden="true" />
-                )}
-              </button>
-            </div>
-            {errors.password && (
-              <p id="password-error" className="login__field-error" role="alert">
-                {errors.password.message}
-              </p>
-            )}
-          </div>
-
-          <button className="login__submit" type="submit" disabled={isSubmitting}>
-            {isSubmitting ? (
-              'Connexion…'
-            ) : (
+          <TextField
+            label={
               <>
-                Se connecter
-                <ArrowRight size={18} aria-hidden="true" />
+                <Mail size={18} aria-hidden="true" />
+                Adresse e-mail
               </>
-            )}
-          </button>
+            }
+            type="email"
+            autoComplete="username"
+            placeholder="prenom.nom@email.tn"
+            error={errors.email?.message}
+            {...register('email')}
+          />
+
+          {/* A new key after each failed try remounts the field: the password is also hidden again */}
+          <PasswordField
+            key={failedTries}
+            label={
+              <>
+                <Lock size={18} aria-hidden="true" />
+                Mot de passe
+              </>
+            }
+            autoComplete="current-password"
+            error={errors.password?.message}
+            {...register('password')}
+          />
+
+          <Button type="submit" fullWidth loading={isSubmitting}>
+            Se connecter
+            <ArrowRight size={18} aria-hidden="true" />
+          </Button>
         </form>
 
         {needsVerification && (
@@ -191,7 +150,7 @@ export default function LoginPage() {
           <span className="login__notice-icon" aria-hidden="true">
             <ShieldCheck size={20} />
           </span>
-          <p style={{ margin: 0 }}>
+          <p className="login__notice-text">
             <strong>Connexion sécurisée</strong>
             <span>
               Les praticiens et le personnel valident leur connexion avec un code à

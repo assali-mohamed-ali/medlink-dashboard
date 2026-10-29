@@ -119,6 +119,19 @@ test('shows the API message on a 401 and clears the password', async () => {
   expect(screen.getByLabelText('Mot de passe')).toHaveValue('')
 })
 
+test('hides the password again after a failed login', async () => {
+  login.mockRejectedValue(new ApiError(401, 'INVALID_CREDENTIALS', 'E-mail ou mot de passe incorrect.'))
+  const user = userEvent.setup()
+  renderPage()
+  await user.click(screen.getByRole('button', { name: 'Afficher le mot de passe' }))
+  expect(screen.getByLabelText('Mot de passe')).toHaveAttribute('type', 'text')
+
+  await fillAndSubmit()
+
+  await screen.findByRole('alert')
+  expect(screen.getByLabelText('Mot de passe')).toHaveAttribute('type', 'password')
+})
+
 test('offers to resend the link when the e-mail is not verified', async () => {
   login.mockRejectedValue(
     new ApiError(403, 'EMAIL_NOT_VERIFIED', 'Votre adresse e-mail n’est pas vérifiée.'),
