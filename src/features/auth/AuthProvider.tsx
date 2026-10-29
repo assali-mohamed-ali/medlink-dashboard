@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { setUnauthorizedHandler } from '@/shared/api/apiClient'
 import { AuthContext } from './authContext'
@@ -15,14 +15,18 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [status, setStatus] = useState<SessionStatus>('loading')
   const [sessionExpired, setSessionExpired] = useState(false)
+  // Whether a session is open right now: a 401 then means it ended; before, it only means "nobody yet"
+  const sessionOpen = useRef(false)
 
   const openSession = useCallback((next: AuthUser) => {
+    sessionOpen.current = true
     setUser(next)
     setStatus('authenticated')
     setSessionExpired(false)
   }, [])
 
   const closeSession = useCallback(() => {
+    sessionOpen.current = false
     setUser(null)
     setStatus('anonymous')
   }, [])
@@ -44,7 +48,8 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setUnauthorizedHandler(() => {
-      setSessionExpired(true)
+      // The page load's GET /api/auth/me answers 401 for a visitor too: not an expired session
+      if (sessionOpen.current) setSessionExpired(true)
       closeSession()
     })
     return () => setUnauthorizedHandler(null)
