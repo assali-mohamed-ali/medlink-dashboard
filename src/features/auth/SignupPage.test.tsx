@@ -25,14 +25,21 @@ function renderPage() {
   )
 }
 
+// The labels end with a "*" for required fields: match them by their start.
+const passwordField = () => screen.getByLabelText(/^Mot de passe maître/)
+const submitButton = () => screen.getByRole('button', { name: /^Créer mon compte/ })
+
 async function fillValidForm(user: ReturnType<typeof userEvent.setup>) {
-  await user.type(screen.getByLabelText('Prénom'), 'Amel')
-  await user.type(screen.getByLabelText('Nom'), 'Ben Salah')
-  await user.type(screen.getByLabelText('Adresse e-mail'), 'amel@example.com')
-  await user.type(screen.getByLabelText('Mot de passe'), 'Secret-12345!')
-  await user.type(screen.getByLabelText('Date de naissance'), '1990-05-12')
-  await user.type(screen.getByLabelText('Téléphone'), '+216 71 000 000')
-  await user.type(screen.getByLabelText('Adresse'), '12 rue de la Santé, Tunis')
+  await user.type(screen.getByLabelText(/^Prénom/), 'Amel')
+  await user.type(screen.getByLabelText(/^Nom de famille/), 'Ben Salah')
+  await user.type(screen.getByLabelText(/^Adresse e-mail/), 'amel@example.com')
+  await user.type(passwordField(), 'Secret-12345!')
+  await user.type(screen.getByLabelText(/^Date de naissance/), '1990-05-12')
+  await user.type(screen.getByLabelText(/^Téléphone/), '+216 71 000 000')
+  await user.type(screen.getByLabelText(/^Adresse de résidence/), '12 rue de la Santé, Tunis')
+  await user.selectOptions(screen.getByLabelText(/^Gouvernorat/), 'tunis')
+  await user.click(screen.getAllByRole('radio')[0])
+  await user.click(screen.getByRole('checkbox', { name: /accepte expressément/ }))
 }
 
 beforeEach(() => {
@@ -52,13 +59,13 @@ test('updates the password checklist as the user types', async () => {
   const lengthRule = screen.getByTestId('rule-length')
   expect(lengthRule).not.toHaveClass('signup__rule--ok')
 
-  await user.type(screen.getByLabelText('Mot de passe'), 'abcdefghijkl')
+  await user.type(passwordField(), 'abcdefghijkl')
   expect(screen.getByTestId('rule-length')).toHaveClass('signup__rule--ok')
   expect(screen.getByTestId('rule-lowercase')).toHaveClass('signup__rule--ok')
   expect(screen.getByTestId('rule-uppercase')).not.toHaveClass('signup__rule--ok')
 
-  await user.clear(screen.getByLabelText('Mot de passe'))
-  await user.type(screen.getByLabelText('Mot de passe'), 'Abcdefghij1!')
+  await user.clear(passwordField())
+  await user.type(passwordField(), 'Abcdefghij1!')
   expect(screen.getByTestId('rule-length')).toHaveClass('signup__rule--ok')
   expect(screen.getByTestId('rule-uppercase')).toHaveClass('signup__rule--ok')
   expect(screen.getByTestId('rule-lowercase')).toHaveClass('signup__rule--ok')
@@ -70,15 +77,15 @@ test('keeps the submit button disabled while a password rule fails', async () =>
   const user = userEvent.setup()
   renderPage()
 
-  const button = screen.getByRole('button', { name: 'Créer mon compte' })
+  const button = submitButton()
   expect(button).toBeDisabled()
 
-  await user.type(screen.getByLabelText('Mot de passe'), 'short')
+  await user.type(passwordField(), 'short')
   expect(button).toBeDisabled()
 
-  await user.clear(screen.getByLabelText('Mot de passe'))
-  await user.type(screen.getByLabelText('Adresse e-mail'), 'amel@example.com')
-  await user.type(screen.getByLabelText('Mot de passe'), 'Secret-12345!')
+  await user.clear(passwordField())
+  await user.type(screen.getByLabelText(/^Adresse e-mail/), 'amel@example.com')
+  await user.type(passwordField(), 'Secret-12345!')
   expect(button).not.toBeDisabled()
 })
 
@@ -88,7 +95,7 @@ test('shows the verify-email screen on 201', async () => {
   renderPage()
 
   await fillValidForm(user)
-  await user.click(screen.getByRole('button', { name: 'Créer mon compte' }))
+  await user.click(submitButton())
 
   expect(register).toHaveBeenCalledWith({
     email: 'amel@example.com',
@@ -117,7 +124,7 @@ test('shows server field errors on 400', async () => {
   renderPage()
 
   await fillValidForm(user)
-  await user.click(screen.getByRole('button', { name: 'Créer mon compte' }))
+  await user.click(submitButton())
 
   expect(await screen.findByText('Cette adresse e-mail est invalide.')).toBeInTheDocument()
   expect(screen.getByText('Numéro de téléphone incorrect.')).toBeInTheDocument()
@@ -131,7 +138,7 @@ test('the confirmation never says whether the account already existed', async ()
   renderPage()
 
   await fillValidForm(user)
-  await user.click(screen.getByRole('button', { name: 'Créer mon compte' }))
+  await user.click(submitButton())
 
   await screen.findByRole('heading', { name: 'Vérifiez votre boîte mail' })
   expect(screen.queryByText(/existe déjà/i)).toBeNull()
@@ -150,7 +157,7 @@ test('shows the password policy message under the password field', async () => {
   renderPage()
 
   await fillValidForm(user)
-  await user.click(screen.getByRole('button', { name: 'Créer mon compte' }))
+  await user.click(submitButton())
 
   expect(
     await screen.findByText('Le mot de passe ne respecte pas la politique de sécurité.'),
@@ -165,7 +172,7 @@ test('shows the message in a banner when a 400 has no field details', async () =
   renderPage()
 
   await fillValidForm(user)
-  await user.click(screen.getByRole('button', { name: 'Créer mon compte' }))
+  await user.click(submitButton())
 
   expect(await screen.findByRole('alert')).toHaveTextContent(
     'Certains champs sont invalides.',
@@ -180,7 +187,7 @@ test('shows the API message when the service is unavailable', async () => {
   renderPage()
 
   await fillValidForm(user)
-  await user.click(screen.getByRole('button', { name: 'Créer mon compte' }))
+  await user.click(submitButton())
 
   expect(await screen.findByRole('alert')).toHaveTextContent(
     'Service momentanément indisponible.',

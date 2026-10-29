@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, expect, test, vi } from 'vitest'
@@ -68,7 +68,9 @@ test('asks for the CSRF cookie when the page opens', () => {
 
 test('shows the sign-up link', () => {
   renderPage()
-  expect(screen.getByRole('link', { name: 'Créer un compte' })).toHaveAttribute(
+  // The public header has its own "Créer un compte" link: check the one in the page
+  const page = within(screen.getByRole('main'))
+  expect(page.getByRole('link', { name: 'Créer un compte' })).toHaveAttribute(
     'href',
     '/inscription',
   )
