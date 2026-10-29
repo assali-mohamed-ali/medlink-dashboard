@@ -1,12 +1,13 @@
-import { useEffect, useRef, useState } from 'react'
-import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { ApiError } from '@/shared/api/apiClient'
 import { messageFor } from '@/shared/api/errors'
 import { paths } from '@/shared/config/paths'
+import { useSingleRequest } from '@/shared/lib/useSingleRequest'
+import { useTokenFromUrl } from '@/shared/lib/useTokenFromUrl'
 import { Alert, PageLoader } from '@/shared/ui'
 import { setupMfa } from '../api'
 import CodeForm from '../components/CodeForm'
-import type { MfaSetup } from '../types'
 import styles from '../mfa.module.css'
 
 // Only an inline PNG is shown: a QR code is never loaded from an address the answer would name
@@ -24,45 +25,17 @@ function groupByFour(secret: string) {
  */
 export default function ConfigureCodePage() {
   const navigate = useNavigate()
-  const location = useLocation()
-  const [searchParams, setSearchParams] = useSearchParams()
-  const [token] = useState(
-    () =>
-      searchParams.get('token') ??
-      (location.state as { setupToken?: string } | null)?.setupToken ??
-      null,
-  )
-  const [setup, setSetup] = useState<MfaSetup | null>(null)
-  const [problem, setProblem] = useState<unknown>(null)
-  const request = useRef<Promise<MfaSetup> | null>(null)
+  const fromLogin = (useLocation().state as { setupToken?: string } | null)?.setupToken
+  const token = useTokenFromUrl(fromLogin)
+  const request = useSingleRequest(setupMfa, token)
+  const setup = request.status === 'done' ? request.data : null
+  const problem = request.status === 'failed' ? request.error : null
+  const stepExpired = problem instanceof ApiError && problem.code === 'UNAUTHORIZED'
 
   useEffect(() => {
-    if (searchParams.has('token')) setSearchParams({}, { replace: true })
-  }, [searchParams, setSearchParams])
-
-  useEffect(() => {
-    if (!token) return
-    let active = true
-    // One request even when React runs this effect twice (StrictMode): every run waits for the same one
-    request.current ??= setupMfa(token)
-    request.current.then(
-      (answer) => {
-        if (active) setSetup(answer)
-      },
-      (error: unknown) => {
-        if (!active) return
-        if (error instanceof ApiError && error.code === 'UNAUTHORIZED') {
-          // The 5-minute step after the password is over: log in again, then come back with the same token
-          navigate(paths.login, { replace: true, state: { setupToken: token } })
-          return
-        }
-        setProblem(error)
-      },
-    )
-    return () => {
-      active = false
-    }
-  }, [token, navigate])
+    // The 5-minute step after the password is over: log in again, then come back with the same token
+    if (stepExpired) navigate(paths.login, { replace: true, state: { setupToken: token } })
+  }, [stepExpired, token, navigate])
 
   let content
   if (!token) {
@@ -85,7 +58,7 @@ export default function ConfigureCodePage() {
         </Link>
       </>
     )
-  } else if (problem) {
+  } else if (problem && !stepExpired) {
     content = (
       <>
         <Alert tone="error">{messageFor(problem)}</Alert>

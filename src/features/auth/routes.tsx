@@ -12,4 +12,6 @@ export const authRoutes: RouteObject[] = [
       { path: paths.signup, lazy: lazyPage(() => import('./pages/SignupPage')) },
     ],
   },
+  // Opened from a mail, logged in or not
+  { path: paths.verifyEmail, lazy: lazyPage(() => import('./pages/VerifyEmailPage')) },
 ]

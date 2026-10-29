@@ -72,14 +72,14 @@ src/
 │       ├─ guards.tsx       RequireAuth (logged in, optional role), GuestOnly (visitors only)
 │       ├─ roles.ts         the three roles and each role's home page
 │       ├─ routes.tsx       the feature's routes (lazy pages)
-│       ├─ pages/           LoginPage, SignupPage (+ their .css and .test.tsx)
+│       ├─ pages/           LoginPage, SignupPage, VerifyEmailPage (+ their styles and .test.tsx)
 │       └─ index.ts         the feature's public API
 ├─ pages/                   pages of no feature: Home, AccessDenied, NotFound, RouteError, placeholders
 ├─ shared/                  reusable code that knows nothing about MedLink's business
 │   ├─ api/apiClient.ts     apiFetch() and ApiError: the only place that calls fetch()
 │   ├─ api/errors.ts        messageFor(error), fieldErrors(details, fields): the French text to show
 │   ├─ config/paths.ts      every URL of the app, once
-│   ├─ lib/lazyPage.ts      the lazy-route helper
+│   ├─ lib/                 lazyPage (lazy routes), useTokenFromUrl, useSingleRequest (pages opened from a mail)
 │   ├─ layout/              PublicHeader, MedLinkShell
 │   ├─ styles/              tokens.css (colours, radii, shadows, type), global.css
 │   └─ ui/                  our component library: Button, TextField, PasswordField, Alert, Spinner, PageLoader
@@ -255,10 +255,26 @@ sequenceDiagram
 | setup: 409 `MFA_ALREADY_ENROLLED` | "déjà configurée", link to the code field |
 | setup: 401 `UNAUTHORIZED` | back to `/connexion` with the token **in memory** (router state); after the password, back to the setup |
 
+### Pages opened from a mailed link
+
+`/verifier-email?token=` (signup, MLink-80), `/configurer-code?token=` (code setup) and, later,
+`/activer-compte?token=` all do the same two things, with two shared hooks:
+
+```tsx
+const token = useTokenFromUrl()                         // reads ?token= once, removes it from the address bar
+const verification = useSingleRequest(verifyEmail, token) // calls verifyEmail(token) once: idle / pending / done / failed
+```
+
+The verify-e-mail page then shows: `pending` → loader; `done` → "Votre adresse e-mail est confirmée" + login
+link; `failed` (400 `INVALID_TOKEN`, 410 `TOKEN_EXPIRED`) or no token → the reason + "Recevoir un nouveau lien"
+(`POST /api/auth/verify-email/resend`, whose answer is the same whatever the address: never tell whether an
+account exists).
+
 Security rules these pages follow (keep them when you touch them):
 - The mail token leaves the address bar as soon as the page reads it (history, screenshots, shared screens).
-- Setup is called **once**: a second call replaces the secret behind the QR code. React's StrictMode runs
-  effects twice in development, so the page keeps the request in a `useRef`.
+- The call runs **once** (`useSingleRequest`): a mailed token is single use (a second verify answers 410) and a
+  second setup replaces the secret behind the QR code. React's StrictMode runs effects twice in development;
+  the hook keeps the request in a `useRef` so both runs wait for the same one.
 - Only an inline `data:image/png;base64,…` QR is displayed, never an address from the answer.
 - The code, the token and the secret are never logged or stored.
 
@@ -390,4 +406,4 @@ import { Alert, Button, PasswordField, TextField } from '@/shared/ui'
 
 ## 12. Work in progress (MLink-128)
 
-This foundation is being built on PR #11. Coming next, and documented here as each lands: the verify-e-mail page (MLink-80), and the production nginx setup.
+This foundation is being built on PR #11. Coming next, and documented here as each lands: the production nginx setup, the dev port aligned with the mail links.

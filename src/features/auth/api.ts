@@ -10,6 +10,10 @@ export function login(email: string, password: string) {
   })
 }
 
+export function verifyEmail(token: string) {
+  return apiFetch('/auth/verify-email', { method: 'POST', body: { token } })
+}
+
 export function resendVerification(email: string) {
   return apiFetch<{ message?: string }>('/auth/verify-email/resend', {
     method: 'POST',
