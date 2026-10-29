@@ -1,42 +1,62 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
+import { setUnauthorizedHandler } from '@/shared/api/apiClient'
 import { AuthContext } from './authContext'
-import {
-  fetchMe,
-  login as loginRequest,
-  logout as logoutRequest,
-} from './api'
+import type { SessionStatus } from './authContext'
+import { fetchMe, login as loginRequest, logout as logoutRequest } from './api'
 import type { AuthUser, LoginResponse } from './types'
 
+/**
+ * The session as the front knows it. The API is the source of truth: on load we ask it who is logged in
+ * (GET /api/auth/me), and any call answering 401 UNAUTHENTICATED / SESSION_EXPIRED clears the session
+ * here (the guards then send the user to /connexion). Nothing is stored in the browser.
+ */
 export default function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [status, setStatus] = useState<SessionStatus>('loading')
+  const [sessionExpired, setSessionExpired] = useState(false)
+
+  const openSession = useCallback((next: AuthUser) => {
+    setUser(next)
+    setStatus('authenticated')
+    setSessionExpired(false)
+  }, [])
+
+  const closeSession = useCallback(() => {
+    setUser(null)
+    setStatus('anonymous')
+  }, [])
 
   useEffect(() => {
     let cancelled = false
     fetchMe()
       .then((response) => {
-        if (!cancelled) setUser(response.user)
+        if (!cancelled) openSession(response.user)
       })
       .catch(() => {
-        // A 401 simply means nobody is logged in.
-        if (!cancelled) setUser(null)
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
+        // 401: nobody is logged in. Unreachable API: same, the login page will say so on submit.
+        if (!cancelled) closeSession()
       })
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [openSession, closeSession])
+
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      setSessionExpired(true)
+      closeSession()
+    })
+    return () => setUnauthorizedHandler(null)
+  }, [closeSession])
 
   const login = useCallback(
     async (email: string, password: string): Promise<LoginResponse> => {
       const result = await loginRequest(email, password)
-      if (result.user) setUser(result.user)
+      if (result.user) openSession(result.user)
       return result
     },
-    [],
+    [openSession],
   )
 
   const logout = useCallback(async () => {
@@ -45,12 +65,21 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       // The session is already over on the server side: clear it here too.
     }
-    setUser(null)
-  }, [])
+    setSessionExpired(false)
+    closeSession()
+  }, [closeSession])
 
   const value = useMemo(
-    () => ({ user, roles: user?.roles ?? [], loading, login, logout }),
-    [user, loading, login, logout],
+    () => ({
+      status,
+      user,
+      role: user?.roles[0] ?? null,
+      sessionExpired,
+      login,
+      completeLogin: openSession,
+      logout,
+    }),
+    [status, user, sessionExpired, login, openSession, logout],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

@@ -151,6 +151,46 @@ message the API already sends in French.
   endpoint enforces the role server side.
 - **Never** log or display a password, a TOTP code, a token from a mail link, or a full API response.
 
+### The session in the front: `useAuth()`
+
+```ts
+const { status, user, role, sessionExpired, login, completeLogin, logout } = useAuth()
+```
+
+| Field | Meaning |
+|---|---|
+| `status` | `loading` (asking the API on page load) · `anonymous` · `authenticated` |
+| `user` | the API's user object `{ id, email, firstName, lastName, roles }`, or `null` |
+| `role` | the person's **one** role (`PATIENT`, `PRACTITIONER`, `ADMINISTRATIVE_STAFF`), or `null` |
+| `sessionExpired` | `true` after the API ended the session, until the next login |
+| `login(email, password)` | `POST /api/auth/login`; opens the session when the answer holds `user` (patients) |
+| `completeLogin(user)` | opens the session with the user a later step returned (`POST /api/auth/mfa/verify`) |
+| `logout()` | `POST /api/auth/logout`; clears the session even if the call fails |
+
+```mermaid
+sequenceDiagram
+  participant B as Browser (page load / refresh)
+  participant P as AuthProvider
+  participant S as api-MedLink
+  B->>P: mount (status = loading)
+  P->>S: GET /api/auth/me (session cookie)
+  alt a session exists
+    S-->>P: 200 { user }
+    P-->>B: status = authenticated, role = user.roles[0]
+  else no session (or API unreachable)
+    S-->>P: 401 UNAUTHENTICATED
+    P-->>B: status = anonymous
+  end
+  Note over P,S: later, ANY call answering 401 SESSION_EXPIRED / UNAUTHENTICATED
+  S-->>P: (through apiFetch's unauthorized handler)
+  P-->>B: session cleared, sessionExpired = true, the guard sends the user to /connexion,<br/>which shows "Votre session a expiré"
+```
+
+- Never keep your own copy of "who is logged in" (no `useState(user)` in a page, nothing in storage):
+  read `useAuth()`.
+- Wait for `status !== 'loading'` before deciding anything about access (the guards do this and show
+  a `PageLoader`).
+
 ## 5. Our UI library (`shared/ui`) and design tokens
 
 Build screens from these, not from raw `<input>`/`<button>` with page CSS:
@@ -216,7 +256,7 @@ import { Alert, Button, PasswordField, TextField } from '@/shared/ui'
 | Symptom | Cause and fix |
 |---|---|
 | Every write answers **403** `FORBIDDEN` | The `X-XSRF-TOKEN` header is missing or stale. Call the API only through `apiFetch` (it fetches the cookie itself); check in the browser's dev tools that the `XSRF-TOKEN` cookie exists for `localhost`. |
-| Logged in, but a refresh shows the login page | `GET /api/auth/me` is not on the API's `master` yet (MLink-53, in progress). |
+| Logged in, but a refresh shows the login page | Your API is older than MLink-53 (`GET /api/auth/me`): pull the API's `master` and restart it. |
 | A link from a mail opens the wrong port | The API builds links from `APP_FRONTEND_URL` (`http://localhost:3000` in dev) while Vite runs on 5173. Being fixed in MLink-128 (Vite moves to 3000). |
 | `npm run dev` shows network errors | The API is not running on `localhost:8080`: start its dev stack. |
 | A test can't find a label | Required labels end with `*`: match the start with a regex, `getByLabelText(/^Prénom/)`. |

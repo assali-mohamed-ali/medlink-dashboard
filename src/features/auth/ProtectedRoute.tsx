@@ -1,4 +1,5 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { PageLoader } from '@/shared/ui'
 import { useAuth } from './useAuth'
 import { roleHome, type Role } from './roles'
 
@@ -7,11 +8,11 @@ type Props = {
 }
 
 export default function ProtectedRoute({ allowedRoles }: Props) {
-  const { user, loading } = useAuth()
+  const { status, user, sessionExpired } = useAuth()
   const location = useLocation()
 
-  if (loading) {
-    return <p role="status">Chargement…</p>
+  if (status === 'loading') {
+    return <PageLoader />
   }
 
   if (!user) {
@@ -19,7 +20,7 @@ export default function ProtectedRoute({ allowedRoles }: Props) {
       <Navigate
         to="/connexion"
         replace
-        state={{ from: location.pathname }}
+        state={{ from: location.pathname, sessionExpired }}
       />
     )
   }

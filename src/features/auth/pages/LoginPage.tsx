@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import PublicHeader from '@/shared/layout/PublicHeader'
 import { ArrowRight, Lock, Mail, Plus, ShieldCheck } from 'lucide-react'
 import { ApiError } from '@/shared/api/apiClient'
@@ -23,6 +23,10 @@ type LoginValues = z.infer<typeof loginSchema>
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  // Set by the guards when the API ended the session (MLink-85)
+  const sessionExpired = Boolean(
+    (useLocation().state as { sessionExpired?: boolean } | null)?.sessionExpired,
+  )
   const { login } = useAuth()
   const [formError, setFormError] = useState<string | null>(null)
   const [needsVerification, setNeedsVerification] = useState(false)
@@ -101,6 +105,9 @@ export default function LoginPage() {
         <p className="login__subtitle">Connectez-vous à votre espace santé</p>
 
         <form className="login__form" onSubmit={handleSubmit(onSubmit)} noValidate>
+          {sessionExpired && !formError && (
+            <Alert tone="info">Votre session a expiré. Reconnectez-vous pour continuer.</Alert>
+          )}
           {formError && <Alert tone="error">{formError}</Alert>}
 
           <TextField
