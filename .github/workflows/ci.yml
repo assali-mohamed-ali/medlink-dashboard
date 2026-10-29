@@ -16,6 +16,7 @@ concurrency:
 
 jobs:
   validate:
+    # Keep this name: branch protection may require it as a status check
     name: Lint, type-check and build
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -36,6 +37,8 @@ jobs:
         run: pre-commit run --all-files --show-diff-on-failure --verbose
       - name: Lint
         run: npm run lint
+      - name: Unit and component tests
+        run: npm test
       - name: TypeScript and production build
         run: npm run build
       - name: Dependency audit
