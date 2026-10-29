@@ -20,15 +20,15 @@ import {
   User,
 } from 'lucide-react'
 import './HomePage.css'
+import clinicBaie from '@/assets/home/clinic-baie.jpg'
+import clinicBergesDuLac from '@/assets/home/clinic-berges-du-lac.jpg'
+import clinicSud from '@/assets/home/clinic-sud.jpg'
+import heroImg from '@/assets/home/hero.jpg'
 
-const HERO_IMG =
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuDgcyelQukBuu6eEYvikpQRVscgBXnAA5UQlV01sGIqAIpGuD_pcp94cdgcfVRlQdAFD2fQXwY3LbNMaFp40mBM1CalyWHR9cHwaP1623KZ93E3F1Y67hVVKY0I7X8NpR3MNXG_E4qQhfguQQqrD8IA8JIicdO2Vg_zaUOscAAWXT_6-SzQt0UwApcgoTHIU5P3QinNia_bIGcne-QYsB4VHLv0nT-iDGuAPYfZZdjaHadmKnrgI_Vupw'
+// Self-hosted (MLink-128): no request to a third party from a health portal, and the CSP stays 'self'
+const HERO_IMG = heroImg
 
-const CLINIC_IMGS = [
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuD9GxRE9Ls7WHrvPylaDEflwfQGhqWk6CDhdl0tah0IKkozxc5nZ29zzO_cXqFYHwtsoBUyKcom3gfo9lyWwPlOl-NjFlnga_sSyZ7Dxn91iAd-28IUolZj06PSTRm8NtPoj8bFZWM6qtVQcQtpER6An7FEEZsOJtGFOHXjB8sZt10_ivfbEBmKGGOqzkP1i-eWb53SVKCPEFdMOT5elsrfHv4qZM5lUj60DJMhc0JjWbPH1-V6TWbaXA',
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuABa7R8_onKB77ujwQl3s-vJne6ED6xLDe8CkdSsAlT5-UgN_Bngxi97092x8uZLS2mFyZZvdTKxkbg3b-wKVTgZAED8LGLwZaEbq6pF-JCP1qIK9_Nk7DutXOmB490Jmjm_6dGFUrugCHY0KgtHPqZ-PiSWCp5o4LMZ6njVQf7pacVkHvckXWG0YcRaTtserBFU0-QqNI145NawpSuk1wDSGwFxdtJhqQnWFCq76IV1dSW4g82fs0NfQ',
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuCdH_CRBhkVXVXHAQa9qfcPC9J6YOQwG4mHqKLBZLk26eu-mv2jIH5dqc9iJP7QSIRI3Go-P6TCC7Kyv6v-N1LsfQ7bGo2469grIyTLA3J1oG4rAr3QjXlV8whGml4AyMr69lFE1MVhg_rIJ5Sg2_5b0ymoZXBPN0xL5d8LdzggMWswIaWHoYRTJJS_1jXsmFZARV7I-zcgIe9PXTukui14YrACgbI6KzLAKNA_nqxr1u0Ahn5VFH4Uyg',
-]
+const CLINIC_IMGS = [clinicBergesDuLac, clinicBaie, clinicSud]
 
 const clinics = [
   {
@@ -258,6 +258,9 @@ export default function HomePage() {
                 src={HERO_IMG}
                 alt="Équipe médicale MedLink en consultation"
                 className="home__hero-img"
+                width={512}
+                height={279}
+                fetchPriority="high"
               />
               <div className="home__hero-overlay">
                 <span className="home__hero-tag">Plateforme Médicale Inter-Régionale</span>
@@ -341,7 +344,7 @@ export default function HomePage() {
             {clinics.map((c) => (
               <article key={c.name} className="home__clinic">
                 <div className="home__clinic-img-wrap">
-                  <img src={c.image} alt={c.name} className="home__clinic-img" />
+                  <img src={c.image} alt={c.name} className="home__clinic-img" width={512} height={279} loading="lazy" decoding="async" />
                   <span className="home__clinic-city">{c.city}</span>
                   <span className="home__clinic-urg">
                     <AlertCircle size={12} aria-hidden="true" />

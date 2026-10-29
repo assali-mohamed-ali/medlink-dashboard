@@ -22,7 +22,7 @@ Desktop (for the API's dev stack).
 
    ```bash
    npm ci          # exact versions from package-lock.json
-   npm run dev     # http://localhost:5173
+   npm run dev     # http://localhost:3000
    ```
 
 3. Log in with a dev account (password `MedLink-Dev-2026!`):
@@ -39,7 +39,8 @@ Everyday commands:
 
 | Command | What it does |
 |---|---|
-| `npm run dev` | Dev server with hot reload; `/api` is proxied to `http://localhost:8080` |
+| `npm run dev` | Dev server with hot reload on **port 3000** (the API mails links to it); `/api` is proxied to `http://localhost:8080` |
+| `npm run build && npm run preview` | The production build, served on port 3000 with the same `/api` proxy |
 | `npm test` | Unit and component tests (Vitest + Testing Library), once |
 | `npx vitest` | The same, in watch mode while you code |
 | `npm run lint` | Oxlint |
@@ -389,7 +390,10 @@ import { Alert, Button, PasswordField, TextField } from '@/shared/ui'
 |---|---|
 | Every write answers **403** `FORBIDDEN` | The `X-XSRF-TOKEN` header is missing or stale. Call the API only through `apiFetch` (it fetches the cookie itself); check in the browser's dev tools that the `XSRF-TOKEN` cookie exists for `localhost`. |
 | Logged in, but a refresh shows the login page | Your API is older than MLink-53 (`GET /api/auth/me`): pull the API's `master` and restart it. |
-| A link from a mail opens the wrong port | The API builds links from `APP_FRONTEND_URL` (`http://localhost:3000` in dev) while Vite runs on 5173. Being fixed in MLink-128 (Vite moves to 3000). |
+| A link from a mail does not open the app | The API builds links from `APP_FRONTEND_URL` (`http://localhost:3000` in dev): run `npm run dev` (port 3000, `strictPort`; if 3000 is taken, free it). |
+| `npm run dev` fails with "Port 3000 is in use" | Another app holds 3000; stop it (the port must match the mail links). |
+| An API call answers `502 API_NOT_ROUTED` (staging/prod or the local `edge`) | The reverse proxy sends `/api` to the dashboard instead of the API: see `deploy/README.md`. |
+| The browser console shows "Refused to load … Content-Security-Policy" | The production CSP allows our own origin only. Self-host the file (as the home page images) instead of loosening the CSP. |
 | `npm run dev` shows network errors | The API is not running on `localhost:8080`: start its dev stack. |
 | A test can't find a label | Required labels end with `*`: match the start with a regex, `getByLabelText(/^Prénom/)`. |
 
@@ -404,6 +408,13 @@ import { Alert, Button, PasswordField, TextField } from '@/shared/ui'
 - **Space:** the part of the app for one role (`/patient`, `/praticien`, `/admin`).
 - **Guard:** a component on a route that decides who may see it (`RequireAuth`, `GuestOnly`).
 
-## 12. Work in progress (MLink-128)
+## 12. In production
 
-This foundation is being built on PR #11. Coming next, and documented here as each lands: the production nginx setup, the dev port aligned with the mail links.
+The image (`Dockerfile`, `deploy/`) serves the build with nginx: strict CSP and security headers, `/assets` cached
+a year, the app shell revalidated on each visit. The HTTPS reverse proxy in front routes `/api` to the API so the
+browser sees one origin. Details, the proxy example and a local one-origin test (`http://localhost:8090`):
+[deploy/README.md](../deploy/README.md).
+
+## 13. Work in progress (MLink-128)
+
+This foundation is being built on PR #11. Coming next: the team rules (CONTRIBUTING, CLAUDE.md, PR template) and the hand-over of the password pages (MLink-89).

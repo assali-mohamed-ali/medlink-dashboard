@@ -10,12 +10,12 @@ Interface React du portail MedLink. Elle parle uniquement à notre API (`api-Med
 ## Démarrer
 
     npm ci
-    npm run dev      # http://localhost:5173
+    npm run dev      # http://localhost:3000 (le port des liens envoyés par mail)
     npm test
     npm run lint
     npm run build
 
-Le serveur de développement redirige `/api` vers `http://localhost:8080` : le navigateur ne voit qu'une origine, donc pas de CORS et le cookie `XSRF-TOKEN` reste lisible.
+Le serveur de développement redirige `/api` vers `http://localhost:8080` : le navigateur ne voit qu'une origine, donc pas de CORS et le cookie `XSRF-TOKEN` reste lisible. Il tourne sur le port 3000, l'`APP_FRONTEND_URL` de l'API en dev : les liens des mails (vérification, configuration du code) s'ouvrent ici. En staging et en prod, le reverse proxy HTTPS route `/api` vers l'API : voir [deploy/README.md](deploy/README.md).
 
 ## Lancer l'API
 
