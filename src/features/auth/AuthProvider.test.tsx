@@ -1,12 +1,11 @@
 import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
+import { MemoryRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { beforeEach, expect, test, vi } from 'vitest'
-import SpacePage from '@/pages/SpacePage'
 import * as apiClient from '@/shared/api/apiClient'
 import { ApiError } from '@/shared/api/apiClient'
 import AuthProvider from './AuthProvider'
-import ProtectedRoute from './ProtectedRoute'
+import { RequireAuth } from './guards'
 import * as authService from './api'
 import type { Role } from './roles'
 import { useAuth } from './useAuth'
@@ -36,6 +35,20 @@ function LoginPlaceholder() {
   return <p>Page de connexion{expired ? ' (session expirée)' : ''}</p>
 }
 
+/** A space's page, as small as possible: its title and the logout button. */
+function SpaceStub({ title }: { title: string }) {
+  const { logout } = useAuth()
+  const navigate = useNavigate()
+  return (
+    <>
+      <h1>{title}</h1>
+      <button type="button" onClick={() => logout().then(() => navigate('/connexion'))}>
+        Se déconnecter
+      </button>
+    </>
+  )
+}
+
 /** Shows the session as a page would read it. */
 function SessionProbe() {
   const { status, role, user } = useAuth()
@@ -62,10 +75,10 @@ function renderApp(path: string) {
         <Routes>
           <Route path="/connexion" element={<LoginPlaceholder />} />
           <Route path="/probe" element={<SessionProbe />} />
-          <Route element={<ProtectedRoute />}>
-            <Route path="/patient" element={<SpacePage title="Espace patient" />} />
-            <Route path="/praticien" element={<SpacePage title="Espace praticien" />} />
-            <Route path="/admin" element={<SpacePage title="Espace administratif" />} />
+          <Route element={<RequireAuth />}>
+            <Route path="/patient" element={<SpaceStub title="Espace patient" />} />
+            <Route path="/praticien" element={<SpaceStub title="Espace praticien" />} />
+            <Route path="/admin" element={<SpaceStub title="Espace administratif" />} />
           </Route>
         </Routes>
       </MemoryRouter>
