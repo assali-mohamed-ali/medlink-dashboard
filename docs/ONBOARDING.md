@@ -65,6 +65,7 @@ src/
 ├─ pages/                   pages that belong to no feature (Home, placeholders)
 ├─ shared/                  reusable code that knows nothing about MedLink's business
 │   ├─ api/apiClient.ts     apiFetch() and ApiError: the only place that calls fetch()
+│   ├─ api/errors.ts        messageFor(error), fieldErrors(details, fields): the French text to show
 │   └─ layout/              PublicHeader, MedLinkShell
 └─ test/setup.ts            test setup (jest-dom matchers, cleanup)
 ```
@@ -111,13 +112,36 @@ sequenceDiagram
 - A 401 with code `UNAUTHENTICATED` or `SESSION_EXPIRED` means "the session is over"; any other 401 is
   a normal answer (wrong password, wrong code).
 
+### Error handling: one path
+
+| Layer | Its job |
+|---|---|
+| `apiFetch` | Every failure becomes an `ApiError`. No answer at all → `NETWORK_ERROR`; no answer within 15 s → `TIMEOUT` (both with status `0`). |
+| `messageFor(error)` (`shared/api/errors.ts`) | The French text to show for any error: our own wording for the few codes a screen words itself (`INVALID_CODE`, `MFA_LOCKED`, `TOKEN_EXPIRED`, `INVALID_TOKEN`), otherwise the API's message, otherwise a generic one. |
+| `fieldErrors(error.details, FIELDS)` | The per-field messages of a 400 `VALIDATION_FAILED`, kept only for the fields your form shows. |
+| The page | Branches on `error.code` when the screen must change (e.g. `EMAIL_NOT_VERIFIED` shows "Renvoyer le lien"), shows `messageFor(error)` in an element with `role="alert"`. |
+
+```ts
+try {
+  await login(email, password)
+} catch (error) {
+  if (error instanceof ApiError && error.code === 'EMAIL_NOT_VERIFIED') setNeedsVerification(true)
+  setFormError(messageFor(error))   // never a hard-coded string, never error.stack
+}
+```
+
+Need your own wording for a code? Add one line to `MESSAGES` in `shared/api/errors.ts`; don't repeat a
+message the API already sends in French.
+
 ## 4. Session and security model
 
 - **One cookie, no tokens.** After login the API sets an HttpOnly session cookie the JavaScript cannot
   read. Keycloak's tokens stay on the server. Never store anything about the session in
   `localStorage` or `sessionStorage`.
 - **CSRF.** The API also sets a readable `XSRF-TOKEN` cookie (`GET /api/auth/csrf`). Every write (POST,
-  PUT, PATCH, DELETE) must send it back in the `X-XSRF-TOKEN` header. `apiFetch` does this for you.
+  PUT, PATCH, DELETE) must send it back in the `X-XSRF-TOKEN` header. `apiFetch` does both for you: when
+  there is no cookie yet, it calls `/auth/csrf` first (once, even for parallel writes), then sends the
+  header. Pages never deal with CSRF.
 - **Same origin.** In dev, Vite proxies `/api` to the API, so the browser sees one origin: no CORS, and
   the `SameSite=Strict` cookies are sent.
 - **Who is logged in** comes from the API (`GET /api/auth/me`), never from the browser's memory of a
@@ -155,7 +179,7 @@ sequenceDiagram
 
 | Symptom | Cause and fix |
 |---|---|
-| Every write answers **403** | No `XSRF-TOKEN` cookie yet: the page must call `GET /api/auth/csrf` once before its first write (login and signup do it on open). |
+| Every write answers **403** `FORBIDDEN` | The `X-XSRF-TOKEN` header is missing or stale. Call the API only through `apiFetch` (it fetches the cookie itself); check in the browser's dev tools that the `XSRF-TOKEN` cookie exists for `localhost`. |
 | Logged in, but a refresh shows the login page | `GET /api/auth/me` is not on the API's `master` yet (MLink-53, in progress). |
 | A link from a mail opens the wrong port | The API builds links from `APP_FRONTEND_URL` (`http://localhost:3000` in dev) while Vite runs on 5173. Being fixed in MLink-128 (Vite moves to 3000). |
 | `npm run dev` shows network errors | The API is not running on `localhost:8080`: start its dev stack. |
@@ -173,6 +197,5 @@ sequenceDiagram
 
 ## 9. Work in progress (MLink-128)
 
-This foundation is being built on PR #11. Coming next, and documented here as each lands: one error
-path with French messages, a UI component library, role spaces with guards, the MFA screens
+This foundation is being built on PR #11. Coming next, and documented here as each lands: a UI component library, role spaces with guards, the MFA screens
 (MLink-64), the verify-e-mail page (MLink-80), and the production nginx setup.

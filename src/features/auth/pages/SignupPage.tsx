@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -27,7 +27,8 @@ import {
 import MedLinkShell from '@/shared/layout/MedLinkShell'
 import PublicHeader from '@/shared/layout/PublicHeader'
 import { ApiError } from '@/shared/api/apiClient'
-import { fetchCsrf, register as registerRequest } from '../api'
+import { fieldErrors as pickFieldErrors, messageFor } from '@/shared/api/errors'
+import { register as registerRequest } from '../api'
 import {
   allPasswordRulesPass,
   evaluatePasswordRules,
@@ -98,24 +99,16 @@ const signupSchema = z.object({
 type SignupValues = z.infer<typeof signupSchema>
 type FieldErrors = Partial<Record<keyof SignupValues, string>>
 
-function fieldErrorsFromApi(details: unknown): FieldErrors {
-  if (!details || typeof details !== 'object') return {}
-  const out: FieldErrors = {}
-  const fields = [
-    'email',
-    'password',
-    'firstName',
-    'lastName',
-    'birthDate',
-    'phone',
-    'address',
-  ] as const
-  for (const field of fields) {
-    const value = (details as Record<string, unknown>)[field]
-    if (typeof value === 'string' && value.trim()) out[field] = value
-  }
-  return out
-}
+// The fields POST /api/auth/register validates: a server message for one of them goes under it
+const API_FIELDS = [
+  'email',
+  'password',
+  'firstName',
+  'lastName',
+  'birthDate',
+  'phone',
+  'address',
+] as const
 
 export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -157,10 +150,6 @@ export default function SignupPage() {
     [password, email],
   )
 
-  useEffect(() => {
-    fetchCsrf().catch(() => {})
-  }, [])
-
   async function onSubmit(values: SignupValues) {
     setFormError(null)
     setFieldErrors({})
@@ -189,7 +178,7 @@ export default function SignupPage() {
       setSuccess(true)
     } catch (error) {
       if (!(error instanceof ApiError)) {
-        setFormError('Impossible de joindre le serveur. Veuillez réessayer.')
+        setFormError(messageFor(error))
         return
       }
       if (error.status === 400) {
@@ -197,7 +186,7 @@ export default function SignupPage() {
           setFieldErrors({ password: error.message })
           return
         }
-        const fromServer = fieldErrorsFromApi(error.details)
+        const fromServer = pickFieldErrors(error.details, API_FIELDS)
         setFieldErrors(fromServer)
         if (Object.keys(fromServer).length === 0) setFormError(error.message)
         return
@@ -209,7 +198,7 @@ export default function SignupPage() {
         )
         return
       }
-      setFormError(error.message || 'Une erreur est survenue. Veuillez réessayer.')
+      setFormError(messageFor(error))
     }
   }
 

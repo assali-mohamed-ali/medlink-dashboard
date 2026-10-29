@@ -3,10 +3,6 @@ import type { AuthUser, LoginResponse, RegisterPayload, RegisterResponse } from 
 
 // One function per endpoint of plan.md §4 (api-MedLink). Components never call fetch() themselves.
 
-export function fetchCsrf() {
-  return apiFetch('/auth/csrf')
-}
-
 export function login(email: string, password: string) {
   return apiFetch<LoginResponse>('/auth/login', {
     method: 'POST',

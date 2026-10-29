@@ -8,14 +8,12 @@ import * as authService from '../api'
 import LoginPage from './LoginPage'
 
 vi.mock('../api', () => ({
-  fetchCsrf: vi.fn(),
   fetchMe: vi.fn(),
   login: vi.fn(),
   logout: vi.fn(),
   resendVerification: vi.fn(),
 }))
 
-const fetchCsrf = vi.mocked(authService.fetchCsrf)
 const fetchMe = vi.mocked(authService.fetchMe)
 const login = vi.mocked(authService.login)
 const resendVerification = vi.mocked(authService.resendVerification)
@@ -57,13 +55,7 @@ function userWithRole(role: 'PATIENT' | 'PRACTITIONER' | 'ADMINISTRATIVE_STAFF')
 
 beforeEach(() => {
   vi.resetAllMocks()
-  fetchCsrf.mockResolvedValue(undefined)
   fetchMe.mockRejectedValue(new ApiError(401, 'UNAUTHENTICATED', 'Non connecté.'))
-})
-
-test('asks for the CSRF cookie when the page opens', () => {
-  renderPage()
-  expect(fetchCsrf).toHaveBeenCalledTimes(1)
 })
 
 test('shows the sign-up link', () => {

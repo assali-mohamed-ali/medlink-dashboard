@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -6,7 +6,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import PublicHeader from '@/shared/layout/PublicHeader'
 import { ArrowRight, Eye, EyeOff, Lock, Mail, Plus, ShieldCheck } from 'lucide-react'
 import { ApiError } from '@/shared/api/apiClient'
-import { fetchCsrf, resendVerification } from '../api'
+import { messageFor } from '@/shared/api/errors'
+import { resendVerification } from '../api'
 import type { LoginResponse } from '../types'
 import { roleHome } from '../roles'
 import { useAuth } from '../useAuth'
@@ -35,11 +36,6 @@ export default function LoginPage() {
     formState: { errors, isSubmitting },
   } = useForm<LoginValues>({ resolver: zodResolver(loginSchema) })
 
-  useEffect(() => {
-    // Sets the XSRF-TOKEN cookie so the login POST carries the CSRF header.
-    fetchCsrf().catch(() => {})
-  }, [])
-
   async function onSubmit(values: LoginValues) {
     setFormError(null)
     setNeedsVerification(false)
@@ -53,14 +49,10 @@ export default function LoginPage() {
       // The password is never kept after a submit.
       resetField('password')
       setShowPassword(false)
-      if (error instanceof ApiError) {
-        if (error.status === 403 && error.code === 'EMAIL_NOT_VERIFIED') {
-          setNeedsVerification(true)
-        }
-        setFormError(error.message)
-      } else {
-        setFormError('Impossible de joindre le serveur. Veuillez réessayer.')
+      if (error instanceof ApiError && error.code === 'EMAIL_NOT_VERIFIED') {
+        setNeedsVerification(true)
       }
+      setFormError(messageFor(error))
       return
     }
 
@@ -86,11 +78,7 @@ export default function LoginPage() {
         response?.message ?? 'Si le compte existe, un nouveau lien a été envoyé.',
       )
     } catch (error) {
-      setResendMessage(
-        error instanceof ApiError
-          ? error.message
-          : 'Une erreur est survenue. Veuillez réessayer.',
-      )
+      setResendMessage(messageFor(error))
     }
   }
 

@@ -7,11 +7,9 @@ import * as authService from '../api'
 import SignupPage from './SignupPage'
 
 vi.mock('../api', () => ({
-  fetchCsrf: vi.fn(),
   register: vi.fn(),
 }))
 
-const fetchCsrf = vi.mocked(authService.fetchCsrf)
 const register = vi.mocked(authService.register)
 
 function renderPage() {
@@ -44,12 +42,6 @@ async function fillValidForm(user: ReturnType<typeof userEvent.setup>) {
 
 beforeEach(() => {
   vi.resetAllMocks()
-  fetchCsrf.mockResolvedValue(undefined)
-})
-
-test('asks for the CSRF cookie when the page opens', () => {
-  renderPage()
-  expect(fetchCsrf).toHaveBeenCalledTimes(1)
 })
 
 test('updates the password checklist as the user types', async () => {
