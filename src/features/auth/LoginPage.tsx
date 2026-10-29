@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Link, useNavigate } from 'react-router-dom'
+import PublicHeader from '../../components/layout/PublicHeader'
 import { ArrowRight, Eye, EyeOff, Lock, Mail, Plus, ShieldCheck } from 'lucide-react'
 import { ApiError } from '../../services/apiClient'
 import { fetchCsrf, resendVerification } from './authService'
@@ -94,7 +95,9 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="login">
+    <>
+      <PublicHeader variant="login" />
+      <main className="login public-header-offset">
       <div className="login__card">
         <div className="login__brand">
           <span className="login__logo" aria-hidden="true">
@@ -218,5 +221,6 @@ export default function LoginPage() {
         Réseau de cliniques MedLink · Données de santé hébergées en Tunisie
       </p>
     </main>
+    </>
   )
 }
