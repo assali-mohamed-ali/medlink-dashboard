@@ -13,9 +13,9 @@ Work for: **Mohamed** (YouTrack `Mohamed.BenNaima`, also "Al-Assad"). Teammate p
 | Plan written | ✅ 2026-10-30 | this folder | research, audit, design direction, roadmap |
 | Tailwind + shadcn + Watermelon configured | ✅ 2026-10-30 | `feat/MLink-128-ui-kit` | no reset, scan limited, colours mapped, `cn` pinned, guard test |
 | D4 branch | ✅ 2026-10-30 | — | work on `feat/MLink-128-ui-kit` now; open its PR only after #11 merges (no stacked PRs) |
-| D1–D3 decisions | ⏳ waiting | — | B0 specimen first; defaults in PLAN.md §6 |
+| D1, D2 decisions | ✅ 2026-10-30 | — | Mohamed: **D1 = B** (Geist + Instrument Serif), **D2 = proposed greys**; D3 still open |
 | YouTrack ticket "[FE] UI refresh" | ⏳ not created | — | show the text to Mohamed before posting |
-| B0 specimen `/__specimen` | ⏳ 2026-10-30 | `65498c6`, `2328f22`, `9b05f15` | built, dev only; waiting on Mohamed's D1/D2 pick |
+| B0 specimen `/__specimen` | ✅ 2026-10-30 | `65498c6`, `2328f22`, `9b05f15` | built, dev only; waiting on Mohamed's D1/D2 pick |
 | B1 fonts + type scale | ⬜ | | |
 | B2 tokens v2 + contrast script | ⬜ | | red first: `--outline-variant` fails 3:1 |
 | B3 components | ⬜ | | |
@@ -33,9 +33,13 @@ Legend: ✅ done · ⏳ waiting on someone · 🔄 in progress · ⬜ not starte
    has new commits, merge them in (never force-push). Open this branch's PR **only after #11 is merged** into `master`
    (then merge `master` in first).
 2. **B0 is built**: `npm run dev`, then `http://localhost:3000/__specimen` (toolbar: Option A/B, Gris actuels/proposés).
-   Waiting for Mohamed's choice of D1 (A, B or sans only) and D2 (greys yes/no). Then **B1** keeps the chosen
-   `@fontsource` packages (move them to `dependencies`, drop the others) and **B2** moves the chosen greys from
-   `src/pages/specimen/neutrals.ts` into `tokens.css`.
+   Chosen: **B + proposed greys**. Next is **B1**: move `@fontsource-variable/geist` and `@fontsource/instrument-serif`
+   to `dependencies` (Plus Jakarta stays a devDependency while the specimen shows option A); a `shared/styles/fonts.css`
+   with latin-only `@font-face` (`geist-latin-wght-normal.woff2`, `instrument-serif-latin-400-normal.woff2`; the latin
+   range covers French incl. œ) imported once in `main.tsx`; `--font-sans`, `--font-display`, the §4.1 scale
+   (`--text-sm`/`--text-md` become 14/16 px); `MedLinkShell.css:25` names Plus Jakarta Sans (mine, shared: point it at
+   `var(--font-sans)`); `HomePage.css:24` does too (Ahlem's: ask her). Red test first (raw-CSS test like
+   `shadcnTokens.test.ts`). Then **B2** moves `NEUTRALS.proposed` (`src/pages/specimen/neutrals.ts`) into `tokens.css`.
 3. Mohamed starts the session with "go B0" (or similar): Go was given on 2026-10-30 for the whole refresh, but each push
    and each YouTrack post still waits for his OK.
 
@@ -61,6 +65,9 @@ Legend: ✅ done · ⏳ waiting on someone · 🔄 in progress · ⬜ not starte
   `/verifier-email`, `/patient`, `/praticien`, `/admin`, `/acces-refuse`, a 404; at 375 and 1440 px.
 
 ## Log
+
+- **2026-10-30**: Mohamed picked D1 = option B (Geist + Instrument Serif) and D2 = the proposed greys. The 3001 dev
+  server was stopped by Claude Code (low memory); restart it only when asked.
 
 - **2026-10-30**: B0 built (`src/pages/specimen/`). Route only when `import.meta.env.DEV` (tested both ways; no
   specimen chunk or font in `dist`). Fonts as devDependencies, imported by the specimen only. Watermelon `badge-12/13/15`

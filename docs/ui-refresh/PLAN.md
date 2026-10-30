@@ -245,8 +245,8 @@ the PR. "Mine" = Mohamed; "Ahlem" = her ticket, or her written OK.
 
 | # | Question | Who | Default if no answer |
 |---|---|---|---|
-| D1 | Type pairing A or B (or sans only) | team, from B0 | A |
-| D2 | Neutrals move to the green tint | team, from B0 | yes |
+| D1 | Type pairing A or B (or sans only) | team, from B0 | **B** (Mohamed, 2026-10-30) |
+| D2 | Neutrals move to the green tint | team, from B0 | **yes** (Mohamed, 2026-10-30) |
 | D3 | Which claims on the home page are true today (HDS, INPDP, encryption) | team / home page owner | neutral wording |
 | D4 | Branch: start after #11 merges (new branch from `master`), or before | Mohamed | after #11 |
 
