@@ -7,6 +7,7 @@ import PlaceholderPage from '@/pages/PlaceholderPage'
 import RouteErrorPage from '@/pages/RouteErrorPage'
 import { paths } from '@/shared/config/paths'
 import { lazyPage } from '@/shared/lib/lazyPage'
+import { PageLoader } from '@/shared/ui'
 import SpaceHome from '@/spaces/SpaceHome'
 import SpaceLayout from '@/spaces/SpaceLayout'
 
@@ -31,6 +32,8 @@ function space(role: Role, root: string, pages: RouteObject[] = []): RouteObject
 export const routes: RouteObject[] = [
   {
     errorElement: <RouteErrorPage />,
+    // Shown while the first page's lazy chunk downloads (a refresh on a lazy page): a loader, not a blank screen
+    hydrateFallbackElement: <PageLoader />,
     children: [
       { path: paths.home, lazy: lazyPage(() => import('@/pages/HomePage')) },
       ...authRoutes,
