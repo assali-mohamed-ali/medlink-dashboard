@@ -11,6 +11,7 @@ Work for: **Mohamed** (YouTrack `Mohamed.BenNaima`, also "Al-Assad"). Teammate p
 | Step | State | Commit / PR | Notes |
 |---|---|---|---|
 | Plan written | ✅ 2026-10-30 | this folder | research, audit, design direction, roadmap |
+| Tailwind + shadcn + Watermelon configured | ✅ 2026-10-30 | `feat/MLink-128-ui-kit` | no reset, scan limited, colours mapped, `cn` pinned, guard test |
 | D1–D4 decisions | ⏳ waiting | — | B0 specimen first; defaults in PLAN.md §6 |
 | YouTrack ticket "[FE] UI refresh" | ⏳ not created | — | show the text to Mohamed before posting |
 | B0 specimen `/__specimen` | ⬜ | | dev only |
@@ -35,12 +36,13 @@ Legend: ✅ done · ⏳ waiting on someone · 🔄 in progress · ⬜ not starte
 ## Facts a new session needs
 
 - **Stack**: React 19, TS 6, Vite 8, React Router 7, Vitest 5, oxlint, CSS Modules + `src/shared/styles/tokens.css`. Icons:
-  `lucide-react` (already a dependency). No Tailwind, no UI kit.
+  `lucide-react` (already a dependency). Tailwind 4 + shadcn (Base UI) configured for `src/shared/components`
+  (branch `feat/MLink-128-ui-kit`, ONBOARDING §7): `npx shadcn@4.23.0 add <name or Watermelon URL>`, never `init`.
 - **CSP is `'self'`** (`deploy/nginx/security-headers.conf`): fonts come from `@fontsource` npm packages, never a CDN.
   Candidates checked on npm 2026-10-30, all OFL-1.1, v5.3.0: `@fontsource-variable/plus-jakarta-sans`,
   `@fontsource/instrument-serif`, `@fontsource-variable/geist`, `@fontsource-variable/fraunces`.
-- **Watermelon UI** (MCP `mcp__claude_ai_Watermelon_UI__*`, connected) is shadcn + Tailwind: use it for **inspiration**
-  (`get_inspiration`, `get_component`), then rebuild in CSS Modules. Useful entries: `medesk-dashboard` (healthcare:
+- **Watermelon UI** (MCP `mcp__claude_ai_Watermelon_UI__*`, connected; shadcn + Tailwind + Base UI): find items with
+  `get_inspiration`/`search`, check them with `--dry-run --view`, install with the shadcn CLI. Useful entries: `medesk-dashboard` (healthcare:
   Geist + Instrument Serif, 224 px sidebar, 50 px top bar, 10 px radius, 14 px medium text), `macos-sidebar`,
   `navigation-1`.
 - **Design skill**: `ui-ux-pro-max` (`--design-system`, `--domain typography|ux|color`); ignore its palettes (the team's
@@ -54,5 +56,7 @@ Legend: ✅ done · ⏳ waiting on someone · 🔄 in progress · ⬜ not starte
 
 ## Log
 
+- **2026-10-30**: rule softened (Mohamed): Tailwind 4 + shadcn 4 (Base UI) configured by hand (no `shadcn init`), the
+  shadcn `button` added, `var(--secondary)` guard test; pages unchanged in the browser; 118 tests, lint, tsc, build green.
 - **2026-10-30**: plan written after a browser review of home, login and signup, the code audit (tokens, CSS sizes,
   owners), the contrast script, online research and Watermelon UI references. Nothing implemented yet.

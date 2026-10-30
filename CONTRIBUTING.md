@@ -71,7 +71,10 @@ These rules keep several people working on the same code without stepping on eac
   `shared/styles/tokens.css`, no raw colours. A component moves to `shared/ui` the second time it is needed.
 - **Naming:** components `PascalCase.tsx`, everything else `camelCase.ts`; tests and styles next to their file
   (`X.test.tsx`, `X.module.css`). Code, comments and docs in English; text on screen in French.
-- **Keep it simple:** no new state library, no new UI kit, no abstraction for a single use. A new dependency is
+- **Keep it simple:** one styling approach per layer (our components: CSS Modules + tokens; shadcn/Watermelon
+  components: Tailwind mapped to the same tokens, see `docs/ONBOARDING.md` §7), no new state library, no
+  abstraction for a single use. Components from Watermelon UI or shadcn/ui are welcome when a screen needs them;
+  add them with the shadcn CLI, never `shadcn init`. A new dependency is
   explained in the PR (why, size, alternative considered) and agreed by the team.
 
 ### Security (a health portal)

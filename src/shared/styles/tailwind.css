@@ -1,0 +1,91 @@
+/*
+ * Tailwind CSS 4, for the shadcn/ui and Watermelon UI components (src/shared/components). Our own pages keep CSS
+ * Modules + tokens.css; both draw from the same tokens, so they look like one app.
+ *
+ * - No preflight (Tailwind's reset): only the theme and the utilities layers. The existing pages keep their look.
+ * - Tailwind reads class names in src/shared/components only (source(none) + @source): a page's own class such as
+ *   "container" or "hidden" never gets Tailwind CSS by accident. A new folder that uses Tailwind gets its @source line.
+ * - Our tokens are unlayered, so they win over anything in these layers.
+ * - shadcn's colour names are mapped to our tokens (the @theme block for utilities, the :root block below for raw
+ *   var(--x)). --primary and --secondary are never redefined: the existing pages use ours (--secondary is a text
+ *   colour there, shadcn's is a background), so the :root block `shadcn init` writes would repaint the app.
+ *   Do not run `shadcn init`; `shadcn add` is fine (docs/ONBOARDING.md §7).
+ */
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities) source(none);
+@source '../components';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * The names shadcn components also read as raw var(--x). Only those that do not clash with tokens.css: --primary is
+ * ours and means the same; --secondary is ours and means something else (a text colour), so shadcn code must use
+ * --secondary-fixed instead (src/shared/components/shadcnTokens.test.ts fails otherwise).
+ */
+@layer theme {
+  :root {
+    --background: var(--surface);
+    --foreground: var(--on-surface);
+    --card: var(--surface-lowest);
+    --card-foreground: var(--on-surface);
+    --popover: var(--surface-lowest);
+    --popover-foreground: var(--on-surface);
+    --primary-foreground: var(--on-primary);
+    --secondary-foreground: var(--on-surface);
+    --muted: var(--surface-low);
+    --muted-foreground: var(--on-surface-variant);
+    --accent: var(--secondary-fixed);
+    --accent-foreground: var(--primary);
+    --destructive: var(--error);
+    --border: var(--outline-variant);
+    --input: var(--outline);
+    --ring: var(--primary);
+    --radius: var(--radius-control);
+  }
+}
+
+@theme inline {
+  --font-sans: var(--font);
+
+  --color-background: var(--surface);
+  --color-foreground: var(--on-surface);
+  --color-card: var(--surface-lowest);
+  --color-card-foreground: var(--on-surface);
+  --color-popover: var(--surface-lowest);
+  --color-popover-foreground: var(--on-surface);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--on-primary);
+  --color-secondary: var(--secondary-fixed);
+  --color-secondary-foreground: var(--on-surface);
+  --color-muted: var(--surface-low);
+  --color-muted-foreground: var(--on-surface-variant);
+  --color-accent: var(--secondary-fixed);
+  --color-accent-foreground: var(--primary);
+  --color-destructive: var(--error);
+  --color-destructive-foreground: var(--on-primary);
+  --color-border: var(--outline-variant);
+  --color-input: var(--outline);
+  --color-ring: var(--primary);
+
+  --color-chart-1: var(--primary);
+  --color-chart-2: var(--primary-container);
+  --color-chart-3: var(--primary-fixed);
+  --color-chart-4: var(--secondary);
+  --color-chart-5: var(--secondary-fixed);
+
+  --color-sidebar: var(--surface-lowest);
+  --color-sidebar-foreground: var(--on-surface);
+  --color-sidebar-primary: var(--primary);
+  --color-sidebar-primary-foreground: var(--on-primary);
+  --color-sidebar-accent: var(--secondary-fixed);
+  --color-sidebar-accent-foreground: var(--primary);
+  --color-sidebar-border: var(--outline-variant);
+  --color-sidebar-ring: var(--primary);
+
+  /* shadcn's rounded-sm/md/lg/xl, on our shape scale */
+  --radius-sm: 6px;
+  --radius-md: var(--radius-field);
+  --radius-lg: var(--radius-control);
+  --radius-xl: var(--radius-card);
+}

@@ -358,6 +358,42 @@ import { Alert, Button, PasswordField, TextField } from '@/shared/ui'
 - `HomePage.css`, `MedLinkShell.css` and `PublicHeader.css` still hold local copies of the same token
   values (from before `tokens.css`); new code reads the tokens.
 
+### Watermelon UI and shadcn/ui (`shared/components`)
+
+For richer pieces (sidebars, menus, dialogs, dashboards) we take components from
+[Watermelon UI](https://ui.watermelon.sh) or [shadcn/ui](https://ui.shadcn.com) instead of writing them from scratch.
+They are copied into the repo (we own and review the code), styled with Tailwind CSS 4, built on Base UI primitives
+(`@base-ui/react`) and already painted in MedLink's colours.
+
+| Folder | What lives there |
+|---|---|
+| `shared/ui/` | our own components (CSS Modules): `Button`, `TextField`… as above |
+| `shared/components/ui/` | shadcn primitives (`button.tsx`…), added by the shadcn CLI |
+| `shared/components/watermelon/` | Watermelon items, added the same way |
+
+```bash
+npx shadcn@4.23.0 add button                                            # a shadcn primitive
+npx shadcn@4.23.0 add https://registry.watermelon.sh/r/<slug>.json      # a Watermelon item (slug from its page)
+npx shadcn@4.23.0 add https://registry.watermelon.sh/r/<slug>.json --dry-run --view   # look before you add
+```
+
+How it is wired, and the traps:
+- **Never run `shadcn init`**: it writes its own `--primary`/`--secondary` and would repaint the app. Everything is
+  already configured (`components.json`, `shared/styles/tailwind.css`, the Vite plugin).
+- **Colours**: Tailwind's `bg-primary`, `text-muted-foreground`, `border-border`… point at our tokens (`@theme` in
+  `tailwind.css`). Our `--secondary` is a *text* colour; shadcn code that writes `var(--secondary)` must use
+  `var(--secondary-fixed)`: `shared/components/shadcnTokens.test.ts` fails until you fix it.
+- **No reset, limited scan**: Tailwind's preflight is off and it reads class names in `shared/components` only, so the
+  existing pages are untouched. A new folder that uses Tailwind classes needs an `@source` line in `tailwind.css`.
+- **Dependencies**: read what `add` installs. Prefer a version at least two weeks old; `cn` (shadcn's class merger)
+  is pinned to an exact version for that reason. Explain each new package in the PR (why, size, alternative).
+- **CSP**: Tailwind compiles into our own CSS file, fine for `'self'`. A primitive that injects a `<style>` element
+  (some scroll locks, toasts) is blocked by the CSP: after adding a dialog, menu or toast, check the console of the
+  production image (`http://localhost:8090`) for CSP errors before you open the PR.
+- **Wrap before use in pages**: a page imports a Watermelon/shadcn piece through `shared/components` (or a feature
+  wrapper with French texts and our props), never straight from a registry URL. Text stays French; icons stay
+  `lucide-react`.
+
 ## 8. Where do I put…?
 
 | I want to… | Put it in |

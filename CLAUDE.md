@@ -39,8 +39,10 @@ Any AI agent working on this repository MUST follow these rules:
 - **API calls** only in a feature's `api.ts` through `apiFetch`; errors shown with `messageFor`.
 - **URLs** from `shared/config/paths.ts`. The mailed pages (`/verifier-email`, `/configurer-code`,
   `/activer-compte`) are part of the API contract.
-- **UI** from `shared/ui` with the tokens of `shared/styles/tokens.css`. Screen text in French, accessible
-  (labels, `role="alert"` for errors).
+- **UI** from `shared/ui` (CSS Modules) or `shared/components` (shadcn/Watermelon UI, Tailwind mapped to our tokens),
+  with the tokens of `shared/styles/tokens.css`. Add shadcn/Watermelon items with `npx shadcn@4.23.0 add …`, **never
+  `shadcn init`** (it would overwrite `--primary`/`--secondary`); read `docs/ONBOARDING.md` §7 first. Screen text in
+  French, accessible (labels, `role="alert"` for errors).
 - **A task is done when a test proves it:** one test per API answer; a guarded page is tested with the right role
   and a wrong role; red commit first, then green, then check that breaking the rule turns a test red.
 - **The CSP is `'self'`:** self-host any asset; no third-party script, style, font or image.
