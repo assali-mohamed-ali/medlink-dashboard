@@ -1,11 +1,16 @@
+/// <reference types="node" />
+// Node's types for this test only (it reads files); app code stays on browser types (tsconfig.app.json)
+import { existsSync, globSync, readFileSync } from 'node:fs'
 import { expect, test } from 'vitest'
 
 // UI refresh B1 (docs/ui-refresh/PLAN.md §4.1, decision D1 = option B): Geist for the interface, Instrument Serif for a
 // few display titles, both self-hosted (CSP 'self'), Latin subset only, and one type scale in tokens.css.
-const CSS = import.meta.glob<string>('/src/**/*.css', { query: '?raw', import: 'default', eager: true })
-const tokens = CSS['/src/shared/styles/tokens.css']
-const fonts = CSS['/src/shared/styles/fonts.css'] ?? ''
-const global = CSS['/src/shared/styles/global.css']
+// Read from disk: Vitest replaces CSS imports (even ?raw) with an empty string.
+const read = (file: string) => (existsSync(file) ? readFileSync(file, 'utf8') : '')
+const CSS = Object.fromEntries(globSync('src/**/*.css').map((file: string) => [file.replaceAll('\\', '/'), read(file)]))
+const tokens = read('src/shared/styles/tokens.css')
+const fonts = read('src/shared/styles/fonts.css')
+const global = read('src/shared/styles/global.css')
 
 function token(name: string) {
   return tokens.match(new RegExp(`${name}:\\s*([^;]+);`))?.[1].trim()
@@ -51,7 +56,7 @@ test('the fonts are self-hosted, Latin only, two files, shown at once with a fal
 
 test('no shared or feature stylesheet names a face that is not loaded (audit A1)', () => {
   const offenders = Object.keys(CSS).filter(
-    (file) => /^\/src\/(shared|features|spaces)\//.test(file) && /Plus Jakarta/.test(CSS[file]),
+    (file) => /^src\/(shared|features|spaces)\//.test(file) && /Plus Jakarta/.test(CSS[file]),
   )
   expect(offenders).toEqual([])
 })
