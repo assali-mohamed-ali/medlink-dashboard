@@ -22,7 +22,7 @@ test('both type pairings are set side by side on the same MedLink text', () => {
   expect(within(b).getByText(/Votre santé, entre de bonnes mains/)).toBeInTheDocument()
 })
 
-test('the page opens on the chosen pairing (D1 = option B), and the toolbar switches to A and back', async () => {
+test('the page opens on the chosen pairing (D1 = option B), and the toolbar switches to A', async () => {
   const user = userEvent.setup()
   renderPage()
   const toolbar = screen.getByRole('toolbar', { name: 'Réglages du spécimen' })
