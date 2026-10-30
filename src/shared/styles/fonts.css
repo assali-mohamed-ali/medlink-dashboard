@@ -1,0 +1,28 @@
+/*
+ * MedLink's two faces (decision D1, docs/ui-refresh/PLAN.md §4.1), self-hosted from @fontsource: Vite copies the files
+ * into /assets, so the CSP stays 'self'. Latin subset only (it covers French: accents, œ, « », non-breaking spaces),
+ * one file per face (~50 kB in all). Text shows at once in the fallback face, then swaps when the file arrives.
+ * Use them through var(--font-sans) and var(--font-display) (tokens.css), never by name.
+ */
+
+/* Geist, variable 100–900: every interface text (400 text, 500 labels and buttons, 600 headings) */
+@font-face {
+  font-family: 'Geist Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('@fontsource-variable/geist/files/geist-latin-wght-normal.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* Instrument Serif, 400 only: display titles of public and auth pages (≥ 32 px), never forms, tables or spaces */
+@font-face {
+  font-family: 'Instrument Serif';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url('@fontsource/instrument-serif/files/instrument-serif-latin-400-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}

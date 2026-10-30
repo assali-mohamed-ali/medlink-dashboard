@@ -41,10 +41,30 @@
   --shadow-cta: 0 8px 20px rgba(14, 82, 69, 0.22);
   --focus-ring: 0 0 0 3px rgba(14, 82, 69, 0.25);
 
-  /* Type and spacing */
-  --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --text-sm: 0.8125rem;
-  --text-md: 0.9375rem;
+  /* Type (docs/ui-refresh/PLAN.md §4.1): faces from fonts.css; sizes in rem, each with its line height */
+  --font-sans: 'Geist Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Instrument Serif', Georgia, 'Times New Roman', serif; /* public and auth titles ≥ 32 px only */
+  --font: var(--font-sans); /* old name, kept until every stylesheet reads --font-sans */
+  --text-xs: 0.75rem; /* 12: badges, legal (sparingly) */
+  --leading-xs: 1rem;
+  --text-sm: 0.875rem; /* 14: secondary text, table cells, hints */
+  --leading-sm: 1.25rem;
+  --text-md: 1rem; /* 16: body and inputs (16 px also stops iOS zooming on focus) */
+  --leading-md: 1.5rem;
+  --text-lg: 1.125rem; /* 18: lead paragraphs */
+  --leading-lg: 1.75rem;
+  --text-xl: 1.25rem; /* 20: card titles */
+  --leading-xl: 1.75rem;
+  --text-2xl: 1.5rem; /* 24: section titles */
+  --leading-2xl: 2rem;
+  --text-3xl: 1.875rem; /* 30: page titles in spaces */
+  --leading-3xl: 2.25rem;
+  --display-sm: 2.25rem; /* 36, display face: auth titles */
+  --leading-display-sm: 2.5rem;
+  --display-lg: clamp(2.5rem, 5vw, 3.5rem); /* 40–56, display face: home hero */
+  --leading-display-lg: 1.1;
+
+  /* Spacing */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;

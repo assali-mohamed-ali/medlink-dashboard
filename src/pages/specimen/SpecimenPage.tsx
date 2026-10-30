@@ -1,7 +1,5 @@
+// Geist and Instrument Serif load for the whole app (shared/styles/fonts.css); option A's face, here only
 import '@fontsource-variable/plus-jakarta-sans/wght.css'
-import '@fontsource-variable/geist/wght.css'
-import '@fontsource/instrument-serif/400.css'
-import '@fontsource/instrument-serif/400-italic.css'
 import {
   CalendarDays,
   FileText,
@@ -23,7 +21,7 @@ import styles from './SpecimenPage.module.css'
 /**
  * UI refresh step B0 (docs/ui-refresh/PLAN.md §5): a dev-only page (`npm run dev`, then /__specimen) where the team
  * picks the type pairing (D1) and agrees the greys (D2) on real MedLink screens. Never in a production build
- * (routes.tsx). The fonts are imported here only, so nothing else downloads them.
+ * (routes.tsx). D1 and D2 are decided (B + proposed greys, 2026-10-30); the page stays for the team to compare.
  */
 
 const PAIRINGS = {

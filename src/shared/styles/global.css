@@ -1,13 +1,27 @@
+@import './fonts.css';
 @import './tokens.css';
 
 *, *::before, *::after { box-sizing: border-box; }
 
 body {
   margin: 0;
-  font-family: var(--font);
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  line-height: var(--leading-md);
   color: var(--on-surface);
   background: var(--surface);
+  -webkit-font-smoothing: antialiased;
 }
+
+/*
+ * Base type (PLAN.md §4.1): element selectors only, so any class a page sets still wins. Headings at 600 (no 800/900),
+ * balanced lines, no hyphenation.
+ */
+h1, h2, h3, h4 { font-weight: 600; letter-spacing: -0.01em; text-wrap: balance; hyphens: manual; }
+small { font-size: var(--text-sm); line-height: var(--leading-sm); }
+
+/* Times, dates, amounts in lists and tables: digits of one width, so columns line up */
+.tabular-nums { font-variant-numeric: tabular-nums; }
 
 /* Text for screen readers only (e.g. the spinner's "Chargement…") */
 .visually-hidden {

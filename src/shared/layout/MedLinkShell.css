@@ -22,7 +22,7 @@
   min-height: 100vh;
   background: var(--surface);
   color: var(--on-surface);
-  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-family: var(--font-sans);
   overflow-x: hidden;
 }
 
