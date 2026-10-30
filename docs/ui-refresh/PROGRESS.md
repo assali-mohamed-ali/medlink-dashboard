@@ -23,7 +23,7 @@ Work for: **Mohamed** (YouTrack `Mohamed.BenNaima`, also "Al-Assad"). Teammate p
 | B5 space shell | ✅ 2026-10-30 | `e4371ae`, `8fc2aea` | no dropdown yet (no "Mon compte" page); not seen in a browser: dev login timed out |
 | B6 space homes | ✅ 2026-10-30 | `53ffd7a` + next | greeting + parts per role from spaces.ts; not seen in a browser (login times out) |
 | C1 home, C2 login/signup layout | ⬜ | | Ahlem's OK needed |
-| D1–D4 quality pass | 🔄 | `8a6c123`, `aaacd1c` + docs | D3 done (budget in CI); D1/D2 public pages audited; spaces and keyboard focus still to see in a browser |
+| D1–D4 quality pass | 🔄 | `8a6c123`…`b800a8b` + style | D3 budget in CI; D1 focus outline for plain links; patient space seen at 1440/900/375; NVDA by hand left |
 
 Legend: ✅ done · ⏳ waiting on someone · 🔄 in progress · ⬜ not started.
 
@@ -32,14 +32,12 @@ Legend: ✅ done · ⏳ waiting on someone · 🔄 in progress · ⬜ not starte
 1. `git checkout feat/MLink-128-ui-kit && git pull`. It is built on #11 (`feat/MLink-6-front-auth-foundation`): if #11
    has new commits, merge them in (never force-push). Open this branch's PR **only after #11 is merged** into `master`
    (then merge `master` in first).
-2. **Finish D1/D2 in a browser** (blocked on 2026-10-30: the dev login hung ~15 s, then the Chrome extension
-   disconnected): the spaces at 1440/900/375 px, and a slow Tab run on `/connexion` checking each stop's focus ring
-   (the quick run read "none" on the fields and the eye button, most likely a timing artefact: their CSS has the
-   ring). Use `docs/MANUAL-TESTING.md` §7b. NVDA spot check by hand. Then the **PR** once #11 is merged (merge
-   `master` in first; AI disclosure; before/after screenshots at 375 and 1440 px).
-   Open: `HomePage.css` font and token copies, and a heading jump h2 → h4 on the home ("Besoin d'une prise en
-   charge…"): Ahlem's page, add to MLink-81 if she has not answered; the specimen still opens on option A; the
-   timeout message kept its old voice (not in §4.6).
+2. **Left of Phase D**: an NVDA spot check by hand (login, signup, a space: headings, landmarks, the skip link,
+   errors read out), the practitioner and staff spaces in the browser (they need the TOTP code; their tests pass).
+   Then the **PR** once #11 is merged (merge `master` in first; AI disclosure; before/after screenshots at 375 and
+   1440 px; list the new packages and the shared files, as on MLink-162).
+   Open: `HomePage.css` font and token copies, and the home's heading jump h2 → h4 (Ahlem's; not yet added to
+   MLink-81: ask Mohamed first); the specimen still opens on option A; the timeout message kept its old voice.
 3. Mohamed starts the session with "go B0" (or similar): Go was given on 2026-10-30 for the whole refresh, but each push
    and each YouTrack post still waits for his OK.
 
@@ -65,6 +63,11 @@ Legend: ✅ done · ⏳ waiting on someone · 🔄 in progress · ⬜ not starte
   `/verifier-email`, `/patient`, `/praticien`, `/admin`, `/acces-refuse`, a 404; at 375 and 1440 px.
 
 ## Log
+
+- **2026-10-30**: the dev login works again. Slow Tab run on /connexion: every stop has a focus mark (the earlier
+  "none" was a timing artefact); plain links had only the browser's thin outline, now a 2 px green one (red then
+  green). Patient space seen at 1440 (sidebar), 900 (72 px rail, labels hidden but read) and 375 px (bottom bar,
+  logout still named): no overflow, one main; home cards made compact. 179 tests, lint, build, budget green.
 
 - **2026-10-30**: D3: entry JavaScript had grown to 88.2 kB gzip (Base UI + the space shell in the entry chunk), now
   70.8 kB with the spaces lazy under the guard; `scripts/budget.mjs` + CI step (red at 87.3 kB first). D1/D2 audit of
