@@ -330,10 +330,10 @@ Build screens from these, not from raw `<input>`/`<button>` with page CSS:
 
 | Component | Use it for | Accessibility it gives you for free |
 |---|---|---|
-| `Button` | every button; `variant` `primary` / `secondary` / `ghost`, `fullWidth`, `loading` | `type="button"` by default (no accidental submit); `loading` disables it and sets `aria-busy` |
-| `TextField` | every text input; `label`, `hint`, `error` | label linked to the input, `aria-invalid`, hint and error read with the field, error announced (`role="alert"`) |
+| `Button` | every button; `variant` `primary` / `secondary` / `ghost` / `danger`, `size` `sm` / `md` / `lg` (44/48/56 px), `fullWidth`, `loading` | `type="button"` by default (no accidental submit); `loading` disables it and sets `aria-busy` |
+| `TextField` | every text input; `label`, `hint`, `error`; with `maxLength` a "n / max caractères" count | label linked to the input, `aria-invalid`, hint and error read with the field, error announced (`role="alert"`) |
 | `PasswordField` | passwords | everything of `TextField` + a show/hide toggle (`aria-pressed`, French labels) |
-| `Alert` | messages: `tone` `error` / `success` / `info` | error interrupts the screen reader (`role="alert"`), the others wait (`role="status"`) |
+| `Alert` | messages: `tone` `error` / `warning` / `success` / `info`, optional `title`; an icon per tone | error interrupts the screen reader (`role="alert"`), the others wait (`role="status"`) |
 | `Spinner`, `PageLoader` | something is loading | announced as "Chargement…" (or your `label`) |
 
 ```tsx
