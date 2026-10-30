@@ -60,7 +60,7 @@ src/
 │   ├─ routes.tsx           the whole route table: public pages, one branch per role space, 404
 │   └─ router.ts            the browser router built from routes.tsx
 ├─ spaces/                  the role spaces: one layout, configured per role
-│   ├─ spaces.ts            SPACES: each role's title and menu (data only)
+│   ├─ spaces.ts            SPACES: each role's title, role label and menu with icons (data only)
 │   ├─ SpaceLayout.tsx      header (title, who is logged in, logout) + menu + <Outlet />
 │   └─ SpaceHome.tsx        the first page of a space
 ├─ features/<domain>/       one folder per business area
@@ -316,7 +316,9 @@ flowchart TD
 3. Add the route under the space in `app/routes.tsx`:
    `space('PATIENT', paths.patient.root, [{ path: paths.patient.appointments, lazy: lazyPage(() => import('@/features/appointments/pages/MyAppointmentsPage')) }])`.
    (When a feature has several routes, export them from `features/x/routes.tsx` like `authRoutes`.)
-4. Add the menu entry in `spaces/spaces.ts`: `{ label: 'Mes rendez-vous', to: paths.patient.appointments }`.
+4. Add the menu entry in `spaces/spaces.ts`: `{ label: 'Mes rendez-vous', to: paths.patient.appointments, icon: CalendarDays }`
+   (a lucide icon; at most 5 entries, the phone's bottom bar holds no more). Until the page exists, route it to
+   `<SpaceComingSoon title="Mes rendez-vous" />`. A space page starts at `<h2>`: the shell's top bar holds the `<h1>`.
 5. Test it in `app/routes.test.tsx` style: the right role sees it, another role gets "Accès refusé".
 
 ### Recipe: add a public page
