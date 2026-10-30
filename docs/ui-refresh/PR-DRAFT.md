@@ -55,12 +55,11 @@ devDependency for the specimen's option A only.
 - [ ] Parcours touchés vérifiés à la main (`docs/MANUAL-TESTING.md`): §7b done for the public pages and the patient
       space; practitioner and staff spaces and an NVDA pass still to do
 - [x] Aucun secret, jeton, mot de passe ou code journalisé ou stocké dans le navigateur
-- [x] Aucune ressource tierce (script, style, police, image) : la CSP reste `'self'` (to confirm on the production
-      image, `http://localhost:8090`, before merge)
+- [x] Aucune ressource tierce (script, style, police, image) : la CSP reste `'self'` (checked on the production
+      image, `http://localhost:8090`: home, login, signup, 404 and the patient space, no CSP refusal, Geist loaded)
 - [x] `docs/ONBOARDING.md` mis à jour si une règle, un dossier ou un parcours change
-- [ ] Fichiers partagés (`app/routes.tsx`, `shared/**`, `features/auth/**`, `spaces/**`) annoncés sur le ticket:
-      MLink-162 lists `shared/styles`, `shared/layout`, `routes.tsx`, `paths.ts`, `ci.yml`; add `shared/ui`,
-      `shared/components`, `shared/api` (messages), `features/auth/pages/LoginPage.tsx` (one sentence), `spaces/**`
+- [x] Fichiers partagés (`app/routes.tsx`, `shared/**`, `features/auth/**`, `spaces/**`) annoncés sur le ticket
+      (MLink-162: description and the comment of 2026-10-30)
 
 ## Preuves
 
