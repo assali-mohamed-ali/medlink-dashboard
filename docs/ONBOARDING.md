@@ -431,3 +431,6 @@ PR template (`.github/pull_request_template.md`) carries the checklist and the A
 Still to build on this foundation: the password pages (MLink-89, Ahlem: `/mot-de-passe`, own and forced change),
 the account activation page (`/activer-compte`, once the API's MLink-71 lands) and the back-office accounts page
 (MLink-73, `/admin/comptes`, once the API's MLink-69/70 land). Each follows the recipes above.
+
+**UI refresh** (typography, tokens v2, components, space shell, words): the plan and its progress are in
+[docs/ui-refresh/](ui-refresh/PROGRESS.md). Start from `PROGRESS.md`.
