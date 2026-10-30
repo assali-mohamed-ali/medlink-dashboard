@@ -21,7 +21,7 @@ Work for: **Mohamed** (YouTrack `Mohamed.BenNaima`, also "Al-Assad"). Teammate p
 | B3 components | ✅ 2026-10-30 | `ac56811`…`6d6c40c`, `a2f3cb7`, `a03c2f2` | upgrades + Card, EmptyState, Skeleton, Select, Checkbox, RadioGroup, StatusBadge, UserAvatar; shown in the specimen |
 | B4 words (my pages) | ✅ 2026-10-30 | see log | error messages, login notice; MFA/verify/status pages had no jargon |
 | B5 space shell | ✅ 2026-10-30 | `e4371ae`, `8fc2aea` | no dropdown yet (no "Mon compte" page); not seen in a browser: dev login timed out |
-| B6 space homes | ⬜ | | |
+| B6 space homes | ✅ 2026-10-30 | `53ffd7a` + next | greeting + parts per role from spaces.ts; not seen in a browser (login times out) |
 | C1 home, C2 login/signup layout | ⬜ | | Ahlem's OK needed |
 | D1–D4 quality pass | ⬜ | | |
 
@@ -32,11 +32,13 @@ Legend: ✅ done · ⏳ waiting on someone · 🔄 in progress · ⬜ not starte
 1. `git checkout feat/MLink-128-ui-kit && git pull`. It is built on #11 (`feat/MLink-6-front-auth-foundation`): if #11
    has new commits, merge them in (never force-push). Open this branch's PR **only after #11 is merged** into `master`
    (then merge `master` in first).
-2. **Look at B5 in the browser** once the dev stack answers a login (it timed out on 2026-10-30): `/patient`,
-   `/admin`, `/admin/comptes` at 1440, 900 (icon rail) and 375 px (bottom bar). Then **B6 space homes**: a greeting,
-   the 1–3 actions of the role, `EmptyState` for what is not built (appointments, documents, messages; accounts for
-   staff until MLink-73), with `Card`; tests per role. Then Phase D (quality pass) and the PR once #11 is merged.
-   Open: `HomePage.css` (asked on MLink-81); the specimen still opens on option A (its test expects it).
+2. **Look at B5 and B6 in the browser** once the dev stack answers a login: on 2026-10-30 `/api/auth/csrf` answered
+   in 57 ms but `POST /api/auth/login` hung ~15 s until the client's timeout (likely Keycloak; check the API logs).
+   Pages: `/patient`, `/praticien`, `/admin`, `/admin/comptes` at 1440, 900 (icon rail) and 375 px (bottom bar).
+   Then **Phase D** (PLAN.md §5): keyboard-only run, NVDA spot check, zoom 200 %, 320–1440 px screenshots, bundle
+   budget, docs; and the **PR** once #11 is merged (merge `master` in first; AI disclosure in the template).
+   Open: `HomePage.css` (asked on MLink-81); the specimen still opens on option A (its test expects it); the timeout
+   message ("Le serveur met trop de temps à répondre. Veuillez réessayer.") is not in §4.6 and kept its old voice.
 3. Mohamed starts the session with "go B0" (or similar): Go was given on 2026-10-30 for the whole refresh, but each push
    and each YouTrack post still waits for his OK.
 
@@ -62,6 +64,9 @@ Legend: ✅ done · ⏳ waiting on someone · 🔄 in progress · ⬜ not starte
   `/verifier-email`, `/patient`, `/praticien`, `/admin`, `/acces-refuse`, a 404; at 375 and 1440 px.
 
 ## Log
+
+- **2026-10-30**: B6 done (red then green; a link to a page that does not exist turns its test red): greeting and
+  role parts from `spaces.ts`. 175 tests, lint, build, contrast green. Phases A and B of the plan are complete.
 
 - **2026-10-30**: B5 done (red then green, removing the focus call turns its test red): one restyled `<nav>`,
   top bar with initials and role, skip link, focus on the h1 after navigation, `SpaceComingSoon` for /admin/comptes.
