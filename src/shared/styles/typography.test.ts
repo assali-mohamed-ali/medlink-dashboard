@@ -54,6 +54,11 @@ test('the fonts are self-hosted, Latin only, two files, shown at once with a fal
   expect(fonts).not.toMatch(/https?:/)
 })
 
+test('anything focusable without its own focus style still shows a 2 px green outline (WCAG 2.4.7)', () => {
+  // :where() keeps it at zero specificity, so a component's own ring (box-shadow) always wins
+  expect(global).toMatch(/:where\([^)]*\ba\b[^)]*\):focus-visible\s*\{[^}]*outline:\s*2px solid var\(--primary\)/)
+})
+
 test('no shared or feature stylesheet names a face that is not loaded (audit A1)', () => {
   const offenders = Object.keys(CSS).filter(
     (file) => /^src\/(shared|features|spaces)\//.test(file) && /Plus Jakarta/.test(CSS[file]),
