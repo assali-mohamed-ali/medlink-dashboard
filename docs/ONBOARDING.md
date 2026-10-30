@@ -358,6 +358,20 @@ import { Alert, Button, PasswordField, TextField } from '@/shared/ui'
 - `HomePage.css`, `MedLinkShell.css` and `PublicHeader.css` still hold local copies of the same token
   values (from before `tokens.css`); new code reads the tokens.
 
+### Tokens: type, colour, space (`shared/styles/tokens.css`)
+
+The UI refresh (docs/ui-refresh/PLAN.md §4) set one scale for each; read a token, never write a raw value.
+
+| Group | Tokens | Rule |
+|---|---|---|
+| Faces | `--font-sans` (Geist), `--font-display` (Instrument Serif) | the display face only for public and auth titles ≥ 32 px; never in forms, tables or spaces. Both load once from `fonts.css` (self-hosted, Latin only) |
+| Sizes | `--text-xs`…`--text-3xl` with `--leading-*`, `--display-sm`, `--display-lg` | body and inputs `--text-md` (16 px); weights 400 text, 500 labels and buttons, 600 headings |
+| Greys | `--bg`, `--surface-raised`, `--surface-sunken`, `--border`, `--border-strong`, `--text-muted` | `--border` is for dividers only; a field or control edge uses `--border-strong` (3:1). Old names (`--surface`, `--outline-variant`…) are aliases: new code uses the new names |
+| Space, shape, depth, motion | `--space-1`…`--space-12` (4 → 96 px), `--radius-*`, `--elev-1..3`, `--duration-*`, `--ease` | 3 shadow levels only; animate `opacity` and `transform` only |
+
+`npm run check:contrast` (`scripts/contrast.mjs`, also in CI) checks every text pair at 4.5:1 and every edge at 3:1.
+A new text or edge colour gets its pair added there. Numbers in lists and tables take `.tabular-nums`.
+
 ### Watermelon UI and shadcn/ui (`shared/components`)
 
 For richer pieces (sidebars, menus, dialogs, dashboards) we take components from

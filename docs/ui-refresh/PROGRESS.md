@@ -16,8 +16,8 @@ Work for: **Mohamed** (YouTrack `Mohamed.BenNaima`, also "Al-Assad"). Teammate p
 | D1, D2 decisions | ✅ 2026-10-30 | — | Mohamed: **D1 = B** (Geist + Instrument Serif), **D2 = proposed greys**; D3 still open |
 | YouTrack ticket "[FE] UI refresh" | ⏳ not created | — | show the text to Mohamed before posting |
 | B0 specimen `/__specimen` | ✅ 2026-10-30 | `65498c6`, `2328f22`, `9b05f15` | built, dev only; waiting on Mohamed's D1/D2 pick |
-| B1 fonts + type scale | ⬜ | | |
-| B2 tokens v2 + contrast script | ⬜ | | red first: `--outline-variant` fails 3:1 |
+| B1 fonts + type scale | ✅ 2026-10-30 | `95418cf`, `a1e5815`, `ea82b22` | Geist + Instrument Serif, Latin only, 2 files 50.4 kB |
+| B2 tokens v2 + contrast script | ✅ 2026-10-30 | `878699f`, `94b0bbb` | 21 pairs pass; `npm run check:contrast` in CI |
 | B3 components | ⬜ | | |
 | B4 words (my pages) | ⬜ | | |
 | B5 space shell | ⬜ | | |
@@ -32,14 +32,14 @@ Legend: ✅ done · ⏳ waiting on someone · 🔄 in progress · ⬜ not starte
 1. `git checkout feat/MLink-128-ui-kit && git pull`. It is built on #11 (`feat/MLink-6-front-auth-foundation`): if #11
    has new commits, merge them in (never force-push). Open this branch's PR **only after #11 is merged** into `master`
    (then merge `master` in first).
-2. **B0 is built**: `npm run dev`, then `http://localhost:3000/__specimen` (toolbar: Option A/B, Gris actuels/proposés).
-   Chosen: **B + proposed greys**. Next is **B1**: move `@fontsource-variable/geist` and `@fontsource/instrument-serif`
-   to `dependencies` (Plus Jakarta stays a devDependency while the specimen shows option A); a `shared/styles/fonts.css`
-   with latin-only `@font-face` (`geist-latin-wght-normal.woff2`, `instrument-serif-latin-400-normal.woff2`; the latin
-   range covers French incl. œ) imported once in `main.tsx`; `--font-sans`, `--font-display`, the §4.1 scale
-   (`--text-sm`/`--text-md` become 14/16 px); `MedLinkShell.css:25` names Plus Jakarta Sans (mine, shared: point it at
-   `var(--font-sans)`); `HomePage.css:24` does too (Ahlem's: ask her). Red test first (raw-CSS test like
-   `shadcnTokens.test.ts`). Then **B2** moves `NEUTRALS.proposed` (`src/pages/specimen/neutrals.ts`) into `tokens.css`.
+2. **B1 and B2 are done** (not yet seen in the browser: the dev server was stopped for low memory). First run
+   `npm run dev` and compare the screens of "Facts" below with `master` at 375 and 1440 px: body text grew from 15 to
+   16 px, headings are 600, field edges darker, greys green-tinted. Then **B3 components** (PLAN.md §4.4), with:
+   `TextField` has no disabled look; the `PasswordField` eye button is 40×40 (needs 44).
+   Open points: `--surface-container`, `--surface-high` and `--info-container` (Alert info) are still lavender (not in
+   §4.2; retint them in B3 with a contrast pair); `HomePage.css:24` names Plus Jakarta Sans and keeps its own token
+   copies (Ahlem's file: ask her to read `--font-sans` and the tokens); the CI step `check:contrast` is a shared-file
+   change to mention on the ticket.
 3. Mohamed starts the session with "go B0" (or similar): Go was given on 2026-10-30 for the whole refresh, but each push
    and each YouTrack post still waits for his OK.
 
@@ -65,6 +65,11 @@ Legend: ✅ done · ⏳ waiting on someone · 🔄 in progress · ⬜ not starte
   `/verifier-email`, `/patient`, `/praticien`, `/admin`, `/acces-refuse`, a 404; at 375 and 1440 px.
 
 ## Log
+
+- **2026-10-30**: B1 (fonts, type scale, base heading styles, `MedLinkShell.css` reads `--font-sans`) and B2 (tokens
+  v2 with aliases, spacing/radius/elevation/motion/layout, `scripts/contrast.mjs` + CI step, shadcn border/input
+  mapping, `MedLinkShell.css` local token copies removed). Each red first; breaking `--border-strong` turns the check
+  red. 137 tests, lint, build, check:contrast green. Not yet looked at in a browser.
 
 - **2026-10-30**: Mohamed picked D1 = option B (Geist + Instrument Serif) and D2 = the proposed greys. The 3001 dev
   server was stopped by Claude Code (low memory); restart it only when asked.
