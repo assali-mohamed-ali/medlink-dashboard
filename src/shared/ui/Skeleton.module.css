@@ -1,0 +1,15 @@
+.skeleton { width: 100%; }
+.lines { display: flex; flex-direction: column; gap: var(--space-3); }
+.line {
+  display: block;
+  height: 14px;
+  background: var(--surface-container);
+  border-radius: var(--radius-pill);
+  animation: pulse 1.4s var(--ease) infinite;
+}
+.line:last-child { width: 60%; }
+
+/* Opacity only (PLAN.md §4.3); global.css stops it under prefers-reduced-motion */
+@keyframes pulse {
+  50% { opacity: 0.5; }
+}

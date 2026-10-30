@@ -1,0 +1,10 @@
+/* The box comes from TextField.module.css (.input); this only swaps the native arrow for ours */
+.select { padding-right: 44px; appearance: none; cursor: pointer; }
+.chevron {
+  position: absolute;
+  top: 50%;
+  right: var(--space-4);
+  color: var(--on-surface-variant);
+  transform: translateY(-50%);
+  pointer-events: none;
+}

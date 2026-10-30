@@ -10,11 +10,20 @@ import {
   ShieldCheck,
 } from 'lucide-react'
 import { useId, useState, type CSSProperties, type ReactNode } from 'react'
-import { Avatar, AvatarFallback } from '@/shared/components/ui/avatar'
-import Badge12 from '@/shared/components/watermelon/badge-12'
-import Badge13 from '@/shared/components/watermelon/badge-13'
-import Badge15 from '@/shared/components/watermelon/badge-15'
-import { Alert, Button, PasswordField, TextField } from '@/shared/ui'
+import StatusBadge from '@/shared/components/StatusBadge'
+import UserAvatar from '@/shared/components/UserAvatar'
+import {
+  Alert,
+  Button,
+  Card,
+  Checkbox,
+  EmptyState,
+  PasswordField,
+  RadioGroup,
+  Select,
+  Skeleton,
+  TextField,
+} from '@/shared/ui'
 import { NEUTRALS, contrastChecks, neutralVars, type NeutralSet } from './neutrals'
 import styles from './SpecimenPage.module.css'
 
@@ -310,9 +319,7 @@ export default function SpecimenPage() {
               <div className={styles.topbar}>
                 <p className={styles.text3xl}>Bonjour Amel</p>
                 <span className={styles.account}>
-                  <Avatar>
-                    <AvatarFallback>AB</AvatarFallback>
-                  </Avatar>
+                  <UserAvatar firstName="Amel" lastName="Ben Salah" />
                   <span>
                     Amel Ben Salah
                     <span className={styles.role}>Patiente</span>
@@ -337,17 +344,17 @@ export default function SpecimenPage() {
                     <li>
                       <span className={`${styles.tabular} ${styles.time}`}>14 nov. · 09:30</span>
                       <span>Dr Karim Trabelsi, cardiologie</span>
-                      <Badge15 />
+                      <StatusBadge tone="success">Confirmé</StatusBadge>
                     </li>
                     <li>
                       <span className={`${styles.tabular} ${styles.time}`}>21 nov. · 11:05</span>
                       <span>Dr Sonia Gharbi, dermatologie</span>
-                      <Badge12 />
+                      <StatusBadge tone="warning">En attente</StatusBadge>
                     </li>
                     <li>
                       <span className={`${styles.tabular} ${styles.time}`}>02 oct. · 14:40</span>
                       <span>Dr Youssef Mansour, médecine générale</span>
-                      <Badge13 />
+                      <StatusBadge tone="danger">Annulé</StatusBadge>
                     </li>
                   </ul>
                 </div>
@@ -360,6 +367,74 @@ export default function SpecimenPage() {
                   <p className={styles.soon}>Bientôt disponible</p>
                 </div>
               </div>
+            </div>
+          </div>
+        </Section>
+
+        <Section
+          title="Composants (B3)"
+          intro="Les briques de shared/ui et shared/components, sur les jetons : chaque texte et chaque bord passe le contrôle de contraste."
+        >
+          <div className={styles.components}>
+            <Card
+              title="Prendre rendez-vous"
+              action={
+                <Button variant="ghost" size="sm">
+                  Annuler
+                </Button>
+              }
+              footer="Modifiable jusqu’à 24 heures avant."
+            >
+              <form className={styles.form} noValidate onSubmit={(event) => event.preventDefault()}>
+                <Select label="Clinique" hint="Celle où vous êtes suivi." defaultValue="">
+                  <option value="">Choisissez une clinique</option>
+                  <option value="1">Clinique 1</option>
+                  <option value="2">Clinique 2</option>
+                </Select>
+                <RadioGroup
+                  legend="Type de consultation"
+                  name="specimen-kind"
+                  defaultValue="cabinet"
+                  options={[
+                    { value: 'cabinet', label: 'Au cabinet' },
+                    { value: 'video', label: 'En vidéo' },
+                  ]}
+                />
+                <TextField label="Motif (facultatif)" maxLength={100} defaultValue="Bilan annuel" />
+                <Checkbox label="Me rappeler la veille par e-mail" defaultChecked />
+                <div className={styles.actions}>
+                  <Button type="submit">Confirmer</Button>
+                  <Button variant="secondary">Retour</Button>
+                </div>
+              </form>
+            </Card>
+            <div className={styles.fieldStates}>
+              <Alert tone="warning" title="Session bientôt expirée">
+                Enregistrez votre saisie.
+              </Alert>
+              <Alert tone="success">Rendez-vous confirmé.</Alert>
+              <Alert tone="info">Un nouveau lien vous a été envoyé.</Alert>
+              <div className={styles.actions}>
+                <Button size="sm">Petit</Button>
+                <Button>Moyen</Button>
+                <Button size="lg">Grand</Button>
+                <Button variant="danger">Supprimer</Button>
+              </div>
+              <div className={styles.actions}>
+                <StatusBadge>Brouillon</StatusBadge>
+                <StatusBadge tone="info">Nouveau</StatusBadge>
+                <StatusBadge tone="success">Payé</StatusBadge>
+                <StatusBadge tone="warning">À compléter</StatusBadge>
+                <StatusBadge tone="danger">Refusé</StatusBadge>
+              </div>
+              <Card title="Messages" headingLevel={3}>
+                <EmptyState icon={MessageSquare} title="Aucun message pour l’instant">
+                  Vos échanges avec vos soignants apparaîtront ici.
+                </EmptyState>
+              </Card>
+              <Card title="Chargement" headingLevel={3}>
+                <Skeleton lines={3} label="Chargement des rendez-vous" />
+              </Card>
             </div>
           </div>
         </Section>
@@ -418,7 +493,7 @@ export default function SpecimenPage() {
                     </th>
                     <td className={styles.tabular}>{check.ratio.toFixed(2).replace('.', ',')}{' '}:{' '}1</td>
                     <td className={styles.tabular}>{String(check.min).replace('.', ',')}{' '}:{' '}1</td>
-                    <td>{pass ? <Badge15>Conforme</Badge15> : <Badge13>Insuffisant</Badge13>}</td>
+                    <td>{pass ? <StatusBadge tone="success">Conforme</StatusBadge> : <StatusBadge tone="danger">Insuffisant</StatusBadge>}</td>
                   </tr>
                 )
               })}

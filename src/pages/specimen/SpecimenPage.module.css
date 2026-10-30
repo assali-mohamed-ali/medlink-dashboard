@@ -228,6 +228,9 @@
 }
 .soon { margin: var(--space-2) 0 0; font-size: 0.75rem; font-weight: 600; color: var(--primary-container); }
 
+/* B3 components */
+.components { display: grid; gap: 32px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); align-items: start; }
+
 /* D2 greys */
 .swatchSets { display: grid; gap: var(--space-6); grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); margin-bottom: 32px; }
 .swatchSet { display: flex; flex-direction: column; gap: var(--space-3); }
