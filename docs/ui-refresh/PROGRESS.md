@@ -15,7 +15,7 @@ Work for: **Mohamed** (YouTrack `Mohamed.BenNaima`, also "Al-Assad"). Teammate p
 | D4 branch | ✅ 2026-10-30 | — | work on `feat/MLink-128-ui-kit` now; open its PR only after #11 merges (no stacked PRs) |
 | D1–D3 decisions | ⏳ waiting | — | B0 specimen first; defaults in PLAN.md §6 |
 | YouTrack ticket "[FE] UI refresh" | ⏳ not created | — | show the text to Mohamed before posting |
-| B0 specimen `/__specimen` | ⬜ | | dev only |
+| B0 specimen `/__specimen` | ⏳ 2026-10-30 | `65498c6`, `2328f22`, `9b05f15` | built, dev only; waiting on Mohamed's D1/D2 pick |
 | B1 fonts + type scale | ⬜ | | |
 | B2 tokens v2 + contrast script | ⬜ | | red first: `--outline-variant` fails 3:1 |
 | B3 components | ⬜ | | |
@@ -32,8 +32,10 @@ Legend: ✅ done · ⏳ waiting on someone · 🔄 in progress · ⬜ not starte
 1. `git checkout feat/MLink-128-ui-kit && git pull`. It is built on #11 (`feat/MLink-6-front-auth-foundation`): if #11
    has new commits, merge them in (never force-push). Open this branch's PR **only after #11 is merged** into `master`
    (then merge `master` in first).
-2. Build **B0**, the specimen page (dev-only route, options A and B of PLAN.md §4.1 and the neutrals of §4.2 on real
-   MedLink content, Watermelon pieces welcome), commit it, then stop for Mohamed's choice of D1/D2.
+2. **B0 is built**: `npm run dev`, then `http://localhost:3000/__specimen` (toolbar: Option A/B, Gris actuels/proposés).
+   Waiting for Mohamed's choice of D1 (A, B or sans only) and D2 (greys yes/no). Then **B1** keeps the chosen
+   `@fontsource` packages (move them to `dependencies`, drop the others) and **B2** moves the chosen greys from
+   `src/pages/specimen/neutrals.ts` into `tokens.css`.
 3. Mohamed starts the session with "go B0" (or similar): Go was given on 2026-10-30 for the whole refresh, but each push
    and each YouTrack post still waits for his OK.
 
@@ -59,6 +61,13 @@ Legend: ✅ done · ⏳ waiting on someone · 🔄 in progress · ⬜ not starte
   `/verifier-email`, `/patient`, `/praticien`, `/admin`, `/acces-refuse`, a 404; at 375 and 1440 px.
 
 ## Log
+
+- **2026-10-30**: B0 built (`src/pages/specimen/`). Route only when `import.meta.env.DEV` (tested both ways; no
+  specimen chunk or font in `dist`). Fonts as devDependencies, imported by the specimen only. Watermelon `badge-12/13/15`
+  retinted to our tokens + shadcn `avatar`. Rejected for now: `macos-sidebar` (needs `motion`, `@hugeicons`),
+  `navigation-1` (marketing navbar, 5 primitives), `stats-*` (`react-icons`), `medesk-dashboard` (`recharts`, Geist
+  non-variable): B5 picks the sidebar. Seen at 1440 and 375 px (no horizontal scroll). Noted for B3: `TextField` has no
+  disabled look; the `PasswordField` eye button is 40×40 (< 44). 128 tests, lint, build green.
 
 - **2026-10-30**: Mohamed: go for the refresh on `feat/MLink-128-ui-kit`; both branches pushed; session changed.
 - **2026-10-30**: rule softened (Mohamed): Tailwind 4 + shadcn 4 (Base UI) configured by hand (no `shadcn init`), the
