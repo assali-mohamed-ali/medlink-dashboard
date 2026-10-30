@@ -1,10 +1,10 @@
-import { useEffect, useRef } from 'react'
+import { Suspense, useEffect, useRef } from 'react'
 import { LogOut, Plus } from 'lucide-react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth, type Role } from '@/features/auth'
 import UserAvatar from '@/shared/components/UserAvatar'
 import { paths } from '@/shared/config/paths'
-import { Button } from '@/shared/ui'
+import { Button, Skeleton } from '@/shared/ui'
 import { SPACES } from './spaces'
 import styles from './SpaceLayout.module.css'
 
@@ -86,7 +86,10 @@ export default function SpaceLayout({ role }: { role: Role }) {
         </header>
         <main id="contenu" tabIndex={-1} className={styles.main}>
           <div className={styles.content}>
-            <Outlet />
+            {/* A space page is its own chunk: the frame stays while it loads */}
+            <Suspense fallback={<Skeleton label="Chargement de la page" />}>
+              <Outlet />
+            </Suspense>
           </div>
         </main>
       </div>

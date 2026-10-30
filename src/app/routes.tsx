@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import type { RouteObject } from 'react-router-dom'
 import { RequireAuth, authRoutes, type Role } from '@/features/auth'
 import { mfaRoutes } from '@/features/mfa'
@@ -8,9 +9,7 @@ import RouteErrorPage from '@/pages/RouteErrorPage'
 import { paths } from '@/shared/config/paths'
 import { lazyPage } from '@/shared/lib/lazyPage'
 import { PageLoader } from '@/shared/ui'
-import SpaceComingSoon from '@/spaces/SpaceComingSoon'
-import SpaceHome from '@/spaces/SpaceHome'
-import SpaceLayout from '@/spaces/SpaceLayout'
+import { SpaceComingSoon, SpaceHome, SpaceLayout } from './spaceChunks'
 
 /**
  * A role's space: one guard and one layout for the whole branch, so no page of the space can forget the
@@ -21,7 +20,9 @@ function space(role: Role, root: string, pages: RouteObject[] = []): RouteObject
     path: root,
     element: (
       <RequireAuth role={role}>
-        <SpaceLayout role={role} />
+        <Suspense fallback={<PageLoader />}>
+          <SpaceLayout role={role} />
+        </Suspense>
       </RequireAuth>
     ),
     errorElement: <RouteErrorPage />,

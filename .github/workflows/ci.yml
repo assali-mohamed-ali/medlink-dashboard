@@ -43,6 +43,8 @@ jobs:
         run: npm run check:contrast
       - name: TypeScript and production build
         run: npm run build
+      - name: Bundle budget (entry JavaScript 75 kB gzip, fonts 90 kB)
+        run: npm run check:budget
       - name: Dependency audit
         run: npm audit --audit-level=high
       - name: Upload production bundle
