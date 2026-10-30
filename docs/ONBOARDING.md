@@ -334,7 +334,14 @@ Build screens from these, not from raw `<input>`/`<button>` with page CSS:
 | `TextField` | every text input; `label`, `hint`, `error`; with `maxLength` a "n / max caractères" count | label linked to the input, `aria-invalid`, hint and error read with the field, error announced (`role="alert"`) |
 | `PasswordField` | passwords | everything of `TextField` + a show/hide toggle (`aria-pressed`, French labels) |
 | `Alert` | messages: `tone` `error` / `warning` / `success` / `info`, optional `title`; an icon per tone | error interrupts the screen reader (`role="alert"`), the others wait (`role="status"`) |
-| `Spinner`, `PageLoader` | something is loading | announced as "Chargement…" (or your `label`) |
+| `Spinner`, `PageLoader` | something is loading (a button, a whole page) | announced as "Chargement…" (or your `label`) |
+| `Skeleton` | page content loading (lists, cards) | announced once; the grey lines are hidden |
+| `Select` | a choice in a list; `label`, `hint`, `error`, `<option>` children | native `<select>`: keyboard and phones for free, same wiring as `TextField` |
+| `Checkbox`, `RadioGroup` | yes/no; one choice among a few (`legend`, `name`, `options`) | native inputs, rows of 44 px, the group named by its legend, errors announced |
+| `Card` | a white box; `title`, `headingLevel`, `action`, `footer` | with a title it is a `<section>` named by it |
+| `EmptyState` | a list or page with nothing yet: `icon`, `title`, one sentence, one `action` | the icon is hidden; say "Bientôt disponible", never fake data |
+| `StatusBadge` (`shared/components`) | a status: `tone` `neutral` / `info` / `success` / `warning` / `danger` | words + icon, never colour alone |
+| `UserAvatar` (`shared/components`) | initials of `firstName` `lastName` | decorative next to the name; `alone` makes it an image named after the person |
 
 ```tsx
 import { Alert, Button, PasswordField, TextField } from '@/shared/ui'
