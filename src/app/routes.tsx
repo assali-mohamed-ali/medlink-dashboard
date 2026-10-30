@@ -50,6 +50,12 @@ export const routes: RouteObject[] = [
         { path: paths.staff.accounts, element: <PlaceholderPage title="Gestion des comptes" /> },
       ]),
 
+      // Dev-only design tool (UI refresh B0). import.meta.env.DEV is false in `vite build`, so the branch and the
+      // page's chunk (with its fonts) are dropped from production
+      ...(import.meta.env.DEV
+        ? [{ path: paths.specimen, lazy: lazyPage(() => import('@/pages/specimen/SpecimenPage')) }]
+        : []),
+
       { path: '*', element: <NotFoundPage /> },
     ],
   },

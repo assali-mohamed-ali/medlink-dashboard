@@ -18,4 +18,5 @@ export const paths = {
   patient: { root: '/patient' },
   practitioner: { root: '/praticien' },
   staff: { root: '/admin', accounts: '/admin/comptes' },
+  specimen: '/__specimen', // dev only (npm run dev): the UI refresh specimen, absent from production builds
 } as const
