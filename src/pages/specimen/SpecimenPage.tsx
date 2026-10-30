@@ -146,7 +146,7 @@ function SampleNote() {
 }
 
 export default function SpecimenPage() {
-  const [pairing, setPairing] = useState<Pairing>('a')
+  const [pairing, setPairing] = useState<Pairing>('b') // D1 = option B (2026-10-30)
   const [greys, setGreys] = useState<NeutralSet>('proposed')
   const checks = contrastChecks(NEUTRALS[greys])
 
