@@ -121,6 +121,19 @@ Extra cases:
   text.
 - [ ] Restart the API, try again: it works without reloading the page.
 
+## 7b. Look and feel (UI refresh, docs/ui-refresh/PLAN.md)
+
+At 1440, 900 and 375 px wide (DevTools device bar), on `/`, `/connexion`, `/inscription`, a 404 and each space:
+
+- [ ] Text is in Geist (DevTools → Computed → font-family; Network shows one `geist-latin` file, from our own origin).
+- [ ] No horizontal scroll at 375 px (or 320 px); nothing hidden under the header.
+- [ ] Tab through a page: every stop shows the green focus ring or an outline; in a space the first Tab shows
+  "Aller au contenu".
+- [ ] Space menu: a sidebar at 1440, icons only at 900, a bottom bar at 375; the current page is highlighted.
+- [ ] Space home: "Bonjour <prénom>", the role's parts; only "Gestion des comptes" (staff) is a link, the others say
+  "Bientôt disponible".
+- [ ] Zoom 200 % (Ctrl +) at 1440: the page reflows, no text cut off.
+
 ## 8. Not testable by hand yet
 
 - **"Votre session a expiré"** after the API ends an open session: no page of the spaces calls the API yet (the

@@ -68,7 +68,10 @@ These rules keep several people working on the same code without stepping on eac
 - **One way to know who is logged in:** `useAuth()`. Nothing about the session in `localStorage`/`sessionStorage`.
 - **URLs** come from `shared/config/paths.ts`, never typed strings. Pages the API mails are part of its contract.
 - **UI:** build from `shared/ui` (Button, TextField, PasswordField, Alert…). Styles: CSS Modules and the tokens of
-  `shared/styles/tokens.css`, no raw colours. A component moves to `shared/ui` the second time it is needed.
+  `shared/styles/tokens.css`: no raw colour, font size or spacing (`--text-*`, `--space-*`…; docs/ONBOARDING.md §7).
+  A component moves to `shared/ui` the second time it is needed. `npm run check:contrast` checks the colour pairs;
+  `npm run check:budget` (after `npm run build`) keeps a first visit's JavaScript ≤ 75 kB gzip: a page or a space
+  is a lazy chunk, never in the entry.
 - **Naming:** components `PascalCase.tsx`, everything else `camelCase.ts`; tests and styles next to their file
   (`X.test.tsx`, `X.module.css`). Code, comments and docs in English; text on screen in French.
 - **Keep it simple:** one styling approach per layer (our components: CSS Modules + tokens; shadcn/Watermelon
