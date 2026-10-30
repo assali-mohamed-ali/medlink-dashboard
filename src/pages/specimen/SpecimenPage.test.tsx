@@ -22,18 +22,18 @@ test('both type pairings are set side by side on the same MedLink text', () => {
   expect(within(b).getByText(/Votre santé, entre de bonnes mains/)).toBeInTheDocument()
 })
 
-test('the toolbar switches the whole page between pairings A and B', async () => {
+test('the page opens on the chosen pairing (D1 = option B), and the toolbar switches to A and back', async () => {
   const user = userEvent.setup()
   renderPage()
   const toolbar = screen.getByRole('toolbar', { name: 'Réglages du spécimen' })
   const optionA = within(toolbar).getByRole('button', { name: /^Option A/ })
   const optionB = within(toolbar).getByRole('button', { name: /^Option B/ })
-  expect(optionA).toHaveAttribute('aria-pressed', 'true')
-  expect(optionB).toHaveAttribute('aria-pressed', 'false')
-
-  await user.click(optionB)
   expect(optionB).toHaveAttribute('aria-pressed', 'true')
   expect(optionA).toHaveAttribute('aria-pressed', 'false')
+
+  await user.click(optionA)
+  expect(optionA).toHaveAttribute('aria-pressed', 'true')
+  expect(optionB).toHaveAttribute('aria-pressed', 'false')
 })
 
 test('the greys switch between today and the proposal, with their contrast checks', async () => {
