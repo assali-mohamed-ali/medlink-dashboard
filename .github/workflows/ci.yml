@@ -39,6 +39,8 @@ jobs:
         run: npm run lint
       - name: Unit and component tests
         run: npm test
+      - name: Contrast of the colour tokens (WCAG 2.2)
+        run: npm run check:contrast
       - name: TypeScript and production build
         run: npm run build
       - name: Dependency audit

@@ -13,16 +13,30 @@
   --secondary: #596058;
   --secondary-fixed: #dde5da;
 
-  /* Text and surfaces */
+  /* Text */
   --on-surface: #111c2d;
   --on-surface-variant: #404945;
-  --surface: #f9f9ff;
-  --surface-lowest: #ffffff;
-  --surface-low: #f0f3ff;
+
+  /*
+   * Neutrals (decision D2, PLAN.md §4.2): the brand's green tint, one temperature for page, cards and fields.
+   * Checked by scripts/contrast.mjs (npm run check:contrast): text 4.5:1, field and control edges 3:1.
+   */
+  --bg: #f6f8f6; /* page */
+  --surface-raised: #ffffff; /* cards, menus, dialogs */
+  --surface-sunken: #f3f6f4; /* inputs, wells */
+  --border: #dfe5e1; /* dividers: decorative only, never a field edge */
+  --border-strong: #808a85; /* field and control edges (3.28–3.56:1) */
+  --text-muted: #5f6863; /* hints, placeholders (5.29–5.76:1) */
+  --accent-soft: var(--primary-fixed); /* selected, chips */
+
+  /* Old names, aliases until every stylesheet reads the names above (no big-bang rename) */
+  --surface: var(--bg);
+  --surface-lowest: var(--surface-raised);
+  --surface-low: var(--surface-sunken);
+  --outline: var(--text-muted);
+  --outline-variant: var(--border-strong); /* it drew field edges: those need 3:1 */
   --surface-container: #e7eeff;
   --surface-high: #dee8ff;
-  --outline: #707975;
-  --outline-variant: #bfc9c4;
 
   /* Feedback */
   --error: #ba1a1a;
@@ -32,14 +46,31 @@
   --success-container: #dde5da;
   --info-container: #e7eeff;
 
-  /* Shape and depth */
+  /* Shape */
   --radius-field: 10px;
   --radius-control: 12px;
   --radius-card: 18px;
+  --radius-sheet: 24px; /* sheets, dialogs */
   --radius-pill: 9999px;
-  --shadow: 0 8px 24px -4px rgba(45, 106, 92, 0.06), 0 2px 6px -1px rgba(17, 28, 45, 0.04);
+
+  /* Depth: 3 levels only, faint and green-tinted; borders do most of the work */
+  --elev-1: 0 8px 24px -4px rgba(45, 106, 92, 0.06), 0 2px 6px -1px rgba(17, 28, 45, 0.04); /* cards */
+  --elev-2: 0 12px 32px -8px rgba(45, 106, 92, 0.14), 0 4px 10px -2px rgba(17, 28, 45, 0.06); /* menus, popovers */
+  --elev-3: 0 24px 56px -12px rgba(17, 28, 45, 0.22), 0 8px 16px -4px rgba(17, 28, 45, 0.08); /* dialogs */
+  --shadow: var(--elev-1); /* old name */
   --shadow-cta: 0 8px 20px rgba(14, 82, 69, 0.22);
   --focus-ring: 0 0 0 3px rgba(14, 82, 69, 0.25);
+
+  /* Motion: opacity and transform only; global.css turns it off under prefers-reduced-motion */
+  --duration-fast: 120ms; /* hover, press */
+  --duration-base: 200ms; /* open, close */
+  --duration-slow: 300ms; /* page-level */
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* Layout: content widths (breakpoints 640, 768, 1024, 1280 live in media queries: CSS cannot read tokens there) */
+  --content-public: 1200px;
+  --content-space: 1040px;
+  --content-form: 480px;
 
   /* Type (docs/ui-refresh/PLAN.md §4.1): faces from fonts.css; sizes in rem, each with its line height */
   --font-sans: 'Geist Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -64,10 +95,17 @@
   --display-lg: clamp(2.5rem, 5vw, 3.5rem); /* 40–56, display face: home hero */
   --leading-display-lg: 1.1;
 
-  /* Spacing */
+  /* Spacing, a 4-point scale: sections 64–96 on public pages, 24–32 in spaces, 16–24 inside a card */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
   --space-4: 16px;
+  --space-5: 20px;
   --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 40px;
+  --space-9: 48px;
+  --space-10: 64px;
+  --space-11: 80px;
+  --space-12: 96px;
 }

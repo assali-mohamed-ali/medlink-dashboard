@@ -19,9 +19,9 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * The names shadcn components also read as raw var(--x). Only those that do not clash with tokens.css: --primary is
- * ours and means the same; --secondary is ours and means something else (a text colour), so shadcn code must use
- * --secondary-fixed instead (src/shared/components/shadcnTokens.test.ts fails otherwise).
+ * The names shadcn components also read as raw var(--x). Only those that do not clash with tokens.css: --primary and
+ * --border are ours and mean the same (--border: dividers); --secondary is ours and means something else (a text
+ * colour), so shadcn code must use --secondary-fixed instead (src/shared/components/shadcnTokens.test.ts fails otherwise).
  */
 @layer theme {
   :root {
@@ -38,8 +38,7 @@
     --accent: var(--secondary-fixed);
     --accent-foreground: var(--primary);
     --destructive: var(--error);
-    --border: var(--outline-variant);
-    --input: var(--outline);
+    --input: var(--border-strong);
     --ring: var(--primary);
     --radius: var(--radius-control);
   }
@@ -64,8 +63,8 @@
   --color-accent-foreground: var(--primary);
   --color-destructive: var(--error);
   --color-destructive-foreground: var(--on-primary);
-  --color-border: var(--outline-variant);
-  --color-input: var(--outline);
+  --color-border: var(--border);
+  --color-input: var(--border-strong);
   --color-ring: var(--primary);
 
   --color-chart-1: var(--primary);
@@ -80,7 +79,7 @@
   --color-sidebar-primary-foreground: var(--on-primary);
   --color-sidebar-accent: var(--secondary-fixed);
   --color-sidebar-accent-foreground: var(--primary);
-  --color-sidebar-border: var(--outline-variant);
+  --color-sidebar-border: var(--border);
   --color-sidebar-ring: var(--primary);
 
   /* shadcn's rounded-sm/md/lg/xl, on our shape scale */

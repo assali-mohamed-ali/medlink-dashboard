@@ -1,22 +1,6 @@
 .ml-shell {
-  --primary: #0e5245;
-  --primary-container: #2d6a5c;
-  --on-primary: #ffffff;
-  --surface: #f9f9ff;
-  --surface-low: #f0f3ff;
-  --surface-container: #e7eeff;
-  --surface-high: #dee8ff;
-  --surface-lowest: #ffffff;
-  --on-surface: #111c2d;
-  --on-surface-variant: #404945;
-  --outline: #707975;
-  --outline-variant: #bfc9c4;
-  --secondary: #596058;
-  --secondary-fixed: #dde5da;
-  --error: #ba1a1a;
-  --error-container: #ffdad6;
+  /* Colours come from tokens.css (the local copies froze the old greys here); --ok is the shell's own */
   --ok: #0b5043;
-  --shadow: 0 8px 24px -4px rgba(45, 106, 92, 0.06), 0 2px 6px -1px rgba(17, 28, 45, 0.04);
 
   position: relative;
   min-height: 100vh;
