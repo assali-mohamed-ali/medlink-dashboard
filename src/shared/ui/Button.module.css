@@ -7,12 +7,14 @@
   padding: 0 var(--space-6);
   font: inherit;
   font-size: var(--text-md);
-  font-weight: 600;
+  font-weight: 500;
   border: 1px solid transparent;
   border-radius: var(--radius-control);
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+  transition: background var(--duration-fast) var(--ease), border-color var(--duration-fast) var(--ease),
+    box-shadow var(--duration-fast) var(--ease);
 }
+.button svg { flex-shrink: 0; }
 .button:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 .button:disabled { opacity: 0.6; cursor: not-allowed; }
 
@@ -24,5 +26,13 @@
 
 .ghost { color: var(--primary); background: transparent; padding: 0 var(--space-3); }
 .ghost:hover:not(:disabled) { background: var(--surface-low); }
+
+.danger { color: var(--on-primary); background: var(--error); }
+.danger:hover:not(:disabled) { background: var(--on-error-container); }
+
+/* Sizes: all at least 44 px high (WCAG 2.5.8) */
+.sm { min-height: 44px; padding: 0 var(--space-4); font-size: var(--text-sm); }
+.md { min-height: 48px; }
+.lg { min-height: 56px; padding: 0 var(--space-7); font-size: var(--text-lg); }
 
 .full { width: 100%; }

@@ -25,6 +25,11 @@ export const PAIRS = [
   ['--primary', '--secondary-fixed', 4.5, 'active menu entry, confirmed badge'],
   ['--primary', '--primary-fixed', 4.5, 'selected chip (--accent-soft)'],
   ['--on-error-container', '--error-container', 4.5, 'error alert'],
+  ['--on-warning-container', '--warning-container', 4.5, 'warning alert'],
+  ['--success', '--success-container', 4.5, 'success alert'],
+  ['--on-surface', '--info-container', 4.5, 'info alert'],
+  ['--on-primary', '--error', 4.5, 'danger button'],
+  ['--on-primary', '--on-error-container', 4.5, 'danger button, hovered'],
 ]
 
 /** The custom properties of a stylesheet, aliases resolved: Map('--x' → '#rrggbb' or the raw value). */

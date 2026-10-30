@@ -35,8 +35,8 @@
   --surface-low: var(--surface-sunken);
   --outline: var(--text-muted);
   --outline-variant: var(--border-strong); /* it drew field edges: those need 3:1 */
-  --surface-container: #e7eeff;
-  --surface-high: #dee8ff;
+  --surface-container: #e9efeb; /* was lavender #e7eeff: same green tint as the neutrals */
+  --surface-high: #dfe7e2;
 
   /* Feedback */
   --error: #ba1a1a;
@@ -44,7 +44,9 @@
   --error-container: #ffdad6;
   --success: #0e5245;
   --success-container: #dde5da;
-  --info-container: #e7eeff;
+  --info-container: #e6efea; /* was lavender #e7eeff */
+  --warning-container: #fdf0d5;
+  --on-warning-container: #6a4700;
 
   /* Shape */
   --radius-field: 10px;
