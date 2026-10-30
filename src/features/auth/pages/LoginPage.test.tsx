@@ -58,6 +58,13 @@ beforeEach(() => {
   fetchMe.mockRejectedValue(new ApiError(401, 'UNAUTHENTICATED', 'Non connecté.'))
 })
 
+test('explains the second step in plain words (no "TOTP" on a patient screen)', () => {
+  renderPage()
+  const page = within(screen.getByRole('main'))
+  expect(page.getByText(/confirment leur connexion avec un code à 6 chiffres/)).toBeInTheDocument()
+  expect(page.queryByText(/TOTP/)).toBeNull()
+})
+
 test('shows the sign-up link', () => {
   renderPage()
   // The public header has its own "Créer un compte" link: check the one in the page
