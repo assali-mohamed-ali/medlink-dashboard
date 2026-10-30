@@ -6,6 +6,7 @@
   padding: var(--space-8) var(--space-4);
   text-align: center;
 }
+.compact { padding: var(--space-2) 0; }
 .icon {
   display: inline-flex;
   align-items: center;

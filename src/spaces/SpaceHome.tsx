@@ -25,6 +25,7 @@ export default function SpaceHome({ role }: { role: Role }) {
             <EmptyState
               icon={part.icon}
               title={part.title}
+              compact
               action={
                 part.link ? (
                   <Link to={part.link.to} className={styles.open}>
