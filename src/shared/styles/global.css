@@ -20,6 +20,16 @@ body {
 h1, h2, h3, h4 { font-weight: 600; letter-spacing: -0.01em; text-wrap: balance; hyphens: manual; }
 small { font-size: var(--text-sm); line-height: var(--leading-sm); }
 
+/*
+ * Keyboard focus for anything without its own style (plain links): a clear 2 px green outline instead of the
+ * browser's thin default. :where() gives it zero specificity, so a component's own ring always wins.
+ */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 /* Times, dates, amounts in lists and tables: digits of one width, so columns line up */
 .tabular-nums { font-variant-numeric: tabular-nums; }
 
