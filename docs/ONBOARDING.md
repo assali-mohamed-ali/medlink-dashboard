@@ -34,6 +34,8 @@ Desktop (for the API's dev stack).
    | `staff.dev@medlink.local` | `ADMINISTRATIVE_STAFF` (+ TOTP code) | `/admin` |
 
 4. Mails the API sends (verify e-mail, code setup link) arrive in **Mailpit**: `http://localhost:8025`.
+5. To check every flow by hand (signup, login, code setup with an authenticator app, spaces, guards), follow
+   **[MANUAL-TESTING.md](MANUAL-TESTING.md)**.
 
 Everyday commands:
 

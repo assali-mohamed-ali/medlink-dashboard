@@ -31,6 +31,7 @@ Dans le dépôt `api-MedLink`, lancer `scripts/setup-dev` (voir le README de ce 
 
 Les imports vont dans un seul sens : `app` → `spaces`/`pages` → `features` → `shared`. Le guide complet (premier lancement,
 architecture, flux d'une requête, sécurité, tests, dépannage) : **[docs/ONBOARDING.md](docs/ONBOARDING.md)**.
+Tester à la main tous les parcours (inscription, connexion, code à 6 chiffres, espaces) : **[docs/MANUAL-TESTING.md](docs/MANUAL-TESTING.md)**.
 
 ## Local development checks
 

@@ -21,6 +21,7 @@
 
 - [ ] Tests ajoutés ou mis à jour : un test par réponse de l'API, rôle autorisé et rôle refusé pour une page protégée
 - [ ] `npm test`, `npm run lint` et `npm run build` OK en local
+- [ ] Parcours touchés vérifiés à la main (`docs/MANUAL-TESTING.md`)
 - [ ] Aucun secret, jeton, mot de passe ou code journalisé ou stocké dans le navigateur
 - [ ] Aucune ressource tierce (script, style, police, image) : la CSP reste `'self'`
 - [ ] `docs/ONBOARDING.md` mis à jour si une règle, un dossier ou un parcours change
