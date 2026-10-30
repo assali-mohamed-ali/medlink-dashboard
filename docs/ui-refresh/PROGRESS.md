@@ -12,7 +12,8 @@ Work for: **Mohamed** (YouTrack `Mohamed.BenNaima`, also "Al-Assad"). Teammate p
 |---|---|---|---|
 | Plan written | ✅ 2026-10-30 | this folder | research, audit, design direction, roadmap |
 | Tailwind + shadcn + Watermelon configured | ✅ 2026-10-30 | `feat/MLink-128-ui-kit` | no reset, scan limited, colours mapped, `cn` pinned, guard test |
-| D1–D4 decisions | ⏳ waiting | — | B0 specimen first; defaults in PLAN.md §6 |
+| D4 branch | ✅ 2026-10-30 | — | work on `feat/MLink-128-ui-kit` now; open its PR only after #11 merges (no stacked PRs) |
+| D1–D3 decisions | ⏳ waiting | — | B0 specimen first; defaults in PLAN.md §6 |
 | YouTrack ticket "[FE] UI refresh" | ⏳ not created | — | show the text to Mohamed before posting |
 | B0 specimen `/__specimen` | ⬜ | | dev only |
 | B1 fonts + type scale | ⬜ | | |
@@ -28,10 +29,13 @@ Legend: ✅ done · ⏳ waiting on someone · 🔄 in progress · ⬜ not starte
 
 ## Next step
 
-1. Check where the foundation is: PR medlink-dashboard#11 (`feat/MLink-6-front-auth-foundation`). If it is merged,
-   pull `master` and branch `feat/MLink-<new ticket>-ui-refresh`. If not, ask Mohamed (decision D4): the refresh builds
-   on #11's `shared/ui` and tokens, and PRs are never stacked.
-2. Build **B0**, the specimen page, then stop for the team's choice of D1/D2.
+1. `git checkout feat/MLink-128-ui-kit && git pull`. It is built on #11 (`feat/MLink-6-front-auth-foundation`): if #11
+   has new commits, merge them in (never force-push). Open this branch's PR **only after #11 is merged** into `master`
+   (then merge `master` in first).
+2. Build **B0**, the specimen page (dev-only route, options A and B of PLAN.md §4.1 and the neutrals of §4.2 on real
+   MedLink content, Watermelon pieces welcome), commit it, then stop for Mohamed's choice of D1/D2.
+3. Mohamed starts the session with "go B0" (or similar): Go was given on 2026-10-30 for the whole refresh, but each push
+   and each YouTrack post still waits for his OK.
 
 ## Facts a new session needs
 
@@ -56,6 +60,7 @@ Legend: ✅ done · ⏳ waiting on someone · 🔄 in progress · ⬜ not starte
 
 ## Log
 
+- **2026-10-30**: Mohamed: go for the refresh on `feat/MLink-128-ui-kit`; both branches pushed; session changed.
 - **2026-10-30**: rule softened (Mohamed): Tailwind 4 + shadcn 4 (Base UI) configured by hand (no `shadcn init`), the
   shadcn `button` added, `var(--secondary)` guard test; pages unchanged in the browser; 118 tests, lint, tsc, build green.
 - **2026-10-30**: plan written after a browser review of home, login and signup, the code audit (tokens, CSS sizes,
