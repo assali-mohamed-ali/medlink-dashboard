@@ -26,6 +26,10 @@ test('the password toggle is a 44 × 44 px target', () => {
   expect(px(toggle, 'height')).toBeGreaterThanOrEqual(44)
 })
 
+test('a checkbox or radio row (its label is the click target) is at least 44 px high', () => {
+  expect(px(rule(css('Choice'), '.choice'), 'min-height')).toBeGreaterThanOrEqual(44)
+})
+
 test('a disabled field looks disabled', () => {
   expect(css('TextField')).toMatch(/\.input:disabled\s*\{[^}]*cursor:\s*not-allowed/)
 })
