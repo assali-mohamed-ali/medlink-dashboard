@@ -116,8 +116,8 @@ Extra cases:
 
 ## 7. Errors and outages
 
-- [ ] Stop the API, then log in: a short French message ("Une erreur est survenue. Veuillez réessayer." through
-  Vite's proxy; "Impossible de joindre le serveur…" when the network itself is down), no blank page, no technical
+- [ ] Stop the API, then log in: a short French message ("Un problème est survenu de notre côté. Réessayez dans un instant." through
+  Vite's proxy; "Connexion impossible…" when the network itself is down), no blank page, no technical
   text.
 - [ ] Restart the API, try again: it works without reloading the page.
 

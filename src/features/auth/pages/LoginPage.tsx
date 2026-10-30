@@ -171,8 +171,7 @@ export default function LoginPage() {
           <p className="login__notice-text">
             <strong>Connexion sécurisée</strong>
             <span>
-              Les praticiens et le personnel valident leur connexion avec un code à
-              usage unique (TOTP).
+              Les praticiens et le personnel confirment leur connexion avec un code à 6 chiffres.
             </span>
           </p>
         </div>
