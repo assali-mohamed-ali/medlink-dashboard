@@ -8,6 +8,7 @@ import RouteErrorPage from '@/pages/RouteErrorPage'
 import { paths } from '@/shared/config/paths'
 import { lazyPage } from '@/shared/lib/lazyPage'
 import { PageLoader } from '@/shared/ui'
+import SpaceComingSoon from '@/spaces/SpaceComingSoon'
 import SpaceHome from '@/spaces/SpaceHome'
 import SpaceLayout from '@/spaces/SpaceLayout'
 
@@ -47,7 +48,7 @@ export const routes: RouteObject[] = [
       space('PRACTITIONER', paths.practitioner.root),
       space('ADMINISTRATIVE_STAFF', paths.staff.root, [
         // MLink-73 (back-office) replaces this placeholder
-        { path: paths.staff.accounts, element: <PlaceholderPage title="Gestion des comptes" /> },
+        { path: paths.staff.accounts, element: <SpaceComingSoon title="Gestion des comptes" /> },
       ]),
 
       // Dev-only design tool (UI refresh B0). import.meta.env.DEV is false in `vite build`, so the branch and the
