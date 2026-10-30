@@ -25,7 +25,7 @@ function space(role: Role, root: string, pages: RouteObject[] = []): RouteObject
       </RequireAuth>
     ),
     errorElement: <RouteErrorPage />,
-    children: [{ index: true, element: <SpaceHome /> }, ...pages],
+    children: [{ index: true, element: <SpaceHome role={role} /> }, ...pages],
   }
 }
 
