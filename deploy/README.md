@@ -65,6 +65,10 @@ server {
 - **`TRUSTED_PROXIES` on the API** must hold the proxy's address. The API's per-IP limits (login, signup) read the
   client IP from `X-Forwarded-For` only when the request comes from a trusted proxy; otherwise every user shares
   the proxy's IP and one busy minute blocks everyone.
+- **The API must see the browser's own scheme, host and port**, or it takes the page's `Origin` for another site
+  and refuses every call with `403 Invalid CORS request`. The API's Tomcat derives the port from
+  `X-Forwarded-Proto` (`https` → 443, `http` → 80) unless `X-Forwarded-Port` says otherwise: on 443 the example
+  above is enough; on any other port also send `X-Forwarded-Port` (as `edge.local.conf` does for 8090).
 - **Keycloak stays private**: the proxy publishes no Keycloak route (the browser never talks to Keycloak).
 - **HSTS** is set by the proxy (it terminates TLS); this image sets the other security headers.
 - If the dashboard container ever receives `/api/...`, it answers `502 {"code":"API_NOT_ROUTED"}`: the proxy is

@@ -395,6 +395,7 @@ import { Alert, Button, PasswordField, TextField } from '@/shared/ui'
 | A link from a mail does not open the app | The API builds links from `APP_FRONTEND_URL` (`http://localhost:3000` in dev): run `npm run dev` (port 3000, `strictPort`; if 3000 is taken, free it). |
 | `npm run dev` fails with "Port 3000 is in use" | Another app holds 3000; stop it (the port must match the mail links). |
 | An API call answers `502 API_NOT_ROUTED` (staging/prod or the local `edge`) | The reverse proxy sends `/api` to the dashboard instead of the API: see `deploy/README.md`. |
+| Behind a proxy (staging/prod or `localhost:8090`), every call answers **403 `Invalid CORS request`** | The API does not see the browser's own scheme, host and port, so it takes the page for another site. The proxy must send `X-Forwarded-Proto`, and `X-Forwarded-Port` on any port but 443: `deploy/README.md`. |
 | The browser console shows "Refused to load … Content-Security-Policy" | The production CSP allows our own origin only. Self-host the file (as the home page images) instead of loosening the CSP. |
 | `npm run dev` shows network errors | The API is not running on `localhost:8080`: start its dev stack. |
 | A test can't find a label | Required labels end with `*`: match the start with a regex, `getByLabelText(/^Prénom/)`. |

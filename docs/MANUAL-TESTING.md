@@ -11,8 +11,8 @@ Time: about 20 minutes for everything, 5 for the patient part alone.
 
 1. **API dev stack** (in `api-MedLink`): `scripts/setup-dev.ps1` (Windows) or `scripts/setup-dev.sh`. Wait for the
    green summary. Check: `http://localhost:8080/actuator/health` shows `"status":"UP"`.
-2. **Front** (here): `npm ci` once, then `npm run dev`. Open **`http://localhost:3000`** (not 8081/8090: those are
-   the Docker images, see section 9).
+2. **Front** (here): `npm ci` once, then `npm run dev`. Open **`http://localhost:3000`**: the mail links open
+   this address (the Docker image on 8090 is section 9).
 3. **Mailpit** (the API's mails): `http://localhost:8025`.
 4. **An authenticator app** on your phone: Google Authenticator, Microsoft Authenticator or FreeOTP.
 5. Open the browser's dev tools (F12), tabs **Console** and **Network**: you will check them on the way.
@@ -139,15 +139,14 @@ Extra cases:
 - [ ] `http://localhost:8081/api/auth/me` answers `502 API_NOT_ROUTED`: the dashboard image never serves `/api`
   itself, the proxy in front does.
 
-Known gaps on this image, being fixed:
-- **Login and signup answer 403 "Invalid CORS request" on 8090**: the local proxy (`deploy/edge.local.conf`)
-  forwards the host without its port, so the API takes the browser's own origin for a foreign one. Test the flows
-  on 3000 until the fix lands.
-- The signup page loads Google Fonts, which the CSP blocks (console errors, a fallback font): the fonts must be
-  self-hosted.
+- [ ] Sections 1, 3 and 6 on `http://localhost:8090`: same results as on 3000 (login, refresh, guards, logout).
+  Mail links still open 3000 (`APP_FRONTEND_URL`): run sections 2, 4 and 5 on 3000.
+- [ ] The Console shows no CSP violation from our pages.
 
-Console lines from browser extensions (`customElements.js`, `ajaxRequestInterceptor`, `inspector.js`, "unload is
-not allowed") are not ours: test in a private window without extensions to get a clean console.
+Console lines from browser extensions are not ours: `customElements.js`, `ajaxRequestInterceptor`, `inspector.js`,
+"unload is not allowed", and CSP blocks of stylesheets the extension injects (e.g. `fonts.googleapis.com`: MedLink
+loads no third-party file; the CSP blocking them is the CSP working). Test in a private window without extensions
+to get a clean console.
 
 ## When something does not match
 
