@@ -1,36 +1,37 @@
-# React + TypeScript + Vite
+# MedLink — Web (front)
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Interface React du portail MedLink. Elle parle uniquement à notre API (`api-MedLink`), avec le cookie de session ; aucun token n'est stocké dans le navigateur.
 
-Currently, two official plugins are available:
+## Prérequis
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Node 22.12 ou plus (voir `.nvmrc`). Sur Windows, installer Node 22 avec nvm-windows ou depuis le site officiel.
+- L'API en local sur `http://localhost:8080`
 
-## React Compiler
+## Démarrer
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+    npm ci
+    npm run dev      # http://localhost:3000 (le port des liens envoyés par mail)
+    npm test
+    npm run lint
+    npm run build
 
-## Expanding the Oxlint configuration
+Le serveur de développement redirige `/api` vers `http://localhost:8080` : le navigateur ne voit qu'une origine, donc pas de CORS et le cookie `XSRF-TOKEN` reste lisible. Il tourne sur le port 3000, l'`APP_FRONTEND_URL` de l'API en dev : les liens des mails (vérification, configuration du code) s'ouvrent ici. En staging et en prod, le reverse proxy HTTPS route `/api` vers l'API : voir [deploy/README.md](deploy/README.md).
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+## Lancer l'API
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
-```
+Dans le dépôt `api-MedLink`, lancer `scripts/setup-dev` (voir le README de ce dépôt).
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Structure
 
+- `src/app` : le câblage (la table des routes, le routeur)
+- `src/spaces` : les espaces par rôle (patient, praticien, administratif) : une mise en page, un menu par rôle
+- `src/features/<domaine>` : un dossier par domaine métier (`auth` pour l'instant) : appels API, types, pages, routes
+- `src/pages` : les pages sans domaine (accueil, accès refusé, page introuvable, erreur)
+- `src/shared` : le code réutilisable sans métier (client API, messages d'erreur, URLs, composants UI, styles)
+
+Les imports vont dans un seul sens : `app` → `spaces`/`pages` → `features` → `shared`. Le guide complet (premier lancement,
+architecture, flux d'une requête, sécurité, tests, dépannage) : **[docs/ONBOARDING.md](docs/ONBOARDING.md)**.
+Tester à la main tous les parcours (inscription, connexion, code à 6 chiffres, espaces) : **[docs/MANUAL-TESTING.md](docs/MANUAL-TESTING.md)**.
 
 ## Local development checks
 

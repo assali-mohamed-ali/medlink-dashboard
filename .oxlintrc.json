@@ -1,8 +1,187 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
+  "plugins": [
+    "react",
+    "typescript",
+    "oxc"
+  ],
   "rules": {
     "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
+    "react/only-export-components": [
+      "warn",
+      {
+        "allowConstantExport": true
+      }
+    ],
+    "no-restricted-imports": [
+      "error",
+      {
+        "patterns": [
+          {
+            "group": [
+              "../../**"
+            ],
+            "message": "Across folders, import with the @/ alias (docs/ONBOARDING.md §2)."
+          },
+          {
+            "group": [
+              "@/features/*/*"
+            ],
+            "message": "Import a feature through its index: '@/features/<name>' (docs/ONBOARDING.md §2)."
+          }
+        ]
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": [
+        "src/shared/**"
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "../../**"
+                ],
+                "message": "Across folders, import with the @/ alias (docs/ONBOARDING.md §2)."
+              },
+              {
+                "group": [
+                  "@/features/*",
+                  "@/app/*",
+                  "@/spaces/*",
+                  "@/pages/*",
+                  "@/app",
+                  "@/spaces",
+                  "@/pages"
+                ],
+                "message": "shared/ must not import from features/, app/, spaces/, pages/ (import direction: app -> spaces/pages -> features -> shared)."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": [
+        "src/features/**"
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "../../**"
+                ],
+                "message": "Across folders, import with the @/ alias (docs/ONBOARDING.md §2)."
+              },
+              {
+                "group": [
+                  "@/features/*/*"
+                ],
+                "message": "Import a feature through its index: '@/features/<name>' (docs/ONBOARDING.md §2)."
+              },
+              {
+                "group": [
+                  "@/app/*",
+                  "@/spaces/*",
+                  "@/pages/*",
+                  "@/app",
+                  "@/spaces",
+                  "@/pages"
+                ],
+                "message": "A feature must not import from app/, spaces/, pages/ (import direction: app -> spaces/pages -> features -> shared)."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": [
+        "src/spaces/**"
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "../../**"
+                ],
+                "message": "Across folders, import with the @/ alias (docs/ONBOARDING.md §2)."
+              },
+              {
+                "group": [
+                  "@/features/*/*"
+                ],
+                "message": "Import a feature through its index: '@/features/<name>' (docs/ONBOARDING.md §2)."
+              },
+              {
+                "group": [
+                  "@/app/*",
+                  "@/pages/*",
+                  "@/app",
+                  "@/pages"
+                ],
+                "message": "spaces/ must not import from app/, pages/ (import direction: app -> spaces/pages -> features -> shared)."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": [
+        "src/pages/**"
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "../../**"
+                ],
+                "message": "Across folders, import with the @/ alias (docs/ONBOARDING.md §2)."
+              },
+              {
+                "group": [
+                  "@/features/*/*"
+                ],
+                "message": "Import a feature through its index: '@/features/<name>' (docs/ONBOARDING.md §2)."
+              },
+              {
+                "group": [
+                  "@/app/*",
+                  "@/spaces/*",
+                  "@/app",
+                  "@/spaces"
+                ],
+                "message": "pages/ must not import from app/, spaces/ (import direction: app -> spaces/pages -> features -> shared)."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": [
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        "src/test/**"
+      ],
+      "rules": {
+        "no-restricted-imports": "off"
+      }
+    }
+  ]
 }
