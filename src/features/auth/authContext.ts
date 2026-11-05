@@ -18,6 +18,8 @@ export type AuthState = {
   completeLogin: (user: AuthUser) => void
   /** POST /api/auth/logout; the session is cleared here even if the call fails. */
   logout: () => Promise<void>
+  /** The API already ended the session on purpose (password changed): clear it here, no call, no "expired" notice. */
+  endSession: () => void
 }
 
 export const AuthContext = createContext<AuthState | null>(null)

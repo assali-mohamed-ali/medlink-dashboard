@@ -121,13 +121,34 @@ Extra cases:
   text.
 - [ ] Restart the API, try again: it works without reloading the page.
 
+## 7c. Password (`/mot-de-passe`, MLink-89)
+
+Use the account you created in section 2 (`test1@medlink.local`), not a dev account: Keycloak keeps the last 3
+passwords, so a dev account cannot go back to its usual password (`scripts/setup-dev.ps1 -Reset` restores them all).
+
+Own change (logged in):
+- [ ] Menu "Mot de passe": the page asks the current password, the new one and its confirmation, and says you will
+  be logged out of every device. The rule checklist ticks as you type (icon and text, not colour alone).
+- [ ] Two different new passwords: "Les deux mots de passe ne sont pas identiques.", nothing sent (Network).
+- [ ] A wrong current password: "Le mot de passe actuel est incorrect." under that field; you stay.
+- [ ] One of your last 3 passwords: Keycloak's message under the new password.
+- [ ] Right values: back to `/connexion` with "Mot de passe changé…"; F5 and `/patient` show you are logged out;
+  the old password is refused, the new one works.
+
+Forced change (staff reset it):
+- [ ] Keycloak admin (`http://localhost:8180`, dev only) > realm `medlink` > Users > the account > "Required user
+  actions": add "Update Password", save. Log in on 3000: you land on `/mot-de-passe`, "Choisissez un nouveau mot de
+  passe", with no current-password field.
+- [ ] Wait more than 5 minutes, then submit: back to `/connexion` with "Votre étape de connexion a expiré".
+- [ ] Log in again, choose a new password: `/connexion` with "Mot de passe changé…"; the new password logs you in.
+- [ ] Open `/mot-de-passe` logged out (no forced step): you are sent to `/connexion`.
+
 ## 8. Not testable by hand yet
 
 - **"Votre session a expiré"** after the API ends an open session: no page of the spaces calls the API yet (the
   spaces only have "Accueil"), so nothing triggers it by hand. `src/app/sessionExpiry.test.tsx` and the
   `AuthProvider` tests cover it until the first real space page lands.
-- `/mot-de-passe` (MLink-89), `/activer-compte` (MLink-71) and `/admin/comptes` (MLink-73): placeholder pages for
-  now.
+- `/activer-compte` (MLink-71) and `/admin/comptes` (MLink-73): placeholder pages for now.
 
 ## 9. The production image (optional)
 

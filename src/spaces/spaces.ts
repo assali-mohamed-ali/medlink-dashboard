@@ -17,17 +17,24 @@ export type Space = {
 export const SPACES: Record<Role, Space> = {
   PATIENT: {
     title: 'Espace patient',
-    menu: [{ label: 'Accueil', to: paths.patient.root }],
+    menu: [
+      { label: 'Accueil', to: paths.patient.root },
+      { label: 'Mot de passe', to: paths.password },
+    ],
   },
   PRACTITIONER: {
     title: 'Espace praticien',
-    menu: [{ label: 'Accueil', to: paths.practitioner.root }],
+    menu: [
+      { label: 'Accueil', to: paths.practitioner.root },
+      { label: 'Mot de passe', to: paths.password },
+    ],
   },
   ADMINISTRATIVE_STAFF: {
     title: 'Espace administratif',
     menu: [
       { label: 'Accueil', to: paths.staff.root },
       { label: 'Gestion des comptes', to: paths.staff.accounts },
+      { label: 'Mot de passe', to: paths.password },
     ],
   },
 }

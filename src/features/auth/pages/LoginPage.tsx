@@ -25,14 +25,17 @@ type LoginValues = z.infer<typeof loginSchema>
 export default function LoginPage() {
   const navigate = useNavigate()
   // Why the app sent the person here, if it did: the guards (ended session, MLink-85), the code step
-  // (its 5 minutes are over), or the code setup page (log in again, then back to it with the token)
+  // (its 5 minutes are over), the password page (changed: log in with the new one), or the code setup page
+  // (log in again, then back to it with the token)
   const arrival = useLocation().state as {
     sessionExpired?: boolean
     stepExpired?: boolean
+    passwordChanged?: boolean
     setupToken?: string
   } | null
   const sessionExpired = Boolean(arrival?.sessionExpired)
   const stepExpired = Boolean(arrival?.stepExpired)
+  const passwordChanged = Boolean(arrival?.passwordChanged)
   const { login } = useAuth()
   const [formError, setFormError] = useState<string | null>(null)
   const [needsVerification, setNeedsVerification] = useState(false)
@@ -118,6 +121,9 @@ export default function LoginPage() {
           )}
           {stepExpired && !formError && (
             <Alert tone="info">Votre étape de connexion a expiré (5 minutes). Reconnectez-vous.</Alert>
+          )}
+          {passwordChanged && !formError && (
+            <Alert tone="success">Mot de passe changé. Connectez-vous avec votre nouveau mot de passe.</Alert>
           )}
           {formError && <Alert tone="error">{formError}</Alert>}
 

@@ -14,4 +14,7 @@ export const authRoutes: RouteObject[] = [
   },
   // Opened from a mail, logged in or not
   { path: paths.verifyEmail, lazy: lazyPage(() => import('./pages/VerifyEmailPage')) },
+  // Logged in (own change) or right after a login that asked for a new password (no session yet): the page
+  // chooses, and sends anyone else to the login page
+  { path: paths.password, lazy: lazyPage(() => import('./pages/PasswordPage')) },
 ]

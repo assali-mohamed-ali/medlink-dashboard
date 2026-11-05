@@ -4,6 +4,7 @@ import { RouterProvider, createMemoryRouter, useLocation } from 'react-router-do
 import { beforeEach, expect, test, vi } from 'vitest'
 import { ApiError } from '@/shared/api/apiClient'
 import AuthProvider from '../AuthProvider'
+import { useAuth } from '../useAuth'
 import * as api from '../api'
 import PasswordPage from './PasswordPage'
 
@@ -19,10 +20,16 @@ const patient = {
 }
 const STRONG = 'Nouveau-Mot-2026!'
 
-// Shows why the app came to the login page, the way LoginPage reads it
+// Shows why the app came to the login page, the way LoginPage reads it, and the session the page finds there
 function LoginStub() {
   const state = useLocation().state as Record<string, boolean> | null
-  return <p>Page connexion {JSON.stringify(state ?? {})}</p>
+  const { status } = useAuth()
+  return (
+    <>
+      <p>Page connexion {JSON.stringify(state ?? {})}</p>
+      <p data-testid="session">{status}</p>
+    </>
+  )
 }
 
 function renderPage(state?: { forced?: boolean }) {
@@ -113,6 +120,7 @@ test('logged in: 204 sends both passwords, ends the session here too, and goes t
   expect(changePassword).toHaveBeenCalledWith({ currentPassword: 'Ancien-Mot-2025!', newPassword: STRONG })
   // passwordChanged, and no "session expired" notice: the person ended the session on purpose
   expect(await screen.findByText('Page connexion {"passwordChanged":true}')).toBeInTheDocument()
+  expect(screen.getByTestId('session')).toHaveTextContent('anonymous')
   expect(api.logout).not.toHaveBeenCalled()
 })
 
