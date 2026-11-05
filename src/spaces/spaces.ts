@@ -2,6 +2,7 @@ import {
   CalendarDays,
   FileText,
   House,
+  KeyRound,
   MessageSquare,
   Stethoscope,
   Users,
@@ -45,7 +46,10 @@ export const SPACES: Record<Role, Space> = {
   PATIENT: {
     title: 'Espace patient',
     roleLabel: 'Patient',
-    menu: [{ label: 'Accueil', to: paths.patient.root, icon: House }],
+    menu: [
+      { label: 'Accueil', to: paths.patient.root, icon: House },
+      { label: 'Mot de passe', to: paths.password, icon: KeyRound },
+    ],
     home: {
       intro: 'Vos rendez-vous, vos documents et vos échanges avec vos soignants, au même endroit.',
       parts: [
@@ -58,7 +62,10 @@ export const SPACES: Record<Role, Space> = {
   PRACTITIONER: {
     title: 'Espace praticien',
     roleLabel: 'Praticien',
-    menu: [{ label: 'Accueil', to: paths.practitioner.root, icon: House }],
+    menu: [
+      { label: 'Accueil', to: paths.practitioner.root, icon: House },
+      { label: 'Mot de passe', to: paths.password, icon: KeyRound },
+    ],
     home: {
       intro: 'Votre journée en un coup d’œil.',
       parts: [
@@ -74,6 +81,7 @@ export const SPACES: Record<Role, Space> = {
     menu: [
       { label: 'Accueil', to: paths.staff.root, icon: House },
       { label: 'Gestion des comptes', to: paths.staff.accounts, icon: Users },
+      { label: 'Mot de passe', to: paths.password, icon: KeyRound },
     ],
     home: {
       intro: 'Les comptes et l’organisation des trois cliniques.',

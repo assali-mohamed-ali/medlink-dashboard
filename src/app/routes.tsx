@@ -40,8 +40,7 @@ export const routes: RouteObject[] = [
       { path: paths.home, lazy: lazyPage(() => import('@/pages/HomePage')) },
       ...authRoutes,
       ...mfaRoutes,
-      // Pages of flows still to build (MLink-89, MLink-71)
-      { path: paths.password, element: <PlaceholderPage title="Mot de passe" /> },
+      // Pages of flows still to build (MLink-71)
       { path: paths.activateAccount, element: <PlaceholderPage title="Activation du compte" /> },
       { path: paths.accessDenied, element: <AccessDeniedPage /> },
 

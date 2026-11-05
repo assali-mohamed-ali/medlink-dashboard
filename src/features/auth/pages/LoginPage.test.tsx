@@ -224,6 +224,21 @@ test('after an expired code step, the login page says why', async () => {
   )
 })
 
+test('after a password change, the login page says to log in with the new one', async () => {
+  render(
+    <AuthProvider>
+      <MemoryRouter initialEntries={[{ pathname: '/connexion', state: { passwordChanged: true } }]}>
+        <Routes>
+          <Route path="/connexion" element={<LoginPage />} />
+        </Routes>
+      </MemoryRouter>
+    </AuthProvider>,
+  )
+  expect(await screen.findByRole('status')).toHaveTextContent(
+    'Mot de passe changé. Connectez-vous avec votre nouveau mot de passe.',
+  )
+})
+
 test('logging in again for a code setup link goes back to the setup, token in memory', async () => {
   login.mockResolvedValue({ mfaRequired: true, mfaSetupRequired: true })
   function SetupStub() {

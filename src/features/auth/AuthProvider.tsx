@@ -74,6 +74,11 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     closeSession()
   }, [closeSession])
 
+  const endSession = useCallback(() => {
+    setSessionExpired(false)
+    closeSession()
+  }, [closeSession])
+
   const value = useMemo(
     () => ({
       status,
@@ -83,8 +88,9 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
       login,
       completeLogin: openSession,
       logout,
+      endSession,
     }),
-    [status, user, sessionExpired, login, openSession, logout],
+    [status, user, sessionExpired, login, openSession, logout, endSession],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

@@ -25,6 +25,14 @@ export function fetchMe() {
   return apiFetch<{ user: AuthUser }>('/auth/me')
 }
 
+/**
+ * Endpoint 10. Logged in: `{ currentPassword, newPassword }`, and the API ends every session of the user. After a
+ * login that answered `passwordChangeRequired`: `{ newPassword }` only. Either way the user logs in again.
+ */
+export function changePassword(body: { currentPassword?: string; newPassword: string }) {
+  return apiFetch('/auth/password', { method: 'POST', body })
+}
+
 export function logout() {
   return apiFetch('/auth/logout', { method: 'POST' })
 }

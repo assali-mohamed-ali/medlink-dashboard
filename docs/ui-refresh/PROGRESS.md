@@ -77,6 +77,9 @@ and MLink-81, and give me a brief."*
 
 ## Log
 
+- **2026-11-05**: #11 merged in: `/mot-de-passe` (MLink-89, built by Mohamed with his decision; `d0c2aaf`, `ed53de3`), the
+  last blocker of #11. "Mot de passe" added to each space menu with the `KeyRound` icon. 195 tests, lint, tsc, build,
+  contrast (26 pairs) and budget green on the merge.
 - **2026-11-05**: #11's CI failed on a missing final newline in 3 of Ahlem's files; Mohamed decided to fix it on her
   branch (`4a605ce`, whitespace only, comment on MLink-81). CI on #11 green again. Merged into this branch, pushed.
   #11 still waits on the code owner's review: `/mot-de-passe` (MLink-89, Ahlem) is the remaining blocker.
