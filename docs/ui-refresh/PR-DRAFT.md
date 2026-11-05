@@ -29,7 +29,8 @@ plainer words. Plan and decisions: `docs/ui-refresh/PLAN.md`; step by step: `doc
 - **Words**: plainer error messages; the login page says "code à 6 chiffres" instead of "TOTP".
 - **Visible on every page**: body text 16 px (was 15), secondary 14 px (was 13), buttons at weight 500, darker
   field edges, a 2 px green focus outline on plain links.
-- **Not changed**: Ahlem's pages (home, signup) only through tokens; her follow-ups are on MLink-81.
+- **Ahlem's pages** (home, signup) restyled through the tokens only; her own fixes from MLink-81 (home font token,
+  h3 heading, softer claims; signup fields) come from #11.
 
 New packages (team rule: why, size, alternative): `@fontsource-variable/geist` and `@fontsource/instrument-serif`
 (OFL-1.1, the chosen faces; the alternative, a CDN, breaks the CSP); `@fontsource-variable/plus-jakarta-sans` as a

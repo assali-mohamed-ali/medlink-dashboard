@@ -32,10 +32,9 @@ Legend: ✅ done · ⏳ waiting on someone · 🔄 in progress · ⬜ not starte
 1. `git checkout feat/MLink-128-ui-kit && git pull`. It is built on #11 (`feat/MLink-6-front-auth-foundation`): if #11
    has new commits, merge them in (never force-push). Open this branch's PR **only after #11 is merged** into `master`
    (then merge `master` in first).
-2. **Left**: push the branch (Mohamed: Claude Code's permission check blocked `git push`), an NVDA pass by hand,
-   the practitioner and staff spaces by hand (TOTP). Then the **PR** once #11 is merged: the text is in
-   `PR-DRAFT.md`. Open: Ahlem's home page (font, token copies, h2 → h4, all on MLink-81); the timeout message kept
-   its old voice (Mohamed's call).
+2. **Left**: an NVDA pass by hand, the practitioner and staff spaces by hand (TOTP). Then the **PR** once #11 is
+   merged (still open on 2026-11-05): merge `master` in, paste `PR-DRAFT.md`. Open: the timeout message kept its old
+   voice (Mohamed's call); `HomePage.css:24-25` sets `font-family` twice (harmless, Ahlem's file).
 3. Mohamed starts the session with "go B0" (or similar): Go was given on 2026-10-30 for the whole refresh, but each push
    and each YouTrack post still waits for his OK.
 
@@ -61,6 +60,10 @@ Legend: ✅ done · ⏳ waiting on someone · 🔄 in progress · ⬜ not starte
   `/verifier-email`, `/patient`, `/praticien`, `/admin`, `/acces-refuse`, a 404; at 375 and 1440 px.
 
 ## Log
+
+- **2026-11-05**: synced. #11 had 2 new commits from Ahlem (home: our font token, the h3 heading, softer claims;
+  signup: unused fields and the dead 409 removed), merged in with no conflict (her files only). 179 tests, lint,
+  build, contrast, budget green. The home page items of MLink-81 are done.
 
 - **2026-10-30**: production image on 8090 (strict CSP, `style-src 'self'`): home, login, signup, 404 and the patient
   space show no CSP refusal, Geist loads. YouTrack: shared files added to MLink-162 (comment), heading note for
