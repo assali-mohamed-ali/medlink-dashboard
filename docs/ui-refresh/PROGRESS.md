@@ -7,14 +7,14 @@ Work for: **Mohamed** (YouTrack `Mohamed.BenNaima`, also "Al-Assad"). Ticket: **
 Teammate: **Ahlem** (`Ahlem.SAKLY`, GitHub `sakly123`) owns Home, Signup and the password pages (MLink-51/81/89): change
 her files only with her written OK, or when Mohamed explicitly decides it (then comment on her ticket what changed).
 
-## Where things stand (2026-11-05)
+## Where things stand (2026-11-05, end of session)
 
-- **Done and pushed** on `feat/MLink-128-ui-kit` (in sync with GitHub): plan, decisions, B0–B6, Phase D except the
-  manual checks below. 179 tests, lint, build, `check:contrast` (26 pairs), `check:budget` (70.8 kB) green.
-- **Blocked on #11** (`feat/MLink-6-front-auth-foundation`, Ahlem's PR, base of this branch): CI green since `4a605ce`,
-  but the code owner (@assali-mohamed-ali) has *changes requested*; the remaining blocker is `/mot-de-passe` (forced
-  password change, **MLink-89**, Ahlem, no activity since 2026-10-30). This branch's PR opens only after #11 is merged
-  (no stacked PRs). Asked Ahlem on MLink-81 (2026-11-05) whether MLink-89 is in progress: check for her answer.
+- **Done and pushed** on `feat/MLink-128-ui-kit` (in sync with GitHub, 0 commits behind #11): plan, decisions, B0–B6,
+  Phase D except the manual checks below. 195 tests, lint, build, `check:contrast` (26 pairs), `check:budget` green.
+- **#11 is no longer blocked by missing work.** `/mot-de-passe` (MLink-89) was built by Mohamed's decision on #11's
+  branch (`d0c2aaf` red tests, `ed53de3` page); Ahlem told on MLink-89 before and after. CI on #11 green; the code
+  owner's re-review was requested. GitHub still shows *changes requested* until he reviews again.
+- **This branch's PR opens only after #11 is merged** (no stacked PRs).
 - **Demo**: `Downloads/medlink-demo-amel-premiere-visite.gif` (patient journey, signup to logout). It created the dev
   account `amel.bensalah.demo@medlink.local` (dev password); a re-recording needs another address.
 
@@ -31,6 +31,7 @@ her files only with her written OK, or when Mohamed explicitly decides it (then 
 | B4 words | ✅ | `54db202` | error messages, login notice |
 | B5 space shell | ✅ | `8fc2aea` | no dropdown until a "Mon compte" page exists |
 | B6 space homes | ✅ | `bcaa76e`, `bd002ce` | data in `spaces.ts` |
+| #11 blocker `/mot-de-passe` | ✅ 2026-11-05 | `d0c2aaf`, `ed53de3` (on #11) | MLink-89, Mohamed's decision, Ahlem notified |
 | C1/C2 home, login/signup layout | ⬜ | | Ahlem's pages; her fixes from MLink-81 are in |
 | D quality pass | 🔄 | `aaacd1c`, `b800a8b` | budget in CI, focus outline, CSP checked on 8090; NVDA + practitioner/staff by hand left |
 | PR | ⏳ | `PR-DRAFT.md` | after #11 is merged |
@@ -42,7 +43,8 @@ Legend: ✅ done · ⏳ waiting on someone · 🔄 in progress · ⬜ not starte
 1. **Sync**: `git checkout feat/MLink-128-ui-kit && git pull`; `git fetch`; if #11's branch or `master` moved, merge
    them in (never force-push; check: `git log --oneline HEAD..origin/feat/MLink-6-front-auth-foundation`).
    Then `npm ci && npm test && npm run lint && npm run build && npm run check:contrast && npm run check:budget`.
-2. **Check #11 and MLink-89/81** (`gh pr view 11`, YouTrack): new review, Ahlem's answer. Report to Mohamed.
+2. **Check #11** (`gh pr view 11 --comments`, `gh api repos/{owner}/{repo}/pulls/11/reviews`): the code owner's
+   re-review. Changes asked → fix them on #11 (tell Ahlem on MLink-89/81 which files). Also read MLink-89/81 for Ahlem.
 3. **When #11 is merged**: merge `master` in, re-run the checks, take before/after screenshots (375 and 1440 px: `/`,
    `/connexion`, `/inscription`, `/patient`, `/admin`), open the PR to `master` with `PR-DRAFT.md` (AI disclosure:
    tick "J'ai utilisé…", never the human-review box), set MLink-162 to *To Verify* with the PR link (ask first).
@@ -50,8 +52,8 @@ Legend: ✅ done · ⏳ waiting on someone · 🔄 in progress · ⬜ not starte
 5. **Open choices for Mohamed**: the timeout message ("Le serveur met trop de temps à répondre. Veuillez réessayer.")
    kept its old voice; a "Mon compte" page would bring the user dropdown of PLAN.md §4.5; Phase C waits on Ahlem.
 
-Suggested first message of the next session: *"Read docs/ui-refresh/PROGRESS.md, sync the branch, check #11, MLink-89
-and MLink-81, and give me a brief."*
+Suggested first message of the next session: *"Read docs/ui-refresh/PROGRESS.md, sync the branch, check #11 (review),
+MLink-89 and MLink-81, and give me a brief."*
 
 ## Facts a new session needs
 
