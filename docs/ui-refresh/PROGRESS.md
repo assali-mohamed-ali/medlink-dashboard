@@ -61,6 +61,10 @@ Legend: ✅ done · ⏳ waiting on someone · 🔄 in progress · ⬜ not starte
 
 ## Log
 
+- **2026-11-05**: #11's CI failed on a missing final newline in 3 of Ahlem's files; Mohamed decided to fix it on her
+  branch (`4a605ce`, whitespace only, comment on MLink-81). CI on #11 green again. Merged into this branch, pushed.
+  #11 still waits on the code owner's review: `/mot-de-passe` (MLink-89, Ahlem) is the remaining blocker.
+
 - **2026-11-05**: synced. #11 had 2 new commits from Ahlem (home: our font token, the h3 heading, softer claims;
   signup: unused fields and the dead 409 removed), merged in with no conflict (her files only). 179 tests, lint,
   build, contrast, budget green. The home page items of MLink-81 are done.
