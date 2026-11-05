@@ -25,7 +25,8 @@ function renderPage() {
 
 // The labels end with a "*" for required fields: match them by their start.
 const passwordField = () => screen.getByLabelText(/^Mot de passe maître/)
-const submitButton = () => screen.getByRole('button', { name: /^Créer mon compte/ })
+const submitButton = () =>
+  screen.getByRole('button', { name: /^Créer mon compte/ })
 
 async function fillValidForm(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText(/^Prénom/), 'Amel')
@@ -34,10 +35,10 @@ async function fillValidForm(user: ReturnType<typeof userEvent.setup>) {
   await user.type(passwordField(), 'Secret-12345!')
   await user.type(screen.getByLabelText(/^Date de naissance/), '1990-05-12')
   await user.type(screen.getByLabelText(/^Téléphone/), '+216 71 000 000')
-  await user.type(screen.getByLabelText(/^Adresse de résidence/), '12 rue de la Santé, Tunis')
-  await user.selectOptions(screen.getByLabelText(/^Gouvernorat/), 'tunis')
-  await user.click(screen.getAllByRole('radio')[0])
-  await user.click(screen.getByRole('checkbox', { name: /accepte expressément/ }))
+  await user.type(
+    screen.getByLabelText(/^Adresse de résidence/),
+    '12 rue de la Santé, Tunis',
+  )
 }
 
 beforeEach(() => {
@@ -54,7 +55,9 @@ test('updates the password checklist as the user types', async () => {
   await user.type(passwordField(), 'abcdefghijkl')
   expect(screen.getByTestId('rule-length')).toHaveClass('signup__rule--ok')
   expect(screen.getByTestId('rule-lowercase')).toHaveClass('signup__rule--ok')
-  expect(screen.getByTestId('rule-uppercase')).not.toHaveClass('signup__rule--ok')
+  expect(screen.getByTestId('rule-uppercase')).not.toHaveClass(
+    'signup__rule--ok',
+  )
 
   await user.clear(passwordField())
   await user.type(passwordField(), 'Abcdefghij1!')
@@ -118,7 +121,9 @@ test('shows server field errors on 400', async () => {
   await fillValidForm(user)
   await user.click(submitButton())
 
-  expect(await screen.findByText('Cette adresse e-mail est invalide.')).toBeInTheDocument()
+  expect(
+    await screen.findByText('Cette adresse e-mail est invalide.'),
+  ).toBeInTheDocument()
   expect(screen.getByText('Numéro de téléphone incorrect.')).toBeInTheDocument()
 })
 
@@ -152,7 +157,9 @@ test('shows the password policy message under the password field', async () => {
   await user.click(submitButton())
 
   expect(
-    await screen.findByText('Le mot de passe ne respecte pas la politique de sécurité.'),
+    await screen.findByText(
+      'Le mot de passe ne respecte pas la politique de sécurité.',
+    ),
   ).toBeInTheDocument()
 })
 
@@ -173,7 +180,11 @@ test('shows the message in a banner when a 400 has no field details', async () =
 
 test('shows the API message when the service is unavailable', async () => {
   register.mockRejectedValue(
-    new ApiError(503, 'IDENTITY_UNAVAILABLE', 'Service momentanément indisponible.'),
+    new ApiError(
+      503,
+      'IDENTITY_UNAVAILABLE',
+      'Service momentanément indisponible.',
+    ),
   )
   const user = userEvent.setup()
   renderPage()

@@ -94,8 +94,8 @@ const whyCards = [
     badge: 'Normes Médicales Strictes',
     title: 'Sécurité & Confidentialité maximale',
     icon: ShieldCheck,
-    body: "Hébergement agréé Données de Santé (HDS), chiffrement de bout en bout et stricte conformité aux exigences de l'INPDP et du RGPD. Seuls vous et les soignants désignés pouvez délivrer/ouvrir vos informations cliniques.",
-    link: 'Certification INPDP Validée',
+    body: "Vos données de santé sont protégées et ne sont partagées qu'avec vos soignants. Accès contrôlé, hébergement en Tunisie.",
+    link: 'Confidentialité & protection des données',
   },
 ]
 
@@ -141,10 +141,12 @@ export default function HomePage() {
           <div className="home__badge">
             <span className="home__badge-dot" />
             <span className="home__badge-primary">
-              Réseau Hospitalier Agréé • Tunisie
+              Réseau de cliniques • Tunisie
             </span>
             <span className="home__badge-sep">•</span>
-            <span className="home__badge-secondary">Hébergement Santé Sécurisé</span>
+            <span className="home__badge-secondary">
+              Données de santé protégées
+            </span>
           </div>
 
           <h1 className="home__title">
@@ -263,7 +265,9 @@ export default function HomePage() {
                 fetchPriority="high"
               />
               <div className="home__hero-overlay">
-                <span className="home__hero-tag">Plateforme Médicale Inter-Régionale</span>
+                <span className="home__hero-tag">
+                  Plateforme Médicale Inter-Régionale
+                </span>
                 <h2>
                   Des soins coordonnés, du diagnostic au suivi post-opératoire.
                 </h2>
@@ -328,7 +332,9 @@ export default function HomePage() {
                 <Building2 size={16} aria-hidden="true" />
                 Infrastructure Territoriale
               </p>
-              <h2 className="home__section-title">Nos 3 Cliniques d&apos;Excellence</h2>
+              <h2 className="home__section-title">
+                Nos 3 Cliniques d&apos;Excellence
+              </h2>
               <p className="home__section-sub home__section-sub--left">
                 Des plateaux médico-chirurgicaux de pointe répartis sur les
                 bassins de vie stratégiques de Tunisie.
@@ -344,7 +350,15 @@ export default function HomePage() {
             {clinics.map((c) => (
               <article key={c.name} className="home__clinic">
                 <div className="home__clinic-img-wrap">
-                  <img src={c.image} alt={c.name} className="home__clinic-img" width={512} height={279} loading="lazy" decoding="async" />
+                  <img
+                    src={c.image}
+                    alt={c.name}
+                    className="home__clinic-img"
+                    width={512}
+                    height={279}
+                    loading="lazy"
+                    decoding="async"
+                  />
                   <span className="home__clinic-city">{c.city}</span>
                   <span className="home__clinic-urg">
                     <AlertCircle size={12} aria-hidden="true" />
@@ -357,7 +371,9 @@ export default function HomePage() {
                     <MapPin size={14} aria-hidden="true" />
                     {c.address}
                   </p>
-                  <p className="home__clinic-poles">Pôles d&apos;expertise prioritaires :</p>
+                  <p className="home__clinic-poles">
+                    Pôles d&apos;expertise prioritaires :
+                  </p>
                   <ul className="home__clinic-tags">
                     {c.specialties.map((s) => (
                       <li key={s}>{s}</li>
@@ -384,9 +400,11 @@ export default function HomePage() {
           <div className="home__banner-inner">
             <div className="home__banner-copy">
               <span className="home__banner-tag">
-                Espace Santé Patient Crypté & Gratuit
+                Espace patient sécurisé &amp; gratuit
               </span>
-              <h2>Votre santé mérite un suivi fluide, rapide et centralisé.</h2>
+              <h2>
+                Votre santé mérite un suivi fluide, rapide et centralisé.
+              </h2>
               <p>
                 Ouvrez votre compte en 2 minutes pour réserver vos consultations,
                 recevoir vos rappels par SMS et archiver vos ordonnances en toute
@@ -428,7 +446,7 @@ export default function HomePage() {
                 <AlertCircle size={20} />
               </span>
               <div>
-                <h4>Besoin d&apos;une prise en charge immédiate&nbsp;?</h4>
+                <h3>Besoin d&apos;une prise en charge immédiate&nbsp;?</h3>
                 <p>
                   Nos services de réanimation et de garde d&apos;urgence sont
                   opérationnels 24h/24, 7j/7.
@@ -461,7 +479,7 @@ export default function HomePage() {
             </p>
             <span className="home__footer-cert">
               <ShieldCheck size={14} aria-hidden="true" />
-              Certification HDS & Sécurité Santé
+              Données de santé protégées
             </span>
           </div>
 
@@ -478,7 +496,7 @@ export default function HomePage() {
                 Pôle Médico-Chirurgical • <strong>Sfax</strong>
               </li>
               <li className="home__footer-muted">
-                Plateaux techniques agréés & urgences continues
+                Plateaux techniques &amp; urgences continues
               </li>
             </ul>
           </div>
@@ -499,12 +517,11 @@ export default function HomePage() {
             <h4>Conformité Réglementaire</h4>
             <p className="home__footer-muted">
               Traitements conformes aux directives de l&apos;INPDP (Instance
-              Nationale de Protection des Données Personnelles) et aux standards
-              RGPD de confidentialité médicale.
+              Nationale de Protection des Données Personnelles).
             </p>
             <span className="home__footer-cert">
               <Lock size={14} aria-hidden="true" />
-              Données de santé cryptées de bout en bout
+              Accès sécurisé à votre dossier
             </span>
           </div>
         </div>

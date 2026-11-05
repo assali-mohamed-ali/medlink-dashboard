@@ -21,8 +21,7 @@
   --shadow-cta: 0 8px 20px rgba(14, 82, 69, 0.22);
   --radius-card: 18px;
   --radius-pill: 9999px;
-  --font: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-
+  font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
   font-family: var(--font);
   color: var(--on-surface);
   background: var(--canvas);
@@ -1091,7 +1090,7 @@
   flex-shrink: 0;
 }
 
-.home__emergency-left h4 {
+.home__emergency-left h3 {
   margin: 0 0 0.25rem;
   font-size: 14px;
   font-weight: 700;
