@@ -1,63 +1,79 @@
 # UI refresh: progress and hand-over
 
-**A new session starts here.** Read this file, then [PLAN.md](PLAN.md) (the why and the what), then the repo's
-`CLAUDE.md`, `CONTRIBUTING.md` (Team rules) and `docs/ONBOARDING.md` §7 (UI library and tokens).
+**A new session starts here.** Read this file, then [PLAN.md](PLAN.md) (the why and the what), the repo's `CLAUDE.md`,
+`CONTRIBUTING.md` (Team rules) and `docs/ONBOARDING.md` §7 (UI library and tokens). PR text: [PR-DRAFT.md](PR-DRAFT.md).
 
-Work for: **Mohamed** (YouTrack `Mohamed.BenNaima`, also "Al-Assad"). Teammate pages (Home, Signup, password pages):
-**Ahlem** (`Ahlem.SAKLY`, GitHub `sakly123`); change them only with her written OK on her ticket.
+Work for: **Mohamed** (YouTrack `Mohamed.BenNaima`, also "Al-Assad"). Ticket: **MLink-162** (unassigned on purpose).
+Teammate: **Ahlem** (`Ahlem.SAKLY`, GitHub `sakly123`) owns Home, Signup and the password pages (MLink-51/81/89): change
+her files only with her written OK, or when Mohamed explicitly decides it (then comment on her ticket what changed).
+
+## Where things stand (2026-11-05)
+
+- **Done and pushed** on `feat/MLink-128-ui-kit` (in sync with GitHub): plan, decisions, B0–B6, Phase D except the
+  manual checks below. 179 tests, lint, build, `check:contrast` (26 pairs), `check:budget` (70.8 kB) green.
+- **Blocked on #11** (`feat/MLink-6-front-auth-foundation`, Ahlem's PR, base of this branch): CI green since `4a605ce`,
+  but the code owner (@assali-mohamed-ali) has *changes requested*; the remaining blocker is `/mot-de-passe` (forced
+  password change, **MLink-89**, Ahlem, no activity since 2026-10-30). This branch's PR opens only after #11 is merged
+  (no stacked PRs). Asked Ahlem on MLink-81 (2026-11-05) whether MLink-89 is in progress: check for her answer.
+- **Demo**: `Downloads/medlink-demo-amel-premiere-visite.gif` (patient journey, signup to logout). It created the dev
+  account `amel.bensalah.demo@medlink.local` (dev password); a re-recording needs another address.
 
 ## Status
 
 | Step | State | Commit / PR | Notes |
 |---|---|---|---|
-| Plan written | ✅ 2026-10-30 | this folder | research, audit, design direction, roadmap |
-| Tailwind + shadcn + Watermelon configured | ✅ 2026-10-30 | `feat/MLink-128-ui-kit` | no reset, scan limited, colours mapped, `cn` pinned, guard test |
-| D4 branch | ✅ 2026-10-30 | — | work on `feat/MLink-128-ui-kit` now; open its PR only after #11 merges (no stacked PRs) |
-| D1, D2 decisions | ✅ 2026-10-30 | — | Mohamed: **D1 = B** (Geist + Instrument Serif), **D2 = proposed greys**; D3 still open |
-| YouTrack ticket "[FE] UI refresh" | ✅ 2026-10-30 | **MLink-162** | unassigned, no sprint (Mohamed: assign nothing); comment for Ahlem on MLink-81 |
-| B0 specimen `/__specimen` | ✅ 2026-10-30 | `65498c6`, `2328f22`, `9b05f15` | built, dev only; waiting on Mohamed's D1/D2 pick |
-| B1 fonts + type scale | ✅ 2026-10-30 | `95418cf`, `a1e5815`, `ea82b22` | Geist + Instrument Serif, Latin only, 2 files 50.4 kB |
-| B2 tokens v2 + contrast script | ✅ 2026-10-30 | `878699f`, `94b0bbb` | 21 pairs pass; `npm run check:contrast` in CI |
-| B3 components | ✅ 2026-10-30 | `ac56811`…`6d6c40c`, `a2f3cb7`, `a03c2f2` | upgrades + Card, EmptyState, Skeleton, Select, Checkbox, RadioGroup, StatusBadge, UserAvatar; shown in the specimen |
-| B4 words (my pages) | ✅ 2026-10-30 | see log | error messages, login notice; MFA/verify/status pages had no jargon |
-| B5 space shell | ✅ 2026-10-30 | `e4371ae`, `8fc2aea` | no dropdown yet (no "Mon compte" page); not seen in a browser: dev login timed out |
-| B6 space homes | ✅ 2026-10-30 | `53ffd7a` + next | greeting + parts per role from spaces.ts; not seen in a browser (login times out) |
-| C1 home, C2 login/signup layout | ⬜ | | Ahlem's OK needed |
-| D1–D4 quality pass | 🔄 | `8a6c123`…`b800a8b` + style | D3 budget in CI; D1 focus outline for plain links; patient space seen at 1440/900/375; NVDA by hand left |
+| Plan, decisions | ✅ 2026-10-30 | this folder | D1 = B (Geist + Instrument Serif), D2 = green greys; D3 (home claims) handled by Ahlem |
+| YouTrack | ✅ | **MLink-162** | description + comment listing the shared files; notes for Ahlem on MLink-81 |
+| B0 specimen `/__specimen` | ✅ | `9b05f15` … `c30a3f6` | dev only, opens on option B |
+| B1 fonts + type scale | ✅ | `ea82b22` | Latin only, 2 files, 50.4 kB |
+| B2 tokens v2 + contrast | ✅ | `94b0bbb` | `npm run check:contrast`, CI step |
+| B3 components | ✅ | `6d6c40c`, `a03c2f2` | see ONBOARDING §7 table |
+| B4 words | ✅ | `54db202` | error messages, login notice |
+| B5 space shell | ✅ | `8fc2aea` | no dropdown until a "Mon compte" page exists |
+| B6 space homes | ✅ | `bcaa76e`, `bd002ce` | data in `spaces.ts` |
+| C1/C2 home, login/signup layout | ⬜ | | Ahlem's pages; her fixes from MLink-81 are in |
+| D quality pass | 🔄 | `aaacd1c`, `b800a8b` | budget in CI, focus outline, CSP checked on 8090; NVDA + practitioner/staff by hand left |
+| PR | ⏳ | `PR-DRAFT.md` | after #11 is merged |
 
 Legend: ✅ done · ⏳ waiting on someone · 🔄 in progress · ⬜ not started.
 
-## Next step
+## Next step (in order)
 
-1. `git checkout feat/MLink-128-ui-kit && git pull`. It is built on #11 (`feat/MLink-6-front-auth-foundation`): if #11
-   has new commits, merge them in (never force-push). Open this branch's PR **only after #11 is merged** into `master`
-   (then merge `master` in first).
-2. **Left**: an NVDA pass by hand, the practitioner and staff spaces by hand (TOTP). Then the **PR** once #11 is
-   merged (still open on 2026-11-05): merge `master` in, paste `PR-DRAFT.md`. Open: the timeout message kept its old
-   voice (Mohamed's call); `HomePage.css:24-25` sets `font-family` twice (harmless, Ahlem's file).
-3. Mohamed starts the session with "go B0" (or similar): Go was given on 2026-10-30 for the whole refresh, but each push
-   and each YouTrack post still waits for his OK.
+1. **Sync**: `git checkout feat/MLink-128-ui-kit && git pull`; `git fetch`; if #11's branch or `master` moved, merge
+   them in (never force-push; check: `git log --oneline HEAD..origin/feat/MLink-6-front-auth-foundation`).
+   Then `npm ci && npm test && npm run lint && npm run build && npm run check:contrast && npm run check:budget`.
+2. **Check #11 and MLink-89/81** (`gh pr view 11`, YouTrack): new review, Ahlem's answer. Report to Mohamed.
+3. **When #11 is merged**: merge `master` in, re-run the checks, take before/after screenshots (375 and 1440 px: `/`,
+   `/connexion`, `/inscription`, `/patient`, `/admin`), open the PR to `master` with `PR-DRAFT.md` (AI disclosure:
+   tick "J'ai utilisé…", never the human-review box), set MLink-162 to *To Verify* with the PR link (ask first).
+4. **By hand, Mohamed**: an NVDA pass (`docs/MANUAL-TESTING.md` §7b), the practitioner and staff spaces (TOTP).
+5. **Open choices for Mohamed**: the timeout message ("Le serveur met trop de temps à répondre. Veuillez réessayer.")
+   kept its old voice; a "Mon compte" page would bring the user dropdown of PLAN.md §4.5; Phase C waits on Ahlem.
+
+Suggested first message of the next session: *"Read docs/ui-refresh/PROGRESS.md, sync the branch, check #11, MLink-89
+and MLink-81, and give me a brief."*
 
 ## Facts a new session needs
 
-- **Stack**: React 19, TS 6, Vite 8, React Router 7, Vitest 5, oxlint, CSS Modules + `src/shared/styles/tokens.css`. Icons:
-  `lucide-react` (already a dependency). Tailwind 4 + shadcn (Base UI) configured for `src/shared/components`
-  (branch `feat/MLink-128-ui-kit`, ONBOARDING §7): `npx shadcn@4.23.0 add <name or Watermelon URL>`, never `init`.
-- **CSP is `'self'`** (`deploy/nginx/security-headers.conf`): fonts come from `@fontsource` npm packages, never a CDN.
-  Candidates checked on npm 2026-10-30, all OFL-1.1, v5.3.0: `@fontsource-variable/plus-jakarta-sans`,
-  `@fontsource/instrument-serif`, `@fontsource-variable/geist`, `@fontsource-variable/fraunces`.
-- **Watermelon UI** (MCP `mcp__claude_ai_Watermelon_UI__*`, connected; shadcn + Tailwind + Base UI): find items with
-  `get_inspiration`/`search`, check them with `--dry-run --view`, install with the shadcn CLI. Useful entries: `medesk-dashboard` (healthcare:
-  Geist + Instrument Serif, 224 px sidebar, 50 px top bar, 10 px radius, 14 px medium text), `macos-sidebar`,
-  `navigation-1`.
-- **Design skill**: `ui-ux-pro-max` (`--design-system`, `--domain typography|ux|color`); ignore its palettes (the team's
-  colours stay).
-- **Contrast today** (WCAG): text pairs pass (primary on white 9.08); `--outline-variant #bfc9c4` field borders 1.70:1
-  (fail, needs 3:1); `--outline #707975` 4.49:1 (just fails 4.5:1). Proposed neutrals in PLAN.md §4.2 are verified.
-- **Local run**: the API dev stack (`api-MedLink/scripts/setup-dev.ps1`), `npm run dev` on 3000, Mailpit on 8025; dev
-  accounts in `docs/ONBOARDING.md` §1; full manual checks in `docs/MANUAL-TESTING.md`.
-- **Screens to compare before/after**: `/`, `/connexion`, `/inscription`, `/double-authentification`, `/configurer-code`,
-  `/verifier-email`, `/patient`, `/praticien`, `/admin`, `/acces-refuse`, a 404; at 375 and 1440 px.
+- **Working rules (Mohamed)**: ask before every push and every YouTrack post; assign nothing to anyone; brief reports;
+  commits name **MLink-162**; red test commit first, then green.
+- **Push**: Claude Code's permission check blocks `git push` unless Mohamed allows it (`/permissions`); if blocked, he
+  runs `! git push`.
+- **YouTrack**: the claude.ai YouTrack connector needs `/mcp` sign-in; without it, the logged-in Chrome tab works
+  (comment editor: switch to Markdown, then paste).
+- **Run everything**: from `code/`, `powershell -ExecutionPolicy Bypass -File .\dev.ps1 -KeepData` (containers, API on
+  8080, Vite on 3000, Mailpit on 8025). `-KeepData` matters: without it a changed realm file wipes Keycloak data (dev
+  accounts, TOTP enrolments). Stop: `.\dev.ps1 -Stop`. A stray Vite can hold `[::1]:3000` in a non-LISTEN state that
+  `-Stop` misses: find it with `netstat -ano | grep :3000`.
+- **Dev accounts**: `docs/ONBOARDING.md` §1 (patient works without TOTP). Production image + strict CSP:
+  `docker compose -f deploy/docker-compose.local.yml up --build -d`, then `http://localhost:8090`; `down` after.
+- **Stack**: React 19, TS 6, Vite 8, React Router 7, Vitest 5, oxlint. CSS Modules + `shared/styles/tokens.css` for
+  `shared/ui`; Tailwind 4 + shadcn (Base UI) only in `shared/components` (`npx shadcn@4.23.0 add …`, never `init`).
+  Icons: `lucide-react`. Fonts: `@fontsource` (CSP `'self'`), loaded once in `shared/styles/fonts.css`.
+- **Gotchas**: Vitest empties CSS imports (even `?raw`): CSS tests read files with `node:fs`. Heredocs in the Bash
+  tool can drop backslashes: write regex-heavy files with the editor. The spaces are lazy chunks
+  (`src/app/spaceChunks.ts`); keep new space pages lazy or `check:budget` fails. Dependabot #9 bumps TypeScript to 7:
+  against the CLAUDE.md versions, leave it to the team.
 
 ## Log
 
