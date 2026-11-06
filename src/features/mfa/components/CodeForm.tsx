@@ -3,8 +3,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { KeyRound } from 'lucide-react'
-import { Link, useNavigate } from 'react-router-dom'
-import { roleHome, useAuth } from '@/features/auth'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { landingAfterLogin, useAuth } from '@/features/auth'
 import { ApiError } from '@/shared/api/apiClient'
 import { messageFor } from '@/shared/api/errors'
 import { paths } from '@/shared/config/paths'
@@ -19,11 +19,14 @@ const codeSchema = z.object({
 type CodeValues = z.infer<typeof codeSchema>
 
 /**
- * The 6-digit code step, shared by both MFA pages: POST /api/auth/mfa/verify, then the role's space.
+ * The 6-digit code step, shared by both MFA pages: POST /api/auth/mfa/verify, then the page saved before the
+ * login when it is in the role's space (MLink-85), else the role's space.
  * The code is never kept: the field is cleared after every refused try.
  */
 export default function CodeForm() {
   const navigate = useNavigate()
+  // The page saved before the login (MLink-85), passed on by the login page
+  const from = (useLocation().state as { from?: unknown } | null)?.from
   const { completeLogin } = useAuth()
   const [formError, setFormError] = useState<string | null>(null)
   const [locked, setLocked] = useState(false)
@@ -39,7 +42,7 @@ export default function CodeForm() {
     try {
       const { user } = await verifyMfa(code)
       completeLogin(user)
-      navigate(roleHome(user.roles), { replace: true })
+      navigate(landingAfterLogin(user.roles, from), { replace: true })
     } catch (error) {
       reset({ code: '' })
       if (error instanceof ApiError && error.code === 'UNAUTHORIZED') {

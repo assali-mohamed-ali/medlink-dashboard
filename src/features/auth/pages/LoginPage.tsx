@@ -11,7 +11,7 @@ import { paths } from '@/shared/config/paths'
 import { Alert, Button, PasswordField, TextField } from '@/shared/ui'
 import { resendVerification } from '../api'
 import type { LoginResponse } from '../types'
-import { roleHome } from '../roles'
+import { landingAfterLogin } from '../roles'
 import { useAuth } from '../useAuth'
 import './LoginPage.css'
 
@@ -32,6 +32,8 @@ export default function LoginPage() {
     stepExpired?: boolean
     passwordChanged?: boolean
     setupToken?: string
+    /** The page the guard saved: back there after the login, inside the own space only. */
+    from?: unknown
   } | null
   const sessionExpired = Boolean(arrival?.sessionExpired)
   const stepExpired = Boolean(arrival?.stepExpired)
@@ -76,13 +78,13 @@ export default function LoginPage() {
       navigate(paths.configureCode, { state: { setupToken: arrival.setupToken } })
     } else if (result.mfaRequired) {
       navigate(paths.mfa, {
-        state: { mfaSetupRequired: Boolean(result.mfaSetupRequired) },
+        state: { mfaSetupRequired: Boolean(result.mfaSetupRequired), from: arrival?.from },
       })
     } else if (result.passwordChangeRequired) {
       navigate(paths.password, { state: { forced: true } })
     } else if (result.user) {
       // login() has already stored the user in the auth state.
-      navigate(roleHome(result.user.roles))
+      navigate(landingAfterLogin(result.user.roles, arrival?.from))
     }
   }
 

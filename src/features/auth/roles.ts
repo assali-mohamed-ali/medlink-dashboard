@@ -14,3 +14,20 @@ export function roleHome(roles: readonly Role[]): string {
   const first = roles[0]
   return first ? ROLE_HOME[first] : paths.home
 }
+
+/** Plain path segments only: no "..", "//", "\", "?", "#" or scheme can slip through. */
+const PLAIN_PATH = /^(\/[A-Za-z0-9_-]+)+\/?$/
+
+/**
+ * Where to go after a login: the page the guard saved before sending the person to /connexion (MLink-85), when
+ * it is a plain path inside their own space; anything else (another space, another site, nothing) is the role home.
+ */
+export function landingAfterLogin(roles: readonly Role[], from: unknown): string {
+  const home = roleHome(roles)
+  const inOwnSpace =
+    home !== paths.home &&
+    typeof from === 'string' &&
+    PLAIN_PATH.test(from) &&
+    (from === home || from.startsWith(`${home}/`))
+  return inOwnSpace ? from : home
+}
