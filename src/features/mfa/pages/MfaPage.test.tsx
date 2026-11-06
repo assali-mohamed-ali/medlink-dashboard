@@ -17,12 +17,14 @@ function LoginStub() {
   return <p>Page connexion{state?.stepExpired ? ' (étape expirée)' : ''}</p>
 }
 
-function renderPage(state?: { mfaSetupRequired?: boolean }) {
+function renderPage(state?: { mfaSetupRequired?: boolean; from?: string }) {
   const router = createMemoryRouter(
     [
       { path: '/double-authentification', element: <MfaPage /> },
       { path: '/connexion', element: <LoginStub /> },
       { path: '/praticien', element: <p>Espace praticien</p> },
+      { path: '/praticien/agenda', element: <p>Agenda du praticien</p> },
+      { path: '/admin', element: <p>Espace administratif</p> },
     ],
     { initialEntries: [{ pathname: '/double-authentification', state }] },
   )
@@ -68,6 +70,24 @@ test('a good code opens the session and goes to the role space', async () => {
   await userEvent.type(codeField(), '123456')
   await userEvent.click(screen.getByRole('button', { name: /Valider/ }))
   expect(verifyMfa).toHaveBeenCalledWith('123456')
+  expect(await screen.findByText('Espace praticien')).toBeInTheDocument()
+  expect(router.state.location.pathname).toBe('/praticien')
+})
+
+test('a good code goes back to the page saved before the login (MLink-85)', async () => {
+  verifyMfa.mockResolvedValue({ user: practitioner })
+  const router = renderPage({ mfaSetupRequired: false, from: '/praticien/agenda' })
+  await userEvent.type(codeField(), '123456')
+  await userEvent.click(screen.getByRole('button', { name: /Valider/ }))
+  expect(await screen.findByText('Agenda du praticien')).toBeInTheDocument()
+  expect(router.state.location.pathname).toBe('/praticien/agenda')
+})
+
+test('a saved page of another space is ignored after the code', async () => {
+  verifyMfa.mockResolvedValue({ user: practitioner })
+  const router = renderPage({ mfaSetupRequired: false, from: '/admin' })
+  await userEvent.type(codeField(), '123456')
+  await userEvent.click(screen.getByRole('button', { name: /Valider/ }))
   expect(await screen.findByText('Espace praticien')).toBeInTheDocument()
   expect(router.state.location.pathname).toBe('/praticien')
 })

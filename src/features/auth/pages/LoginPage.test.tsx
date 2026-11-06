@@ -18,16 +18,22 @@ const fetchMe = vi.mocked(authService.fetchMe)
 const login = vi.mocked(authService.login)
 const resendVerification = vi.mocked(authService.resendVerification)
 
-function renderPage() {
+function MfaStub() {
+  const from = (useLocation().state as { from?: string } | null)?.from
+  return <p>Page MFA{from ? ` (puis ${from})` : ''}</p>
+}
+
+function renderPage(state?: { sessionExpired?: boolean; from?: string }) {
   return render(
     <AuthProvider>
-      <MemoryRouter initialEntries={['/connexion']}>
+      <MemoryRouter initialEntries={[{ pathname: '/connexion', state }]}>
         <Routes>
           <Route path="/connexion" element={<LoginPage />} />
           <Route path="/patient" element={<p>Espace patient</p>} />
+          <Route path="/patient/rendez-vous" element={<p>Mes rendez-vous</p>} />
           <Route path="/praticien" element={<p>Espace praticien</p>} />
           <Route path="/admin" element={<p>Espace administratif</p>} />
-          <Route path="/double-authentification" element={<p>Page MFA</p>} />
+          <Route path="/double-authentification" element={<MfaStub />} />
           <Route path="/mot-de-passe" element={<p>Page mot de passe</p>} />
           <Route path="/inscription" element={<p>Page inscription</p>} />
         </Routes>
@@ -101,6 +107,28 @@ test('goes to the MFA page when a code is required', async () => {
   renderPage()
   await fillAndSubmit()
   expect(await screen.findByText('Page MFA')).toBeInTheDocument()
+})
+
+// MLink-85: after an ended session, the login goes back to the page the guard saved, inside the own space only
+test('after an ended session, logging in goes back to the page the user was on', async () => {
+  login.mockResolvedValue({ user: userWithRole('PATIENT') })
+  renderPage({ sessionExpired: true, from: '/patient/rendez-vous' })
+  await fillAndSubmit()
+  expect(await screen.findByText('Mes rendez-vous')).toBeInTheDocument()
+})
+
+test('a saved page of another space is ignored: the login goes to the own space', async () => {
+  login.mockResolvedValue({ user: userWithRole('PATIENT') })
+  renderPage({ sessionExpired: true, from: '/admin' })
+  await fillAndSubmit()
+  expect(await screen.findByText('Espace patient')).toBeInTheDocument()
+})
+
+test('the saved page goes on to the code step', async () => {
+  login.mockResolvedValue({ mfaRequired: true, mfaSetupRequired: false })
+  renderPage({ sessionExpired: true, from: '/praticien/agenda' })
+  await fillAndSubmit()
+  expect(await screen.findByText('Page MFA (puis /praticien/agenda)')).toBeInTheDocument()
 })
 
 test('goes to the forced password change page', async () => {
