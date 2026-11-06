@@ -99,10 +99,17 @@ These rules keep several people working on the same code without stepping on eac
 
 ### Git and teamwork
 
-- Branch from `master`: `feat/MLink-<id>-<slug>`, `fix/…`, `docs/…`, `chore/…`. One ticket per PR, PRs based on
-  `master` only (no stacked PRs). Commits start with `feat:`, `fix:`, `test:`, `refactor:`, `docs:`, `chore:` and
-  name the YouTrack ticket.
+- **One shared branch per epic** (team rule of 2026-11-06): `epic/MLink-<epic id>`, created once from `master`;
+  everyone on the epic commits to it, no branch per ticket. A small fix, docs or chore outside any epic keeps its own
+  `fix/…`, `docs/…` or `chore/…` branch. Commits start with `feat:`, `fix:`, `test:`, `refactor:`, `docs:`,
+  `chore:` and name the YouTrack ticket.
+- **Pull, work, push only when green:** `git pull --ff-only` before you start and before you push; push only
+  commits whose `npm test`, lint and build are green (a red test commit goes up together with its green one). Never
+  rebase or force-push an epic branch; merge `master` into it when `master` moves.
+- **One PR per epic, at the end**, to `master`: only when every task of the epic is done, tested and walked through
+  by the team. No draft or early PR. Never delete a branch unless the lead asks.
 - **Shared files** (`app/routes.tsx`, `shared/**`, `features/auth/**`, `spaces/**`, `.oxlintrc.json`, CI): say on
-  your ticket what you change before changing it, keep that PR small, pull before you push, never force-push a
+  your ticket what you change before changing it, keep commits small, pull before you push, never force-push a
   branch someone else works on.
-- YouTrack mirrors the work: *In Progress* when you start, *To Verify* with the PR link, *Done* when merged.
+- YouTrack mirrors the work: *In Progress* when you start, *To Verify* when the task's commit is pushed green on the
+  epic branch (with the commit link), *Done* when the epic PR is merged.

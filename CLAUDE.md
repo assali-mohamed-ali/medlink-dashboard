@@ -25,7 +25,8 @@ Any AI agent working on this repository MUST follow these rules:
 
 1. Ask whose tickets you work on (YouTrack project `MLink`, `https://medlink.youtrack.cloud`). Work only on that
    person's tickets; on a teammate's ticket, comment instead of coding.
-2. Check the worktree: clean status, in sync with the remote, no unknown stash. Pull `master`, then branch.
+2. Check the worktree: clean status, in sync with the remote, no unknown stash. Then `git checkout epic/MLink-<epic>`
+   and `git pull --ff-only` (the first person on an epic creates the branch from `master`).
 3. Read the API contract you need in `api-MedLink/docs/sprints/sprint-2/plan.md` §4.
 
 ## Hard rules
@@ -62,7 +63,10 @@ Node 22 · React 19 · TypeScript 6 · Vite 8 · React Router 7 · Vitest 5. Use
 
 ## Git
 
-- Never commit on `master`, `staging` or `Production`. Branch: `feat/MLink-<id>-<slug>`, `fix/…`, `docs/…`,
-  `chore/…`.
+- Never commit on `master`, `staging` or `Production`. Product work goes on the epic's shared branch
+  `epic/MLink-<epic id>` (no branch per ticket); outside an epic: `fix/…`, `docs/…`, `chore/…`. Pull before you push,
+  push only green commits, never rebase or force-push, never delete a branch unless the lead asks
+  (`CONTRIBUTING.md`, team rule of 2026-11-06).
 - One commit per task step, prefixed `feat:`, `fix:`, `test:`, `refactor:`, `docs:`, `chore:`, naming the ticket.
-- PRs to `master` only (no stacked PRs), template filled honestly; the code owner (@assali-mohamed-ali) reviews.
+- One PR per epic, to `master`, opened only when the whole epic is done and tested (no draft or early PR); template
+  filled honestly; the code owner (@assali-mohamed-ali) reviews.
