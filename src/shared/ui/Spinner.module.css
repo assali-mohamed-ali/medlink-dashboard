@@ -1,0 +1,11 @@
+.wrap { display: inline-flex; align-items: center; }
+.ring {
+  display: inline-block;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+.sm { width: 16px; height: 16px; }
+.md { width: 28px; height: 28px; border-width: 3px; }
+@keyframes spin { to { transform: rotate(360deg); } }
