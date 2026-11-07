@@ -1,0 +1,53 @@
+/*
+ * Design tokens: the one source of MedLink's colours, radii, shadows and type.
+ * Values and names follow the redesign (HomePage, MedLinkShell). Components and pages use
+ * var(--token) only: never a raw colour, so a change here restyles the whole app.
+ */
+:root {
+  /* Brand */
+  --primary: #0e5245;
+  --primary-hover: #235348;
+  --primary-container: #2d6a5c;
+  --primary-fixed: #b1efdd;
+  --on-primary: #ffffff;
+  --secondary: #596058;
+  --secondary-fixed: #dde5da;
+
+  /* Text and surfaces */
+  --on-surface: #111c2d;
+  --on-surface-variant: #404945;
+  --surface: #f9f9ff;
+  --surface-lowest: #ffffff;
+  --surface-low: #f0f3ff;
+  --surface-container: #e7eeff;
+  --surface-high: #dee8ff;
+  --outline: #707975;
+  --outline-variant: #bfc9c4;
+
+  /* Feedback */
+  --error: #ba1a1a;
+  --on-error-container: #93000a;
+  --error-container: #ffdad6;
+  --success: #0e5245;
+  --success-container: #dde5da;
+  --info-container: #e7eeff;
+
+  /* Shape and depth */
+  --radius-field: 10px;
+  --radius-control: 12px;
+  --radius-card: 18px;
+  --radius-pill: 9999px;
+  --shadow: 0 8px 24px -4px rgba(45, 106, 92, 0.06), 0 2px 6px -1px rgba(17, 28, 45, 0.04);
+  --shadow-cta: 0 8px 20px rgba(14, 82, 69, 0.22);
+  --focus-ring: 0 0 0 3px rgba(14, 82, 69, 0.25);
+
+  /* Type and spacing */
+  --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --text-sm: 0.8125rem;
+  --text-md: 0.9375rem;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+}

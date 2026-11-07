@@ -1,0 +1,133 @@
+.login {
+  /* The shared tokens (shared/styles/tokens.css), under this page's short names */
+  --green: var(--primary);
+  --green-dark: var(--primary-hover);
+  --ink: var(--on-surface);
+  --muted: var(--on-surface-variant);
+
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 24px 16px;
+}
+
+.login__card {
+  width: 100%;
+  max-width: 520px;
+  padding: 40px;
+  background: #fff;
+  border-radius: 28px;
+  box-shadow: 0 10px 40px rgba(20, 27, 45, 0.08);
+}
+
+.login__brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 1.4rem;
+  color: var(--ink);
+}
+.login__brand strong { font-weight: 700; }
+.login__brand span { color: var(--green); }
+.login__logo {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #dfe8e0;
+  color: var(--green);
+}
+
+.login__title {
+  margin: 20px 0 4px;
+  text-align: center;
+  font-size: 2rem;
+  line-height: 1.2;
+}
+.login__subtitle {
+  margin: 0 0 28px;
+  text-align: center;
+  color: var(--muted);
+}
+
+/* Form layout; the fields, errors and button themselves come from shared/ui */
+.login__form { display: flex; flex-direction: column; gap: 20px; }
+
+.login__resend {
+  margin-top: 16px;
+  text-align: center;
+}
+.login__resend button {
+  font: inherit;
+  font-weight: 600;
+  color: var(--green-dark);
+  background: none;
+  border: 0;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.login__resend p { margin: 8px 0 0; color: var(--muted); }
+
+.login__notice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+  padding: 14px 16px;
+  background: #e9eee8;
+  border-radius: 14px;
+}
+.login__notice-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  color: var(--green);
+  background: #fff;
+  border-radius: 50%;
+}
+.login__notice strong { display: block; font-size: 0.9rem; }
+.login__notice span { font-size: 0.9rem; color: var(--muted); }
+
+.login__signup {
+  margin: 24px 0 0;
+  text-align: center;
+  color: var(--muted);
+}
+.login__signup a {
+  font-weight: 600;
+  color: var(--green-dark);
+}
+
+.login__footer {
+  max-width: 520px;
+  margin: 0;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+@media (max-width: 480px) {
+  .login__card { padding: 28px 20px; border-radius: 22px; }
+  .login__title { font-size: 1.6rem; }
+}
+/* Safety rules: the page does not depend on global styles. */
+.login,
+.login *,
+.login *::before,
+.login *::after {
+  box-sizing: border-box;
+}
+.login { text-align: left; }
+.login__title {
+  font-weight: 700;
+  letter-spacing: normal;
+}
+.login__notice p { text-align: left; }
+.login__notice-text { margin: 0; }
