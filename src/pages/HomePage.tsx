@@ -4,20 +4,26 @@ import { paths } from '@/shared/config/paths'
 import {
   ArrowRight,
   Building2,
+  BriefcaseMedical,
   Calendar,
   CheckCircle2,
   ChevronRight,
   Download,
+  FileImage,
   Lock,
   MapPin,
   Phone,
   Plus,
+  RefreshCw,
   Search,
   ShieldCheck,
+  ShieldHalf,
   AlertCircle,
   Stethoscope,
   ThumbsUp,
   User,
+  Waypoints,
+  
 } from 'lucide-react'
 import './HomePage.css'
 import clinicBaie from '@/assets/home/clinic-baie.jpg'
@@ -79,21 +85,27 @@ const whyCards = [
   {
     badge: 'Parcours Synchronisé',
     title: 'Coordination multi-sites',
-    icon: Stethoscope,
+    icon: Waypoints,
+    tone: 'sage',
+    linkIcon: RefreshCw,
     body: "Vos antécédents, bilans et imageries sont instantanément consultables par les équipes autorisées à Tunis, Sousse et Sfax. Plus besoin de répéter des examens coûteux ou inutiles lors d'un déplacement ou d'une évacuation inter-clinique.",
     link: 'Dossier unifié MedLink',
   },
   {
     badge: 'Accès Continu 24/7',
     title: 'Résultats & Imagerie instantanés',
-    icon: Download,
+    icon: FileImage,
+    tone: 'mint',
+    linkIcon: Download,
     body: "Téléchargez vos comptes-rendus biologiques, clichés d'imagerie haute résolution (DICOM) et ordonnances numérisées dès leur validation par le praticien. Partagez-les d'un clic avec le médecin de votre choix.",
     link: 'Portail Patient & Mobiles',
   },
   {
     badge: 'Normes Médicales Strictes',
     title: 'Sécurité & Confidentialité maximale',
-    icon: ShieldCheck,
+    icon: ShieldHalf,
+    tone: 'yellow',
+    linkIcon: ShieldCheck,
     body: "Vos données de santé sont protégées et ne sont partagées qu'avec vos soignants. Accès contrôlé, hébergement en Tunisie.",
     link: 'Confidentialité & protection des données',
   },
@@ -101,7 +113,8 @@ const whyCards = [
 
 const metrics = [
   {
-    icon: Stethoscope,
+    icon: BriefcaseMedical,
+    tone: 'sage',
     label: 'Agrément National',
     value: '40+',
     detail: 'Spécialistes conventionnés',
@@ -109,6 +122,7 @@ const metrics = [
   },
   {
     icon: Building2,
+    tone: 'blue',
     label: 'Tunis • Sousse • Sfax',
     value: '3',
     detail: 'Pôles cliniques certifiés',
@@ -116,6 +130,7 @@ const metrics = [
   },
   {
     icon: Lock,
+    tone: 'gray',
     label: '100% Sécurisé',
     value: '24/7',
     detail: 'Dossier médical accessible',
@@ -123,6 +138,7 @@ const metrics = [
   },
   {
     icon: ThumbsUp,
+    tone: 'yellow',
     label: 'Avis Vérifiés',
     value: '98.4%',
     detail: 'Indice de satisfaction',
@@ -279,20 +295,23 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="home__metrics">
-              {metrics.map((m) => (
-                <article key={m.value + m.label} className="home__metric">
-                  <div className="home__metric-head">
-                    <span className="home__metric-icon" aria-hidden="true">
-                      <m.icon size={18} />
-                    </span>
-                    <span className="home__metric-label">{m.label}</span>
-                  </div>
-                  <p className="home__metric-value">{m.value}</p>
-                  <p className="home__metric-detail">{m.detail}</p>
-                  <p className="home__metric-sub">{m.sub}</p>
-                </article>
-              ))}
+           <div className="home__metrics">
+  {metrics.map((m) => (
+    <article
+      key={m.value + m.label}
+      className={`home__metric home__metric--${m.tone}`}
+    >
+      <div className="home__metric-head">
+        <span className="home__metric-icon" aria-hidden="true">
+          <m.icon size={22} />
+        </span>
+        <span className="home__metric-label">{m.label}</span>
+      </div>
+      <p className="home__metric-value">{m.value}</p>
+      <p className="home__metric-detail">{m.detail}</p>
+      <p className="home__metric-sub">{m.sub}</p>
+    </article>
+  ))}
             </div>
           </div>
         </section>
@@ -308,20 +327,26 @@ export default function HomePage() {
           </p>
 
           <div className="home__why-grid">
-            {whyCards.map((card) => (
-              <article key={card.title} className="home__why-card">
-                <span className="home__why-badge">{card.badge}</span>
-                <span className="home__why-icon" aria-hidden="true">
-                  <card.icon size={22} />
-                </span>
-                <h3>{card.title}</h3>
-                <p>{card.body}</p>
-                <a href="#inscription" className="home__why-link">
-                  {card.link}
-                  <ArrowRight size={16} aria-hidden="true" />
-                </a>
-              </article>
-            ))}
+           {whyCards.map((card) => (
+  <article
+    key={card.title}
+    className={`home__why-card home__why-card--${card.tone}`}
+  >
+    <span className="home__why-icon" aria-hidden="true">
+      <card.icon size={28} />
+    </span>
+    <span className="home__why-badge">{card.badge}</span>
+    <h3>{card.title}</h3>
+    <p>{card.body}</p>
+    <a href="#inscription" className="home__why-link">
+      <span className="home__why-link-label">
+        <card.linkIcon size={16} aria-hidden="true" />
+        {card.link}
+      </span>
+      <ArrowRight size={18} aria-hidden="true" />
+    </a>
+  </article>
+))}
           </div>
         </section>
 
