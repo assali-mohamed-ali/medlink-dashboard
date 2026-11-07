@@ -23,7 +23,7 @@ import {
   ThumbsUp,
   User,
   Waypoints,
-  
+
 } from 'lucide-react'
 import './HomePage.css'
 import clinicBaie from '@/assets/home/clinic-baie.jpg'
