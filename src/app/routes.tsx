@@ -1,6 +1,7 @@
 import type { RouteObject } from 'react-router-dom'
 import { RequireAuth, authRoutes, type Role } from '@/features/auth'
 import { mfaRoutes } from '@/features/mfa'
+import { patientSlotPages } from '@/features/slots'
 import AccessDeniedPage from '@/pages/AccessDeniedPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 import PlaceholderPage from '@/pages/PlaceholderPage'
@@ -42,7 +43,7 @@ export const routes: RouteObject[] = [
       { path: paths.activateAccount, element: <PlaceholderPage title="Activation du compte" /> },
       { path: paths.accessDenied, element: <AccessDeniedPage /> },
 
-      space('PATIENT', paths.patient.root),
+      space('PATIENT', paths.patient.root, patientSlotPages),
       space('PRACTITIONER', paths.practitioner.root),
       space('ADMINISTRATIVE_STAFF', paths.staff.root, [
         // MLink-73 (back-office) replaces this placeholder

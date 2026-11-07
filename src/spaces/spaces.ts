@@ -19,6 +19,7 @@ export const SPACES: Record<Role, Space> = {
     title: 'Espace patient',
     menu: [
       { label: 'Accueil', to: paths.patient.root },
+      { label: 'Prendre rendez-vous', to: paths.patient.slots },
       { label: 'Mot de passe', to: paths.password },
     ],
   },
