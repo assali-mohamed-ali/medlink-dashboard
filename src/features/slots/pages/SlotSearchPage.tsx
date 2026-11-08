@@ -1,9 +1,12 @@
-import { useEffect, useId, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useId, useMemo, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Building2, CalendarCheck, CalendarDays, ChevronLeft, ChevronRight, Clock, Stethoscope } from 'lucide-react'
 import { ApiError } from '@/shared/api/apiClient'
 import { fieldErrors, messageFor } from '@/shared/api/errors'
+import { paths } from '@/shared/config/paths'
 import { Alert, Button, Spinner } from '@/shared/ui'
-import { bookSlot, fetchSlotFilters, searchSlots } from '../api'
+import { bookSlot, fetchSlotFilters, rescheduleAppointment, searchSlots } from '../api'
+import { Dialog, DialogActions, DoneLine, FieldError, Summary } from '../components/Dialog'
 import type { Appointment, Slot, SlotFilters } from '../types'
 import {
   DAYS_SHOWN,
@@ -58,6 +61,10 @@ export default function SlotSearchPage() {
   const [booking, setBooking] = useState(false)
   const [bookingError, setBookingError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
+  /** MLink-109: "Reporter" from my appointments opens this page with ?reporter=<appointment id>. */
+  const [searchParams] = useSearchParams()
+  const moving = searchParams.get('reporter')
+  const navigate = useNavigate()
   const ids = useId()
 
   useEffect(() => {
@@ -113,7 +120,7 @@ export default function SlotSearchPage() {
     setBooking(true)
     setBookingError(null)
     try {
-      setBooked(await bookSlot(choice.slotId))
+      setBooked(await (moving ? rescheduleAppointment(moving, choice.slotId) : bookSlot(choice.slotId)))
       setChoice(null)
     } catch (e) {
       if (e instanceof ApiError && e.code === 'SLOT_TAKEN') {
@@ -175,6 +182,12 @@ export default function SlotSearchPage() {
         </p>
         <h2 className={styles.title}>Prendre un rendez-vous</h2>
         <p className={styles.lead}>Trouvez un créneau libre dans nos trois cliniques, sans appeler le standard.</p>
+        {moving && (
+          <Alert tone="info">
+            Report d’un rendez-vous : choisissez le nouveau créneau. L’ancien est libéré seulement si le nouveau est
+            confirmé.
+          </Alert>
+        )}
       </header>
 
       <div className={styles.layout}>
@@ -384,7 +397,10 @@ export default function SlotSearchPage() {
       </div>
 
       {choice && (
-        <Dialog title="Confirmer ce rendez-vous ?" onClose={booking ? undefined : () => setChoice(null)}>
+        <Dialog
+          title={moving ? 'Confirmer le report ?' : 'Confirmer ce rendez-vous ?'}
+          onClose={booking ? undefined : () => setChoice(null)}
+        >
           <Summary
             start={choice.startsAt}
             end={choice.endsAt}
@@ -392,33 +408,39 @@ export default function SlotSearchPage() {
             clinic={choice.clinic.name}
           />
           {bookingError && <FieldError message={bookingError} />}
-          <div className={styles.dialogActions}>
+          <DialogActions>
             <Button variant="secondary" onClick={() => setChoice(null)} disabled={booking}>
               Annuler
             </Button>
             <Button onClick={confirmBooking} loading={booking} autoFocus>
               Confirmer
             </Button>
-          </div>
+          </DialogActions>
         </Dialog>
       )}
 
       {booked && (
-        <Dialog title="Rendez-vous confirmé" onClose={backToSlots}>
-          <p className={styles.confirmed}>
-            <CalendarCheck size={20} aria-hidden="true" /> Votre rendez-vous est enregistré.
-          </p>
+        <Dialog title={moving ? 'Rendez-vous reporté' : 'Rendez-vous confirmé'} onClose={backToSlots}>
+          <DoneLine icon={<CalendarCheck size={20} aria-hidden="true" />}>
+            {moving ? 'Votre rendez-vous est déplacé.' : 'Votre rendez-vous est enregistré.'}
+          </DoneLine>
           <Summary
             start={booked.startsAt}
             end={booked.endsAt}
             who={`Dr ${booked.practitioner.firstName} ${booked.practitioner.lastName}`}
             clinic={booked.clinic.name}
           />
-          <div className={styles.dialogActions}>
-            <Button onClick={backToSlots} autoFocus>
-              Retour aux créneaux
-            </Button>
-          </div>
+          <DialogActions>
+            {moving ? (
+              <Button onClick={() => navigate(paths.patient.appointments)} autoFocus>
+                Voir mes rendez-vous
+              </Button>
+            ) : (
+              <Button onClick={backToSlots} autoFocus>
+                Retour aux créneaux
+              </Button>
+            )}
+          </DialogActions>
         </Dialog>
       )}
     </div>
@@ -458,54 +480,5 @@ function SlotCard({ slot, tint, onChoose }: { slot: Slot; tint: string; onChoose
         Choisir ce créneau
       </Button>
     </article>
-  )
-}
-
-/** A modal box over the page (MLink-105): named by its title, Escape closes it unless a request runs. */
-function Dialog({ title, onClose, children }: { title: string; onClose?: () => void; children: ReactNode }) {
-  const titleId = useId()
-  return (
-    <div className={styles.backdrop}>
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        className={styles.dialog}
-        onKeyDown={(e) => {
-          if (e.key === 'Escape') onClose?.()
-        }}
-      >
-        <h3 id={titleId} className={styles.dialogTitle}>
-          {title}
-        </h3>
-        {children}
-      </div>
-    </div>
-  )
-}
-
-/** Where, with whom and when: the same four lines on the confirmation and on the booked screen. */
-function Summary({ start, end, who, clinic }: { start: string; end: string; who: string; clinic: string }) {
-  return (
-    <dl className={styles.summary}>
-      <dt>Date</dt>
-      <dd>{fullDateLabel(new Date(start))}</dd>
-      <dt>Heure</dt>
-      <dd>
-        {timeLabel(new Date(start))} – {timeLabel(new Date(end))}
-      </dd>
-      <dt>Praticien</dt>
-      <dd>{who}</dd>
-      <dt>Clinique</dt>
-      <dd>{clinic}</dd>
-    </dl>
-  )
-}
-
-function FieldError({ message }: { message: string }) {
-  return (
-    <p role="alert" className={styles.fieldError}>
-      {message}
-    </p>
   )
 }

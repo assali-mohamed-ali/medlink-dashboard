@@ -15,7 +15,7 @@ export const paths = {
   password: '/mot-de-passe',
   activateAccount: '/activer-compte', // mailed by the API
   accessDenied: '/acces-refuse',
-  patient: { root: '/patient', slots: '/patient/creneaux' },
+  patient: { root: '/patient', slots: '/patient/creneaux', appointments: '/patient/rendez-vous' },
   practitioner: { root: '/praticien' },
   staff: { root: '/admin', accounts: '/admin/comptes' },
 } as const

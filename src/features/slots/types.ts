@@ -38,6 +38,12 @@ export type Appointment = {
   endsAt: string
 }
 
+/** GET /api/appointments/me (MLink-108): one page of the caller's appointments. */
+export type AppointmentPage = {
+  items: Appointment[]
+  total: number
+}
+
 /** The query of GET /api/slots: `[from, to)` as ISO instants, 31 days at most; pages of 1 to 50. */
 export type SlotSearch = {
   from: string

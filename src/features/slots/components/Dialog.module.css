@@ -1,0 +1,36 @@
+/* Dialogs of the appointment pages (MLink-105, MLink-109): tokens only (shared/styles/tokens.css). */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  background: rgba(17, 28, 45, 0.45);
+}
+.dialog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: 440px;
+  padding: var(--space-6);
+  background: var(--surface-lowest);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow);
+}
+.title { margin: 0; font-size: 1.25rem; font-weight: 600; color: var(--on-surface); }
+.actions { display: flex; justify-content: flex-end; gap: var(--space-2); flex-wrap: wrap; }
+.done { display: flex; align-items: center; gap: var(--space-2); margin: 0; font-weight: 600; color: var(--primary); }
+.summary {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+  padding: var(--space-4);
+  background: var(--surface-low);
+  border-radius: var(--radius-control);
+}
+.summary dt { font-size: var(--text-sm); color: var(--on-surface-variant); }
+.summary dd { margin: 0; font-weight: 600; color: var(--on-surface); }
+.error { margin: var(--space-2) 0 0; font-size: var(--text-sm); color: var(--error); }
