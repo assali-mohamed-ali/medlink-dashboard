@@ -1,6 +1,6 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { ApiError } from '@/shared/api/apiClient'
 import * as api from '../api'
@@ -9,8 +9,14 @@ import SlotSearchPage from './SlotSearchPage'
 
 // MLink-101: the patient's slot search, as a week grid (Stitch "Prendre un rendez-vous"). The API is mocked at the
 // feature's api.ts; times are built in local time, so the tests hold in any time zone.
-vi.mock('../api', () => ({ fetchSlotFilters: vi.fn(), searchSlots: vi.fn(), bookSlot: vi.fn() }))
+vi.mock('../api', () => ({
+  fetchSlotFilters: vi.fn(),
+  searchSlots: vi.fn(),
+  bookSlot: vi.fn(),
+  rescheduleAppointment: vi.fn(),
+}))
 const bookSlot = vi.mocked(api.bookSlot)
+const rescheduleAppointment = vi.mocked(api.rescheduleAppointment)
 const fetchSlotFilters = vi.mocked(api.fetchSlotFilters)
 const searchSlots = vi.mocked(api.searchSlots)
 
@@ -328,4 +334,76 @@ test('403 without a patient profile: the API message stays in the confirmation',
     'role',
     'alert',
   )
+})
+
+// ---- MLink-109: "Reporter" from my appointments opens this page to choose the new slot ---------------------
+
+/** The page in move mode (?reporter=a9), inside routes so that "Voir mes rendez-vous" can be followed. */
+function renderMove() {
+  return render(
+    <MemoryRouter initialEntries={['/patient/creneaux?reporter=a9']}>
+      <Routes>
+        <Route path="/patient/creneaux" element={<SlotSearchPage />} />
+        <Route path="/patient/rendez-vous" element={<p>Page mes rendez-vous</p>} />
+      </Routes>
+    </MemoryRouter>,
+  )
+}
+
+test('move mode: a banner says so, and the chosen slot is confirmed as the new one', async () => {
+  const user = userEvent.setup()
+  rescheduleAppointment.mockResolvedValue(BOOKED)
+  renderMove()
+
+  expect(screen.getByText(/Report d’un rendez-vous : choisissez le nouveau créneau/)).toBeInTheDocument()
+  const tuesday = await screen.findByRole('region', { name: 'mardi 10 novembre' })
+  await user.click(within(tuesday).getByRole('button', { name: 'Choisir ce créneau' }))
+  const dialog = screen.getByRole('dialog', { name: 'Confirmer le report ?' })
+  await user.click(within(dialog).getByRole('button', { name: 'Confirmer' }))
+
+  expect(rescheduleAppointment).toHaveBeenCalledWith('a9', 's1')
+  expect(bookSlot).not.toHaveBeenCalled()
+  const moved = await screen.findByRole('dialog', { name: 'Rendez-vous reporté' })
+  expect(within(moved).getByText('mardi 10 novembre 2026')).toBeInTheDocument()
+  expect(within(moved).getByText('09:00 – 09:30')).toBeInTheDocument()
+
+  await user.click(within(moved).getByRole('button', { name: 'Voir mes rendez-vous' }))
+  expect(await screen.findByText('Page mes rendez-vous')).toBeInTheDocument()
+})
+
+test('move mode, 409: the slot is taken, the message says to choose another and the week is refreshed', async () => {
+  const user = userEvent.setup()
+  rescheduleAppointment.mockRejectedValue(
+    new ApiError(409, 'SLOT_TAKEN', 'Ce créneau n’est plus disponible. Choisissez-en un autre.'),
+  )
+  renderMove()
+  const tuesday = await screen.findByRole('region', { name: 'mardi 10 novembre' })
+  await user.click(within(tuesday).getByRole('button', { name: 'Choisir ce créneau' }))
+  const searches = searchSlots.mock.calls.length
+
+  await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Confirmer' }))
+
+  expect(await screen.findByText('Ce créneau n’est plus disponible. Choisissez-en un autre.')).toHaveAttribute(
+    'role',
+    'alert',
+  )
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(searchSlots.mock.calls.length).toBeGreaterThan(searches)
+})
+
+test('move mode, 422: the API message (deadline passed) stays in the confirmation', async () => {
+  const user = userEvent.setup()
+  rescheduleAppointment.mockRejectedValue(
+    new ApiError(422, 'CANCEL_DEADLINE_PASSED', 'Ce rendez-vous ne peut plus être annulé moins de 12 heures avant son début.'),
+  )
+  renderMove()
+  const tuesday = await screen.findByRole('region', { name: 'mardi 10 novembre' })
+  await user.click(within(tuesday).getByRole('button', { name: 'Choisir ce créneau' }))
+  const dialog = screen.getByRole('dialog', { name: 'Confirmer le report ?' })
+
+  await user.click(within(dialog).getByRole('button', { name: 'Confirmer' }))
+
+  expect(
+    await within(dialog).findByText('Ce rendez-vous ne peut plus être annulé moins de 12 heures avant son début.'),
+  ).toHaveAttribute('role', 'alert')
 })

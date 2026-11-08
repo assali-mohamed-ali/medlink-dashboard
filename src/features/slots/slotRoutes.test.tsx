@@ -10,7 +10,7 @@ import * as api from './api'
 
 // MLink-101: the slot search is a page of the patient's space, reached from its menu; no other role opens it.
 vi.mock('@/features/auth/api', () => ({ fetchMe: vi.fn(), login: vi.fn(), logout: vi.fn() }))
-vi.mock('./api', () => ({ fetchSlotFilters: vi.fn(), searchSlots: vi.fn() }))
+vi.mock('./api', () => ({ fetchSlotFilters: vi.fn(), searchSlots: vi.fn(), fetchMyAppointments: vi.fn() }))
 const fetchMe = vi.mocked(authApi.fetchMe)
 
 function loggedInAs(role: Role) {
@@ -33,6 +33,7 @@ beforeEach(() => {
   vi.resetAllMocks()
   vi.mocked(api.fetchSlotFilters).mockResolvedValue({ clinics: [], specialties: [], practitioners: [] })
   vi.mocked(api.searchSlots).mockResolvedValue({ items: [], total: 0 })
+  vi.mocked(api.fetchMyAppointments).mockResolvedValue({ items: [], total: 0 })
 })
 
 test('a patient opens the slot search from the menu of their space', async () => {
@@ -53,4 +54,24 @@ test.each(['PRACTITIONER', 'ADMINISTRATIVE_STAFF'] as const)('a %s gets "Accès 
   expect(await screen.findByRole('heading', { name: 'Accès refusé' })).toBeInTheDocument()
   expect(screen.queryByRole('heading', { name: 'Prendre un rendez-vous' })).toBeNull()
   expect(api.searchSlots).not.toHaveBeenCalled()
+})
+
+// MLink-109: my appointments, a page of the patient's space too
+test('a patient opens their appointments from the menu of their space', async () => {
+  const user = userEvent.setup()
+  loggedInAs('PATIENT')
+  const router = renderAt('/patient')
+
+  await user.click(await screen.findByRole('link', { name: 'Mes rendez-vous' }))
+
+  expect(await screen.findByRole('heading', { name: 'Mes rendez-vous' })).toBeInTheDocument()
+  expect(router.state.location.pathname).toBe('/patient/rendez-vous')
+})
+
+test.each(['PRACTITIONER', 'ADMINISTRATIVE_STAFF'] as const)('a %s opening my appointments gets "Accès refusé"', async (role) => {
+  loggedInAs(role)
+  renderAt('/patient/rendez-vous')
+
+  expect(await screen.findByRole('heading', { name: 'Accès refusé' })).toBeInTheDocument()
+  expect(api.fetchMyAppointments).not.toHaveBeenCalled()
 })
