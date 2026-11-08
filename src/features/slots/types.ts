@@ -28,6 +28,16 @@ export type SlotPage = {
   message?: string
 }
 
+/** 201 of POST /api/appointments (MLink-102): the patient's new appointment. */
+export type Appointment = {
+  id: string
+  status: string
+  clinic: { id: string; name: string }
+  practitioner: { id: string; firstName: string; lastName: string }
+  startsAt: string
+  endsAt: string
+}
+
 /** The query of GET /api/slots: `[from, to)` as ISO instants, 31 days at most; pages of 1 to 50. */
 export type SlotSearch = {
   from: string

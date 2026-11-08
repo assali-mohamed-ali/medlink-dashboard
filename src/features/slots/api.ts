@@ -1,5 +1,5 @@
 import { apiFetch } from '@/shared/api/apiClient'
-import type { SlotFilters, SlotPage, SlotSearch } from './types'
+import type { Appointment, SlotFilters, SlotPage, SlotSearch } from './types'
 
 // One function per endpoint (api-MedLink, epic MLink-8). Components never call fetch() themselves.
 
@@ -15,4 +15,9 @@ export function searchSlots(search: SlotSearch) {
     if (value !== undefined) query.set(name, String(value))
   }
   return apiFetch<SlotPage>(`/slots?${query}`)
+}
+
+/** MLink-102: the patient books a slot for themselves (apiFetch adds the CSRF header). */
+export function bookSlot(slotId: string) {
+  return apiFetch<Appointment>('/appointments', { method: 'POST', body: { slotId } })
 }
