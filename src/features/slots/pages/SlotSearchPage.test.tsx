@@ -4,12 +4,13 @@ import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { ApiError } from '@/shared/api/apiClient'
 import * as api from '../api'
-import type { Slot, SlotFilters } from '../types'
+import type { Appointment, Slot, SlotFilters } from '../types'
 import SlotSearchPage from './SlotSearchPage'
 
 // MLink-101: the patient's slot search, as a week grid (Stitch "Prendre un rendez-vous"). The API is mocked at the
 // feature's api.ts; times are built in local time, so the tests hold in any time zone.
-vi.mock('../api', () => ({ fetchSlotFilters: vi.fn(), searchSlots: vi.fn() }))
+vi.mock('../api', () => ({ fetchSlotFilters: vi.fn(), searchSlots: vi.fn(), bookSlot: vi.fn() }))
+const bookSlot = vi.mocked(api.bookSlot)
 const fetchSlotFilters = vi.mocked(api.fetchSlotFilters)
 const searchSlots = vi.mocked(api.searchSlots)
 
@@ -222,10 +223,109 @@ test('any other failure shows a message, and the page stays', async () => {
   expect(screen.getByRole('heading', { name: 'Prendre un rendez-vous' })).toBeInTheDocument()
 })
 
-test('booking is not built yet: "Choisir ce créneau" is disabled and says so', async () => {
+// ---- MLink-105: book from the results, then a confirmation screen ------------------------------------
+
+const BOOKED: Appointment = {
+  id: 'a1',
+  status: 'BOOKED',
+  clinic: { id: SFAX, name: 'Clinique MedLink Sfax' },
+  practitioner: { id: CARDIOLOGIST, firstName: 'Rim', lastName: 'Jaziri' },
+  startsAt: new Date(2026, 10, 10, 9, 0).toISOString(),
+  endsAt: new Date(2026, 10, 10, 9, 30).toISOString(),
+}
+
+/** Opens the confirmation of Tuesday 10's 09:00 slot (the first of the week). */
+async function chooseFirstSlot(user: ReturnType<typeof userEvent.setup>) {
+  const tuesday = await screen.findByRole('region', { name: 'mardi 10 novembre' })
+  await user.click(within(tuesday).getByRole('button', { name: 'Choisir ce créneau' }))
+  return screen.getByRole('dialog', { name: 'Confirmer ce rendez-vous ?' })
+}
+
+test('choosing a slot asks to confirm it, with its day, time, practitioner and clinic', async () => {
+  const user = userEvent.setup()
   renderPage()
 
-  const choose = (await screen.findAllByRole('button', { name: 'Choisir ce créneau' }))[0]
-  expect(choose).toBeDisabled()
-  expect(choose).toHaveAccessibleDescription('Bientôt disponible')
+  const dialog = await chooseFirstSlot(user)
+
+  expect(within(dialog).getByText('mardi 10 novembre 2026')).toBeInTheDocument()
+  expect(within(dialog).getByText('09:00 – 09:30')).toBeInTheDocument()
+  expect(within(dialog).getByText('Dr Rim Jaziri · Cardiologie')).toBeInTheDocument()
+  expect(within(dialog).getByText('Clinique MedLink Sfax')).toBeInTheDocument()
+  expect(bookSlot).not.toHaveBeenCalled()
+})
+
+test('"Annuler" closes the confirmation and books nothing', async () => {
+  const user = userEvent.setup()
+  renderPage()
+  const dialog = await chooseFirstSlot(user)
+
+  await user.click(within(dialog).getByRole('button', { name: 'Annuler' }))
+
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(bookSlot).not.toHaveBeenCalled()
+})
+
+test('201: the confirmation screen shows the clinic, the practitioner, the date and the time', async () => {
+  const user = userEvent.setup()
+  bookSlot.mockResolvedValue(BOOKED)
+  renderPage()
+  const dialog = await chooseFirstSlot(user)
+
+  await user.click(within(dialog).getByRole('button', { name: 'Confirmer' }))
+
+  expect(bookSlot).toHaveBeenCalledWith('s1')
+  const confirmed = await screen.findByRole('dialog', { name: 'Rendez-vous confirmé' })
+  expect(within(confirmed).getByText('Clinique MedLink Sfax')).toBeInTheDocument()
+  expect(within(confirmed).getByText('Dr Rim Jaziri')).toBeInTheDocument()
+  expect(within(confirmed).getByText('mardi 10 novembre 2026')).toBeInTheDocument()
+  expect(within(confirmed).getByText('09:00 – 09:30')).toBeInTheDocument()
+})
+
+test('after a booking, going back to the slots reloads the week (the booked slot is gone)', async () => {
+  const user = userEvent.setup()
+  bookSlot.mockResolvedValue(BOOKED)
+  renderPage()
+  const dialog = await chooseFirstSlot(user)
+  await user.click(within(dialog).getByRole('button', { name: 'Confirmer' }))
+  const searches = searchSlots.mock.calls.length
+
+  await user.click(await screen.findByRole('button', { name: 'Retour aux créneaux' }))
+
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(searchSlots.mock.calls.length).toBeGreaterThan(searches)
+})
+
+test('409: the API message is shown and the results are refreshed', async () => {
+  const user = userEvent.setup()
+  bookSlot.mockRejectedValue(
+    new ApiError(409, 'SLOT_TAKEN', 'Ce créneau n’est plus disponible. Choisissez-en un autre.'),
+  )
+  renderPage()
+  const dialog = await chooseFirstSlot(user)
+  const searches = searchSlots.mock.calls.length
+
+  await user.click(within(dialog).getByRole('button', { name: 'Confirmer' }))
+
+  expect(await screen.findByText('Ce créneau n’est plus disponible. Choisissez-en un autre.')).toHaveAttribute(
+    'role',
+    'alert',
+  )
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(searchSlots.mock.calls.length).toBeGreaterThan(searches)
+})
+
+test('403 without a patient profile: the API message stays in the confirmation', async () => {
+  const user = userEvent.setup()
+  bookSlot.mockRejectedValue(
+    new ApiError(403, 'PATIENT_PROFILE_REQUIRED', 'Complétez votre profil patient avant de réserver.'),
+  )
+  renderPage()
+  const dialog = await chooseFirstSlot(user)
+
+  await user.click(within(dialog).getByRole('button', { name: 'Confirmer' }))
+
+  expect(await within(dialog).findByText('Complétez votre profil patient avant de réserver.')).toHaveAttribute(
+    'role',
+    'alert',
+  )
 })
