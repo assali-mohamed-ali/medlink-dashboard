@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 import type { RouteObject } from 'react-router-dom'
+import { practitionerAgendaPages } from '@/features/agenda'
 import { RequireAuth, authRoutes, type Role } from '@/features/auth'
 import { mfaRoutes } from '@/features/mfa'
 import AccessDeniedPage from '@/pages/AccessDeniedPage'
@@ -45,7 +46,7 @@ export const routes: RouteObject[] = [
       { path: paths.accessDenied, element: <AccessDeniedPage /> },
 
       space('PATIENT', paths.patient.root),
-      space('PRACTITIONER', paths.practitioner.root),
+      space('PRACTITIONER', paths.practitioner.root, practitionerAgendaPages),
       space('ADMINISTRATIVE_STAFF', paths.staff.root, [
         // MLink-73 (back-office) replaces this placeholder
         { path: paths.staff.accounts, element: <SpaceComingSoon title="Gestion des comptes" /> },

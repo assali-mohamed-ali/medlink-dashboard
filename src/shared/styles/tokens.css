@@ -46,6 +46,14 @@
   --success-container: #dde5da;
   --info-container: #e6efea; /* was lavender #e7eeff */
   --warning-container: #fdf0d5;
+  /* The agenda's clinics (MLink-26): one tone each, always shown with the clinic's name (never colour alone).
+     The strong tone marks an edge or a dot (≥ 3:1 on white); text on a container stays --on-surface. */
+  --clinic-1: #1d5fa0;
+  --clinic-1-container: #e4eef8;
+  --clinic-2: #a3324f;
+  --clinic-2-container: #f9e5eb;
+  --clinic-3: #8a5a00;
+  --clinic-3-container: #fdf0d5;
   --on-warning-container: #6a4700;
 
   /* Shape */

@@ -1,0 +1,145 @@
+/* MLink-26: the practitioner's agenda, after the Stitch design. Tokens only: a clinic's tone is --clinic-N (an edge,
+   a dot) and --clinic-N-container (a booked slot's background); text stays --on-surface. */
+
+.page { display: flex; flex-direction: column; gap: var(--space-6); }
+.header { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--space-4); }
+.title { margin: 0; font-size: var(--text-2xl); line-height: var(--leading-2xl); font-weight: 600; }
+.subtitle { margin: var(--space-1) 0 0; color: var(--text-muted); font-size: var(--text-sm); line-height: var(--leading-sm); }
+.layout { display: grid; grid-template-columns: 232px minmax(0, 1fr); gap: var(--space-5); align-items: start; }
+.side { display: flex; flex-direction: column; gap: var(--space-4); }
+
+/* Side panels and the week card */
+.panel, .week {
+  display: flex; flex-direction: column; gap: var(--space-3);
+  padding: var(--space-4) var(--space-3); background: var(--surface-raised);
+  border: 1px solid var(--border); border-radius: var(--radius-card); box-shadow: var(--elev-1);
+}
+.week { padding: var(--space-5); gap: var(--space-4); min-width: 0; }
+.panelHead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-1) var(--space-2); }
+.panelTitle {
+  display: inline-flex; align-items: center; gap: var(--space-2); margin: 0;
+  font-size: var(--text-sm); line-height: var(--leading-sm); font-weight: 600; white-space: nowrap;
+}
+.iconButtons { display: flex; gap: var(--space-1); }
+.iconButton {
+  display: inline-grid; place-items: center; width: 28px; height: 28px; padding: 0;
+  border: 1px solid var(--border); border-radius: var(--radius-pill); background: var(--surface-raised);
+  color: var(--on-surface); cursor: pointer;
+}
+.iconButton:hover { background: var(--surface-container); }
+.iconButton:focus-visible, .monthDay:focus-visible, .linkButton:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.linkButton {
+  padding: var(--space-1) var(--space-2); border: 0; border-radius: var(--radius-field); background: none;
+  color: var(--primary); font: inherit; font-size: var(--text-xs); line-height: var(--leading-xs); font-weight: 600; white-space: nowrap; cursor: pointer;
+}
+.linkButton:disabled { color: var(--text-muted); cursor: default; }
+
+/* Month calendar */
+.month { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; }
+.monthWeekday { font-size: var(--text-xs); line-height: var(--leading-xs); color: var(--text-muted); padding: var(--space-1) 0; }
+.monthDay {
+  height: 28px; padding: 0; border: 0; border-radius: var(--radius-pill); background: none;
+  color: var(--on-surface); font: inherit; font-size: var(--text-xs); line-height: var(--leading-xs); cursor: pointer;
+}
+.monthDay:hover { background: var(--surface-container); }
+.monthDay[data-outside] { color: var(--text-muted); }
+.monthDay[data-week] { background: var(--accent-soft); }
+.monthDay[aria-current='date'] { background: var(--primary); color: var(--on-primary); font-weight: 600; }
+
+/* Clinic filter */
+.filters { display: flex; flex-direction: column; gap: var(--space-2); }
+.filter {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-2);
+  padding: var(--space-2) var(--space-3); border-radius: var(--radius-control); background: var(--surface-container);
+}
+.filterName { font-size: var(--text-sm); line-height: var(--leading-sm); font-weight: 600; }
+.dot { width: 8px; height: 8px; border-radius: var(--radius-pill); background: var(--clinic-1); flex-shrink: 0; }
+
+/* Occupancy */
+.occupancyTitle { margin: 0; font-size: var(--text-sm); line-height: var(--leading-sm); font-weight: 600; }
+.rate { white-space: nowrap; font-size: var(--text-xl); line-height: var(--leading-xl); font-weight: 700; color: var(--primary); }
+.bar { height: 8px; border-radius: var(--radius-pill); background: var(--surface-container); overflow: hidden; }
+.bar span { display: block; height: 100%; border-radius: inherit; background: var(--primary); }
+.occupancyCounts {
+  display: flex; justify-content: space-between; gap: var(--space-2); margin: 0;
+  color: var(--text-muted); font-size: var(--text-xs); line-height: var(--leading-xs); white-space: nowrap;
+}
+
+/* Week bar */
+.weekBar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.weekNav { display: flex; align-items: center; gap: var(--space-2); }
+.weekTitle { margin: 0; font-size: var(--text-lg); line-height: var(--leading-lg); font-weight: 600; }
+.weekSubtitle { margin: 0; color: var(--text-muted); font-size: var(--text-xs); line-height: var(--leading-xs); }
+.error { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); }
+
+/* Sites of the week */
+.sites { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.sitesLabel { font-size: var(--text-xs); line-height: var(--leading-xs); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted); }
+.chips { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.chip {
+  display: inline-flex; align-items: center; gap: var(--space-2); padding: 2px var(--space-3);
+  border-radius: var(--radius-pill); background: var(--surface-container); font-size: var(--text-xs); line-height: var(--leading-xs);
+}
+
+/* The week table */
+.tableScroll { overflow-x: auto; }
+.table { width: 100%; min-width: 640px; border-collapse: separate; border-spacing: var(--space-2); table-layout: fixed; }
+.hourHead, .hour {
+  width: 52px; padding: var(--space-2) 0; text-align: left; vertical-align: top;
+  font-size: var(--text-xs); line-height: var(--leading-xs); font-weight: 600; color: var(--text-muted);
+}
+.dayHead {
+  padding: var(--space-2); border-radius: var(--radius-control); background: var(--info-container);
+  text-align: center; vertical-align: top; font-weight: 400;
+}
+.dayHead[data-today] { background: var(--primary); color: var(--on-primary); }
+.weekday, .dayNumber, .dayClinics { display: block; }
+.weekday { font-size: var(--text-xs); line-height: var(--leading-xs); font-weight: 600; }
+.dayNumber { font-size: var(--text-xl); line-height: var(--leading-xl); font-weight: 600; }
+.dayClinics { font-size: var(--text-xs); line-height: var(--leading-xs); }
+.dayHead:not([data-today]) .weekday, .dayHead:not([data-today]) .dayClinics { color: var(--text-muted); }
+.cell { padding: 0; vertical-align: top; border-top: 1px solid var(--border); }
+.slots { display: flex; flex-direction: column; gap: var(--space-2); margin: var(--space-2) 0 0; padding: 0; list-style: none; }
+
+.slot {
+  display: flex; flex-direction: column; gap: var(--space-1);
+  padding: var(--space-2); border-radius: var(--radius-field);
+  border-left: 4px solid var(--clinic-1); background: var(--clinic-1-container); color: var(--on-surface);
+  font-size: var(--text-xs); line-height: var(--leading-xs);
+}
+.slot[data-status='OPEN'] {
+  background: var(--surface-raised); border: 1px dashed var(--border-strong); border-left: 4px solid var(--clinic-1);
+}
+.slot[data-status='CLOSED'] { background: var(--surface-sunken); color: var(--text-muted); }
+.slotPatient { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-1); min-width: 0; }
+.slotName { order: 3; flex-basis: 100%; font-weight: 600; overflow-wrap: break-word; }
+.slotState { display: inline-flex; align-items: center; gap: var(--space-1); font-weight: 600; }
+.slot[data-status='OPEN'] .slotState { color: var(--primary); }
+.slotTime { font-weight: 600; white-space: nowrap; }
+.slotClinic { display: inline-flex; align-items: center; gap: 2px; color: var(--text-muted); }
+.confirmed { width: 8px; height: 8px; border-radius: var(--radius-pill); background: var(--primary); flex-shrink: 0; }
+
+/* Legend */
+.legend {
+  display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-5); margin: 0; padding: var(--space-3) 0 0; list-style: none;
+  border-top: 1px solid var(--border); font-size: var(--text-xs); line-height: var(--leading-xs);
+}
+.legendItem { display: inline-flex; align-items: center; gap: var(--space-2); }
+.swatch { width: 14px; height: 14px; border-radius: 4px; background: var(--clinic-1-container); border-left: 3px solid var(--clinic-1); }
+.swatchOpen { width: 14px; height: 14px; border-radius: 4px; border: 1px dashed var(--border-strong); }
+.swatchClosed { width: 14px; height: 14px; border-radius: 4px; background: var(--surface-sunken); border: 1px solid var(--border); }
+
+/* Clinic tones 2 and 3 (tone 1 is the default above) */
+[data-tone='2'] .dot, .dot[data-tone='2'] { background: var(--clinic-2); }
+[data-tone='3'] .dot, .dot[data-tone='3'] { background: var(--clinic-3); }
+[data-tone='2'] .swatch { background: var(--clinic-2-container); border-left-color: var(--clinic-2); }
+[data-tone='3'] .swatch { background: var(--clinic-3-container); border-left-color: var(--clinic-3); }
+.slot[data-tone='2'] { border-left-color: var(--clinic-2); }
+.slot[data-tone='3'] { border-left-color: var(--clinic-3); }
+.slot[data-tone='2'][data-status='BOOKED'] { background: var(--clinic-2-container); }
+.slot[data-tone='3'][data-status='BOOKED'] { background: var(--clinic-3-container); }
+
+@media (max-width: 1023px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  .side { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+}

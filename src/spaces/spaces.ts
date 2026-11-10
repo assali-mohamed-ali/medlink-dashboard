@@ -64,12 +64,18 @@ export const SPACES: Record<Role, Space> = {
     roleLabel: 'Praticien',
     menu: [
       { label: 'Accueil', to: paths.practitioner.root, icon: House },
+      { label: 'Agenda', to: paths.practitioner.agenda, icon: CalendarDays },
       { label: 'Mot de passe', to: paths.password, icon: KeyRound },
     ],
     home: {
       intro: 'Votre journée en un coup d’œil.',
       parts: [
-        { title: 'Agenda', text: 'Vos consultations du jour et à venir.', icon: CalendarDays },
+        {
+          title: 'Agenda',
+          text: 'Vos consultations du jour et à venir.',
+          icon: CalendarDays,
+          link: { to: paths.practitioner.agenda, label: 'Ouvrir l’agenda' },
+        },
         { title: 'Patients', text: 'Les dossiers des patients que vous suivez.', icon: Stethoscope },
         { title: 'Messages', text: 'Vos échanges avec vos patients et l’équipe.', icon: MessageSquare },
       ],
