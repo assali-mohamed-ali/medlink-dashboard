@@ -105,9 +105,12 @@ export default function WeekTable({ title, monday, today, agenda, tones, hidden 
                       <td key={day} className={styles.cell} data-empty={slots.length === 0 || undefined}>
                         {slots.length > 0 && (
                           <ul className={styles.slots}>
-                            {slots.map((item) => (
-                              <SlotCard key={item.slotId} item={item} day={day} tone={tones.get(item.clinic.id) ?? 1} />
-                            ))}
+                            {slots
+                              .filter((item) => item.status !== 'OPEN')
+                              .map((item) => (
+                                <SlotCard key={item.slotId} item={item} day={day} tone={tones.get(item.clinic.id) ?? 1} />
+                              ))}
+                            <FreeSlots slots={slots.filter((item) => item.status === 'OPEN')} day={day} />
                           </ul>
                         )}
                       </td>
@@ -144,6 +147,34 @@ export default function WeekTable({ title, monday, today, agenda, tones, hidden 
   )
 }
 
+/** The free slots of a cell in one dashed box (Stitch: "+ Créneau dispo"), each time its own item. */
+function FreeSlots({ slots, day }: { slots: readonly AgendaItem[]; day: string }) {
+  if (slots.length === 0) return null
+  return (
+    <li className={styles.free}>
+      <span className={styles.freeTitle} aria-hidden="true">
+        <Plus size={14} />
+        Créneau{slots.length > 1 ? 'x' : ''} dispo
+      </span>
+      <ul className={styles.freeTimes}>
+        {slots.map((item) => {
+          const time = `${timeLabel(item.startsAt)} – ${timeLabel(item.endsAt)}`
+          return (
+            <li
+              key={item.slotId}
+              className={styles.freeTime}
+              aria-label={`${longDayLabel(day)}, ${time}, ${item.clinic.name}, ${STATUS_WORDS.OPEN}`}
+            >
+              {timeLabel(item.startsAt)}
+              <span className="visually-hidden">Créneau disponible</span>
+            </li>
+          )
+        })}
+      </ul>
+    </li>
+  )
+}
+
 function SlotCard({ item, day, tone }: { item: AgendaItem; day: string; tone: number }) {
   const time = `${timeLabel(item.startsAt)} – ${timeLabel(item.endsAt)}`
   const patient = item.appointment?.patient
@@ -171,15 +202,6 @@ function SlotCard({ item, day, tone }: { item: AgendaItem; day: string; tone: nu
             <MapPin size={12} aria-hidden="true" />
             {shortName(item.clinic.name)}
           </span>
-        </>
-      ) : item.status === 'OPEN' ? (
-        <>
-          <span className={styles.slotState}>
-            <Plus size={12} aria-hidden="true" />
-            <span aria-hidden="true">Créneau dispo</span>
-            <span className="visually-hidden">Créneau disponible</span>
-          </span>
-          <span className={styles.slotTime}>{time}</span>
         </>
       ) : (
         <>

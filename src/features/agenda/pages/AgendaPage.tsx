@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useId, useMemo, useState } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { CalendarPlus, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useAuth } from '@/features/auth'
+import UserAvatar from '@/shared/components/UserAvatar'
 import { messageFor } from '@/shared/api/errors'
 import { Alert, Button, Skeleton } from '@/shared/ui'
 import { fetchAgenda } from '../api'
-import { toneOf } from '../clinicTones'
+import { shortName, sortedClinics, toneOf } from '../clinicTones'
 import ClinicFilter from '../components/ClinicFilter'
 import MonthCalendar from '../components/MonthCalendar'
 import Occupancy from '../components/Occupancy'
@@ -23,6 +25,7 @@ type Answer = { key: string; load: Load }
  */
 export default function AgendaPage() {
   const titleId = useId()
+  const { user } = useAuth()
   // "Today" is read once, when the page opens
   const [today] = useState(() => tunisDay(new Date()))
   const thisMonday = mondayOf(today)
@@ -73,10 +76,34 @@ export default function AgendaPage() {
     <section aria-labelledby={titleId} className={styles.page} data-width="wide">
       <header className={styles.header}>
         <div>
+          {clinics && clinics.length > 0 && (
+            <p className={styles.eyebrow}>
+              <span className={styles.liveDot} aria-hidden="true" />
+              Vos cliniques : {sortedClinics(clinics).map((clinic) => shortName(clinic.name)).join(' • ')} ({clinics.length}{' '}
+              site{clinics.length > 1 ? 's' : ''})
+            </p>
+          )}
           <h2 id={titleId} className={styles.title}>
             Agenda praticien — Consultations multi-cliniques
           </h2>
           <p className={styles.subtitle}>Supervision hebdomadaire de vos consultations réparties sur le réseau MedLink</p>
+        </div>
+        <div className={styles.headerSide}>
+          {user && (
+            <div className={styles.identity}>
+              <UserAvatar firstName={user.firstName} lastName={user.lastName} />
+              <span>
+                <span className={styles.identityName}>
+                  {user.firstName} {user.lastName}
+                </span>
+                <span className={styles.identityRole}>Praticien</span>
+              </span>
+            </div>
+          )}
+          {/* The opening form comes with task 26.8: the action is shown, not yet usable */}
+          <button type="button" className={styles.action} aria-disabled="true" title="Bientôt disponible (tâche 26.8)">
+            <CalendarPlus size={18} aria-hidden="true" />+ Ajouter un créneau
+          </button>
         </div>
       </header>
 

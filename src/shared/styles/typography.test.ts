@@ -16,8 +16,8 @@ function token(name: string) {
   return tokens.match(new RegExp(`${name}:\\s*([^;]+);`))?.[1].trim()
 }
 
-test('the interface face is Geist and the display face Instrument Serif, with system fallbacks', () => {
-  expect(token('--font-sans')).toMatch(/^'Geist Variable', system-ui,/)
+test('the interface face is Plus Jakarta Sans (Stitch design) and the display face Instrument Serif, with system fallbacks', () => {
+  expect(token('--font-sans')).toMatch(/^'Plus Jakarta Sans Variable', system-ui,/)
   expect(token('--font-display')).toMatch(/^'Instrument Serif', Georgia,/)
   // The old name stays as an alias until every stylesheet reads --font-sans
   expect(token('--font')).toBe('var(--font-sans)')
@@ -47,7 +47,7 @@ test('the fonts are self-hosted, Latin only, two files, shown at once with a fal
   expect(global).toContain("@import './fonts.css';")
   const files = [...fonts.matchAll(/url\(['"]?([^'")]+)['"]?\)/g)].map((m) => m[1])
   expect(files).toEqual([
-    '@fontsource-variable/geist/files/geist-latin-wght-normal.woff2',
+    '@fontsource-variable/plus-jakarta-sans/files/plus-jakarta-sans-latin-wght-normal.woff2',
     '@fontsource/instrument-serif/files/instrument-serif-latin-400-normal.woff2',
   ])
   expect(fonts.match(/font-display:\s*swap/g)).toHaveLength(2)
@@ -61,7 +61,7 @@ test('anything focusable without its own focus style still shows a 2 px green ou
 
 test('no shared or feature stylesheet names a face that is not loaded (audit A1)', () => {
   const offenders = Object.keys(CSS).filter(
-    (file) => /^src\/(shared|features|spaces)\//.test(file) && /Plus Jakarta/.test(CSS[file]),
+    (file) => /^src\/(shared|features|spaces)\//.test(file) && /Geist/.test(CSS[file]),
   )
   expect(offenders).toEqual([])
 })

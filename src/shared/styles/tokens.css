@@ -95,7 +95,7 @@
   --content-form: 480px;
 
   /* Type (docs/ui-refresh/PLAN.md §4.1): faces from fonts.css; sizes in rem, each with its line height */
-  --font-sans: 'Geist Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Plus Jakarta Sans Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-display: 'Instrument Serif', Georgia, 'Times New Roman', serif; /* public and auth titles ≥ 32 px only */
   --font: var(--font-sans); /* old name, kept until every stylesheet reads --font-sans */
   --text-xs: 0.75rem; /* 12: badges, legal (sparingly) */

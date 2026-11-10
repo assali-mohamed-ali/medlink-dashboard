@@ -10,6 +10,9 @@ import AgendaPage from './AgendaPage'
 // MLink-26 (26.7): the practitioner's week, the three clinics in one view (Stitch design, real data only). The API is
 // mocked at the feature's api.ts; "now" is fixed and every date is a Tunis date, so the tests hold in any time zone.
 vi.mock('../api', () => ({ fetchAgenda: vi.fn(), openSlot: vi.fn(), changeSlotStatus: vi.fn() }))
+vi.mock('@/features/auth', () => ({
+  useAuth: () => ({ user: { id: 'u1', email: 'mehdi@example.com', firstName: 'Mehdi', lastName: 'Ben Salem', roles: ['PRACTITIONER'] } }),
+}))
 const fetchAgenda = vi.mocked(api.fetchAgenda)
 
 /** Wednesday 11 November 2026, 10:00 in Tunis. */
@@ -183,6 +186,15 @@ test('says it is loading, then shows the week', async () => {
   expect(screen.getByRole('status')).toHaveTextContent('Chargement de l’agenda…')
   answer(WEEK)
   expect(await screen.findByRole('table', { name: TITLE })).toBeInTheDocument()
+})
+
+test('the header names the practitioner and their clinics, as in the Stitch design', async () => {
+  renderPage()
+
+  expect(await screen.findByText('Vos cliniques : Sfax • Sousse • Tunis (3 sites)')).toBeInTheDocument()
+  expect(screen.getByText('Mehdi Ben Salem')).toBeInTheDocument()
+  // The opening form is task 26.8: the action is there, not usable yet
+  expect(screen.getByRole('button', { name: /Ajouter un créneau/ })).toHaveAttribute('aria-disabled', 'true')
 })
 
 test('a week without any slot says so', async () => {

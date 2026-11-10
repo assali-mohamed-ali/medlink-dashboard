@@ -4,8 +4,28 @@
 .page { display: flex; flex-direction: column; gap: var(--space-6); }
 .header { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--space-4); }
 .title { margin: 0; font-size: var(--text-3xl); line-height: var(--leading-3xl); font-weight: 700; letter-spacing: -0.01em; }
+.eyebrow {
+  display: inline-flex; align-items: center; gap: var(--space-2); margin: 0 0 var(--space-1);
+  font-size: var(--text-xs); line-height: var(--leading-xs); color: var(--text-muted);
+}
+.liveDot { width: 8px; height: 8px; border-radius: var(--radius-pill); background: var(--primary-container); }
+.headerSide { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4); }
+.identity {
+  display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-4) var(--space-2) var(--space-2);
+  background: var(--surface-raised); border-radius: var(--radius-control); box-shadow: var(--elev-1);
+}
+.identityName { display: block; font-size: var(--text-sm); line-height: var(--leading-sm); font-weight: 600; }
+.identityRole { display: block; font-size: var(--text-xs); line-height: var(--leading-xs); color: var(--text-muted); }
+.action {
+  display: inline-flex; align-items: center; gap: var(--space-2); padding: 10px var(--space-5);
+  border: 0; border-radius: var(--radius-pill); background: var(--stitch-action); color: var(--on-stitch-action);
+  font: inherit; font-size: var(--text-sm); line-height: var(--leading-sm); font-weight: 600; cursor: pointer; box-shadow: var(--elev-1);
+}
+.action:hover { background: var(--stitch-action-hover); }
+.action:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.action[aria-disabled='true'] { cursor: not-allowed; }
 .subtitle { margin: var(--space-1) 0 0; color: var(--text-muted); font-size: var(--text-sm); line-height: var(--leading-sm); }
-.layout { display: grid; grid-template-columns: 272px minmax(0, 1fr); gap: var(--space-5); align-items: start; }
+.layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: var(--space-5); align-items: start; }
 .side { display: flex; flex-direction: column; gap: var(--space-4); }
 
 /* Side panels and the week card */
@@ -125,6 +145,14 @@
 .slotTime { white-space: nowrap; }
 .slot[data-status='BOOKED'] .slotTime { font-weight: 600; }
 .slotClinic { display: inline-flex; align-items: center; gap: 2px; margin-top: auto; opacity: 0.85; }
+.free {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-2);
+  min-height: 72px; padding: var(--space-2); border: 2px dashed var(--stitch-outline-variant); border-radius: var(--radius-control);
+  color: var(--on-surface-variant); font-size: 0.6875rem; line-height: var(--leading-xs);
+}
+.freeTitle { display: inline-flex; align-items: center; gap: 2px; font-size: var(--text-xs); font-weight: 600; }
+.freeTimes { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-1); margin: 0; padding: 0; list-style: none; }
+.freeTime { padding: 0 var(--space-2); border-radius: var(--radius-pill); background: var(--stitch-surface-low); color: var(--text-muted); }
 .confirmed { width: 8px; height: 8px; border-radius: var(--radius-pill); background: var(--primary-container); flex-shrink: 0; }
 
 /* Legend */

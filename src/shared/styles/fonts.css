@@ -5,13 +5,14 @@
  * Use them through var(--font-sans) and var(--font-display) (tokens.css), never by name.
  */
 
-/* Geist, variable 100–900: every interface text (400 text, 500 labels and buttons, 600 headings) */
+/* Plus Jakarta Sans, variable 200–800: every interface text, as in the Stitch design (decision D1 changed 2026-11-10 by
+   the UI owner, MLink-26: it replaces the former face) */
 @font-face {
-  font-family: 'Geist Variable';
+  font-family: 'Plus Jakarta Sans Variable';
   font-style: normal;
   font-display: swap;
-  font-weight: 100 900;
-  src: url('@fontsource-variable/geist/files/geist-latin-wght-normal.woff2') format('woff2-variations');
+  font-weight: 200 800;
+  src: url('@fontsource-variable/plus-jakarta-sans/files/plus-jakarta-sans-latin-wght-normal.woff2') format('woff2-variations');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
     U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
