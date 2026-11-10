@@ -193,8 +193,7 @@ test('the header names the practitioner and their clinics, as in the Stitch desi
 
   expect(await screen.findByText('Vos cliniques : Sfax • Sousse • Tunis (3 sites)')).toBeInTheDocument()
   expect(screen.getByText('Mehdi Ben Salem')).toBeInTheDocument()
-  // The opening form is task 26.8: the action is there, not usable yet
-  expect(screen.getByRole('button', { name: /Ajouter un créneau/ })).toHaveAttribute('aria-disabled', 'true')
+  expect(screen.getByRole('button', { name: /Ajouter un créneau/ })).toHaveAttribute('aria-expanded', 'false')
 })
 
 test('a week without any slot says so', async () => {
