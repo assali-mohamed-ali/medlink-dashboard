@@ -102,7 +102,7 @@ export default function WeekTable({ title, monday, today, agenda, tones, hidden 
                   {days.map((day) => {
                     const slots = cells.get(`${day} ${hour}`) ?? []
                     return (
-                      <td key={day} className={styles.cell}>
+                      <td key={day} className={styles.cell} data-empty={slots.length === 0 || undefined}>
                         {slots.length > 0 && (
                           <ul className={styles.slots}>
                             {slots.map((item) => (
@@ -152,31 +152,41 @@ function SlotCard({ item, day, tone }: { item: AgendaItem; day: string; tone: nu
       className={styles.slot}
       data-tone={tone}
       data-status={item.status}
-      aria-label={`${longDayLabel(day)}, ${time}, ${item.clinic.name}, ${STATUS_WORDS[item.status]}`}
+      aria-label={`${longDayLabel(day)}, ${time}, ${item.clinic.name}, ${STATUS_WORDS[item.status]}${patient ? `, ${patient.firstName} ${patient.lastName}` : ''}`}
     >
       {patient ? (
-        <span className={styles.slotPatient}>
-          <UserAvatar firstName={patient.firstName} lastName={patient.lastName} size="sm" />
-          <span className={styles.slotName}>
-            {patient.firstName} {patient.lastName}
+        <>
+          <span className={styles.slotPatient}>
+            <UserAvatar firstName={patient.firstName} lastName={patient.lastName} size="sm" />
+            {/* "Ahmed K." on the card (Stitch design, less on screen); the full name is in the card's name */}
+            <span className={styles.slotName} title={`${patient.firstName} ${patient.lastName}`}>
+              {patient.firstName} {patient.lastName.charAt(0)}.
+            </span>
+            <span className={styles.confirmed}>
+              <span className="visually-hidden">Rendez-vous confirmé</span>
+            </span>
           </span>
-          <span className={styles.confirmed}>
-            <span className="visually-hidden">Rendez-vous confirmé</span>
+          <span className={styles.slotTime}>{time}</span>
+          <span className={styles.slotClinic}>
+            <MapPin size={12} aria-hidden="true" />
+            {shortName(item.clinic.name)}
           </span>
-        </span>
+        </>
       ) : item.status === 'OPEN' ? (
-        <span className={styles.slotState}>
-          <Plus size={14} aria-hidden="true" />
-          Créneau disponible
-        </span>
+        <>
+          <span className={styles.slotState}>
+            <Plus size={12} aria-hidden="true" />
+            <span aria-hidden="true">Créneau dispo</span>
+            <span className="visually-hidden">Créneau disponible</span>
+          </span>
+          <span className={styles.slotTime}>{time}</span>
+        </>
       ) : (
-        <span className={styles.slotState}>Créneau fermé</span>
+        <>
+          <span className={styles.slotState}>Créneau fermé</span>
+          <span className={styles.slotTime}>{time}</span>
+        </>
       )}
-      <span className={styles.slotTime}>{time}</span>
-      <span className={styles.slotClinic}>
-        <MapPin size={12} aria-hidden="true" />
-        {shortName(item.clinic.name)}
-      </span>
     </li>
   )
 }

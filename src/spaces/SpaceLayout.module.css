@@ -87,6 +87,8 @@
 .main { flex: 1; padding: var(--space-7); }
 .main:focus { outline: none; } /* the skip link's target */
 .content { max-width: var(--content-space); }
+/* A page that needs the whole width (a week agenda) says so with data-width="wide" on its root */
+.content:has(> [data-width='wide']) { max-width: none; }
 
 /* Hidden from the eye, still read by screen readers: the label of a menu entry or of the logout button */
 @media (min-width: 768px) and (max-width: 1023px) {

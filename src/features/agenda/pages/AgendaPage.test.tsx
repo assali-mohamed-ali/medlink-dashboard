@@ -78,7 +78,7 @@ test('shows the current week of the three clinics in one table, each slot in its
   ])
   expect(within(table).getAllByRole('rowheader').map((cell) => cell.textContent)).toEqual(['09:00', '10:00', '14:00'])
   expect(screen.getByRole('listitem', { name: 'lundi 9 novembre, 09:00 – 09:30, Clinique MedLink Sousse, disponible' })).toBeInTheDocument()
-  expect(screen.getByRole('listitem', { name: 'mardi 10 novembre, 10:00 – 10:30, Clinique MedLink Sfax, réservé' })).toBeInTheDocument()
+  expect(screen.getByRole('listitem', { name: 'mardi 10 novembre, 10:00 – 10:30, Clinique MedLink Sfax, réservé, Ahmed Kacem' })).toBeInTheDocument()
   expect(screen.getByRole('listitem', { name: 'jeudi 12 novembre, 14:00 – 14:30, Clinique MedLink Tunis, fermé' })).toBeInTheDocument()
 })
 
@@ -86,7 +86,8 @@ test('a booked slot shows the patient names and nothing more; an open one invite
   renderPage()
 
   const booked = await screen.findByRole('listitem', { name: /réservé/ })
-  expect(within(booked).getByText('Ahmed Kacem')).toBeInTheDocument()
+  expect(within(booked).getByText('Ahmed K.')).toBeInTheDocument() // short on the card (Stitch design)
+  expect(booked).toHaveAccessibleName(/Ahmed Kacem/) // whole for screen readers
   expect(within(booked).getByText('Rendez-vous confirmé')).toBeInTheDocument()
   expect(within(screen.getByRole('listitem', { name: /disponible/ })).getByText('Créneau disponible')).toBeInTheDocument()
   expect(within(screen.getByRole('listitem', { name: /fermé/ })).getByText('Créneau fermé')).toBeInTheDocument()

@@ -70,7 +70,7 @@ export default function AgendaPage() {
   const title = weekTitle(monday)
 
   return (
-    <section aria-labelledby={titleId} className={styles.page}>
+    <section aria-labelledby={titleId} className={styles.page} data-width="wide">
       <header className={styles.header}>
         <div>
           <h2 id={titleId} className={styles.title}>
