@@ -131,3 +131,8 @@
   --space-11: 80px;
   --space-12: 96px;
 }
+
+/* MLink-26: the Stitch sage background behind the agenda (text-muted 4.58:1, on-surface 13.6:1) */
+:root {
+  --stitch-canvas: #dfe8dc;
+}

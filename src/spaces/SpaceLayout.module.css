@@ -163,3 +163,6 @@
   }
   .main { padding: var(--space-4) 0 var(--space-6); }
 }
+
+/* The agenda (a wide page) sits on the Stitch sage background */
+.shell:has([data-width='wide']) { background: var(--stitch-canvas); }
