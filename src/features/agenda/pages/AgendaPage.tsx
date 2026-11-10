@@ -1,23 +1,41 @@
-import { useCallback, useEffect, useId, useMemo, useState } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { CalendarPlus, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useAuth } from '@/features/auth'
 import UserAvatar from '@/shared/components/UserAvatar'
+import { ApiError } from '@/shared/api/apiClient'
 import { messageFor } from '@/shared/api/errors'
 import { Alert, Button, Skeleton } from '@/shared/ui'
-import { fetchAgenda } from '../api'
+import { changeSlotStatus, fetchAgenda } from '../api'
 import { shortName, sortedClinics, toneOf } from '../clinicTones'
 import ClinicFilter from '../components/ClinicFilter'
 import MonthCalendar from '../components/MonthCalendar'
 import Occupancy from '../components/Occupancy'
+import OpenSlotForm from '../components/OpenSlotForm'
 import WeekTable from '../components/WeekTable'
-import type { Agenda } from '../types'
-import { addDays, isoWeek, mondayOf, monthOf, tunisDay, weekPeriod, weekTitle } from '../week'
+import type { Agenda, AgendaItem } from '../types'
+import { addDays, isoWeek, longDayLabel, mondayOf, monthOf, timeLabel, tunisDay, weekPeriod, weekTitle } from '../week'
 import styles from '../agenda.module.css'
 
 type Load = { status: 'loading' } | { status: 'ready'; agenda: Agenda } | { status: 'error'; message: string }
 
 /** What the last answer was for: a week and an attempt. Another key means that answer is not the current one. */
 type Answer = { key: string; load: Load }
+
+/** The last thing done on a slot, said under the header. */
+type Notice = { tone: 'success' | 'error'; text: string }
+
+/** "vendredi 13 novembre, 09:00 – 09:30" */
+function when(item: AgendaItem) {
+  return `${longDayLabel(tunisDay(item.startsAt))}, ${timeLabel(item.startsAt)} – ${timeLabel(item.endsAt)}`
+}
+
+/** A change refused because of the slot itself: say it in French, then read the agenda again (it changed). */
+function changeFailure(error: unknown): { text: string; reload: boolean } {
+  if (error instanceof ApiError && (error.status === 403 || error.status === 404)) {
+    return { text: 'Ce créneau ne fait pas partie de votre agenda.', reload: true }
+  }
+  return { text: messageFor(error), reload: error instanceof ApiError && error.status === 409 }
+}
 
 /**
  * MLink-26 (26.7): the practitioner's week, Monday to Saturday, the three clinics in one view, after the Stitch
@@ -27,17 +45,26 @@ export default function AgendaPage() {
   const titleId = useId()
   const { user } = useAuth()
   // "Today" is read once, when the page opens
-  const [today] = useState(() => tunisDay(new Date()))
+  const [now] = useState(() => Date.now())
+  const today = tunisDay(new Date(now))
   const thisMonday = mondayOf(today)
   const [monday, setMonday] = useState(thisMonday)
   const [month, setMonth] = useState(monthOf(today))
   const [attempt, setAttempt] = useState(0)
   const [answer, setAnswer] = useState<Answer | null>(null)
   const [hidden, setHidden] = useState<ReadonlySet<string>>(new Set())
+  const formId = useId()
+  const [formOpen, setFormOpen] = useState(false)
+  const [notice, setNotice] = useState<Notice | null>(null)
+  const [pending, setPending] = useState<string | null>(null)
+  const pendingRef = useRef<string | null>(null)
+  const addButton = useRef<HTMLButtonElement>(null)
 
   const key = `${monday}#${attempt}`
   // Loading until the answer for this week (and this attempt) arrives: nothing to reset when the week changes
-  const load: Load = answer?.key === key ? answer.load : { status: 'loading' }
+  // After a change, the week already shown stays on screen while it is read again (no flash, no lost place)
+  const sameWeek = answer?.key.startsWith(`${monday}#`) && answer.load.status === 'ready'
+  const load: Load = answer?.key === key || sameWeek ? answer!.load : { status: 'loading' }
   const reload = useCallback(() => setAttempt((n) => n + 1), [])
   const clinics = load.status === 'ready' ? load.agenda.clinics : null
   const tones = useMemo(() => toneOf(clinics ?? []), [clinics])
@@ -70,6 +97,38 @@ export default function AgendaPage() {
     })
   }
 
+  function closeForm() {
+    setFormOpen(false)
+    addButton.current?.focus()
+  }
+
+  function opened(item: AgendaItem) {
+    setNotice({ tone: 'success', text: `Créneau ouvert : ${when(item)}, ${item.clinic.name}.` })
+    closeForm()
+    showWeek(tunisDay(item.startsAt))
+    reload()
+  }
+
+  /** Closes or reopens a slot; one request at a time, then the agenda is read again. */
+  async function change(item: AgendaItem, status: 'OPEN' | 'CLOSED') {
+    if (pendingRef.current) return
+    pendingRef.current = item.slotId
+    setPending(item.slotId)
+    setNotice(null)
+    try {
+      await changeSlotStatus(item.slotId, status)
+      setNotice({ tone: 'success', text: `Créneau ${status === 'CLOSED' ? 'fermé' : 'rouvert'} : ${when(item)}.` })
+      reload()
+    } catch (error) {
+      const failure = changeFailure(error)
+      setNotice({ tone: 'error', text: failure.text })
+      if (failure.reload) reload()
+    } finally {
+      pendingRef.current = null
+      setPending(null)
+    }
+  }
+
   const title = weekTitle(monday)
 
   return (
@@ -100,12 +159,27 @@ export default function AgendaPage() {
               </span>
             </div>
           )}
-          {/* The opening form comes with task 26.8: the action is shown, not yet usable */}
-          <button type="button" className={styles.action} aria-disabled="true" title="Bientôt disponible (tâche 26.8)">
+          <button
+            ref={addButton}
+            type="button"
+            className={styles.action}
+            aria-expanded={formOpen}
+            aria-controls={formOpen ? formId : undefined}
+            disabled={!clinics || clinics.length === 0}
+            onClick={() => {
+              setNotice(null)
+              setFormOpen((open) => !open)
+            }}
+          >
             <CalendarPlus size={18} aria-hidden="true" />+ Ajouter un créneau
           </button>
         </div>
       </header>
+
+      {formOpen && clinics && (
+        <OpenSlotForm id={formId} clinics={clinics} today={today} onOpened={opened} onCancel={closeForm} />
+      )}
+      {notice && <Alert tone={notice.tone}>{notice.text}</Alert>}
 
       <div className={styles.layout}>
         <aside className={styles.side}>
@@ -163,7 +237,17 @@ export default function AgendaPage() {
             </div>
           )}
           {load.status === 'ready' && (
-            <WeekTable title={title} monday={monday} today={today} agenda={load.agenda} tones={tones} hidden={hidden} />
+            <WeekTable
+              title={title}
+              monday={monday}
+              today={today}
+              agenda={load.agenda}
+              tones={tones}
+              hidden={hidden}
+              now={now}
+              pending={pending}
+              onChange={change}
+            />
           )}
         </div>
       </div>

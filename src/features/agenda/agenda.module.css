@@ -177,3 +177,27 @@
   .layout { grid-template-columns: minmax(0, 1fr); }
   .side { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
 }
+
+/* 26.8: the open-slot form (a white card under the header) and the slot actions */
+.openForm {
+  display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-5);
+  background: var(--surface-raised); border-radius: var(--radius-sheet); box-shadow: var(--elev-1);
+}
+.openHead { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-2); }
+.openFields { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--space-4); }
+.openActions { display: flex; justify-content: flex-end; gap: var(--space-2); }
+.action:disabled { cursor: not-allowed; opacity: 0.6; }
+.freeTime { display: inline-flex; align-items: center; gap: 2px; }
+.slotAction {
+  display: inline-grid; place-items: center; width: 24px; height: 24px; padding: 0; margin-right: -6px;
+  border: 0; border-radius: var(--radius-pill); background: none; color: var(--text-muted); cursor: pointer;
+}
+.slotAction:hover { background: var(--surface-container); color: var(--on-surface); }
+.reopen {
+  display: inline-flex; align-items: center; gap: 2px; min-height: 24px; padding: 0 var(--space-2);
+  border: 1px solid var(--border); border-radius: var(--radius-pill); background: var(--surface-raised);
+  color: var(--primary); font: inherit; font-weight: 600; cursor: pointer;
+}
+.reopen:hover { background: var(--surface-container); }
+.slotAction:focus-visible, .reopen:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.slotAction:disabled, .reopen:disabled { cursor: wait; opacity: 0.6; }

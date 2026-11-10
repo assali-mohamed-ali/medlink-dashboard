@@ -1,4 +1,4 @@
-import { CalendarX, MapPin, Plus } from 'lucide-react'
+import { CalendarX, MapPin, Plus, RotateCcw, X } from 'lucide-react'
 import UserAvatar from '@/shared/components/UserAvatar'
 import { EmptyState } from '@/shared/ui'
 import { shortName, sortedClinics } from '../clinicTones'
@@ -20,13 +20,32 @@ type Props = {
   agenda: Agenda
   tones: ReadonlyMap<string, number>
   hidden: ReadonlySet<string>
+  /** Now (ms): a slot already started offers no action. */
+  now: number
+  /** The slot whose change is being sent: its button waits. */
+  pending: string | null
+  /** Closes a free slot (CLOSED) or reopens a closed one (OPEN). */
+  onChange: (item: AgendaItem, status: 'OPEN' | 'CLOSED') => void
+}
+
+/** What a slot card or a free time needs to offer its action. */
+type Action = Pick<Props, 'now' | 'pending' | 'onChange'>
+
+function actionable(item: AgendaItem, now: number) {
+  return Date.parse(item.startsAt) > now
+}
+
+/** "Fermer le créneau du vendredi 13 novembre, 09:00 – 09:30" */
+function actionName(verb: string, item: AgendaItem, day: string) {
+  return `${verb} le créneau du ${longDayLabel(day)}, ${timeLabel(item.startsAt)} – ${timeLabel(item.endsAt)}`
 }
 
 /**
  * The week as a table (Stitch design): a row per hour that holds a slot, a column per day (Monday to Saturday),
  * the sites of the week above and the legend below. A slot shows only what the API knows: no consultation type.
  */
-export default function WeekTable({ title, monday, today, agenda, tones, hidden }: Props) {
+export default function WeekTable({ title, monday, today, agenda, tones, hidden, now, pending, onChange }: Props) {
+  const action: Action = { now, pending, onChange }
   const days = weekDays(monday)
   const shown = agenda.items.filter((item) => !hidden.has(item.clinic.id))
   const cells = new Map<string, AgendaItem[]>()
@@ -108,9 +127,9 @@ export default function WeekTable({ title, monday, today, agenda, tones, hidden 
                             {slots
                               .filter((item) => item.status !== 'OPEN')
                               .map((item) => (
-                                <SlotCard key={item.slotId} item={item} day={day} tone={tones.get(item.clinic.id) ?? 1} />
+                                <SlotCard key={item.slotId} item={item} day={day} tone={tones.get(item.clinic.id) ?? 1} action={action} />
                               ))}
-                            <FreeSlots slots={slots.filter((item) => item.status === 'OPEN')} day={day} />
+                            <FreeSlots slots={slots.filter((item) => item.status === 'OPEN')} day={day} action={action} />
                           </ul>
                         )}
                       </td>
@@ -148,7 +167,7 @@ export default function WeekTable({ title, monday, today, agenda, tones, hidden 
 }
 
 /** The free slots of a cell in one dashed box (Stitch: "+ Créneau dispo"), each time its own item. */
-function FreeSlots({ slots, day }: { slots: readonly AgendaItem[]; day: string }) {
+function FreeSlots({ slots, day, action }: { slots: readonly AgendaItem[]; day: string; action: Action }) {
   if (slots.length === 0) return null
   return (
     <li className={styles.free}>
@@ -167,6 +186,18 @@ function FreeSlots({ slots, day }: { slots: readonly AgendaItem[]; day: string }
             >
               {timeLabel(item.startsAt)}
               <span className="visually-hidden">Créneau disponible</span>
+              {actionable(item, action.now) && (
+                <button
+                  type="button"
+                  className={styles.slotAction}
+                  aria-label={actionName('Fermer', item, day)}
+                  title="Fermer ce créneau"
+                  disabled={action.pending === item.slotId}
+                  onClick={() => action.onChange(item, 'CLOSED')}
+                >
+                  <X size={12} aria-hidden="true" />
+                </button>
+              )}
             </li>
           )
         })}
@@ -175,7 +206,7 @@ function FreeSlots({ slots, day }: { slots: readonly AgendaItem[]; day: string }
   )
 }
 
-function SlotCard({ item, day, tone }: { item: AgendaItem; day: string; tone: number }) {
+function SlotCard({ item, day, tone, action }: { item: AgendaItem; day: string; tone: number; action: Action }) {
   const time = `${timeLabel(item.startsAt)} – ${timeLabel(item.endsAt)}`
   const patient = item.appointment?.patient
   return (
@@ -207,6 +238,18 @@ function SlotCard({ item, day, tone }: { item: AgendaItem; day: string; tone: nu
         <>
           <span className={styles.slotState}>Créneau fermé</span>
           <span className={styles.slotTime}>{time}</span>
+          {actionable(item, action.now) && (
+            <button
+              type="button"
+              className={styles.reopen}
+              aria-label={actionName('Rouvrir', item, day)}
+              disabled={action.pending === item.slotId}
+              onClick={() => action.onChange(item, 'OPEN')}
+            >
+              <RotateCcw size={12} aria-hidden="true" />
+              Rouvrir
+            </button>
+          )}
         </>
       )}
     </li>
