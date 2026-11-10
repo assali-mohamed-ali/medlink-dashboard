@@ -42,7 +42,7 @@ export default function SpaceLayout({ role }: { role: Role }) {
       <nav className={styles.nav} aria-label="Menu de l’espace">
         <span className={styles.brand}>
           <span className={styles.logo} aria-hidden="true">
-            <Plus size={18} strokeWidth={3} />
+            <Plus size={20} strokeWidth={3} />
           </span>
           <strong className={styles.brandName}>MedLink</strong>
         </span>
@@ -52,6 +52,7 @@ export default function SpaceLayout({ role }: { role: Role }) {
               <NavLink
                 to={to}
                 end
+                title={label}
                 className={({ isActive }) => (isActive ? `${styles.link} ${styles.active}` : styles.link)}
               >
                 <Icon size={20} aria-hidden="true" />
@@ -63,9 +64,18 @@ export default function SpaceLayout({ role }: { role: Role }) {
       </nav>
       <div className={styles.page}>
         <header className={styles.topbar}>
-          <h1 ref={titleRef} tabIndex={-1} className={styles.title}>
-            {space.title}
-          </h1>
+          <div className={styles.topbarStart}>
+            <span className={styles.wordmark} aria-hidden="true">
+              <span className={styles.wordmarkLogo}>
+                <Plus size={14} strokeWidth={3} />
+              </span>
+              <span className={styles.wordmarkName}>MedLink</span>
+              <span className={styles.wordmarkTag}>Santé</span>
+            </span>
+            <h1 ref={titleRef} tabIndex={-1} className={styles.title}>
+              {space.title}
+            </h1>
+          </div>
           <div className={styles.account}>
             {user && (
               <>

@@ -1,9 +1,10 @@
-/* The space shell (PLAN.md §4.5): sidebar ≥ 1024 px, icon rail 768–1023 px, bottom bar < 768 px */
+/* The space shell after the Stitch design (Sage & Forest): a floating icon rail ≥ 768 px, a floating top bar, a light
+   lavender background; a bottom bar on phones. Menu labels stay for screen readers and show on hover (title). */
 .shell {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 240px minmax(0, 1fr);
-  background: var(--bg);
+  grid-template-columns: 112px minmax(0, 1fr);
+  background: var(--stitch-surface);
 }
 
 /* Off screen until focused by the keyboard */
@@ -21,88 +22,113 @@
 }
 .skip:focus { outline: none; box-shadow: var(--focus-ring); transform: none; }
 
-/* Menu */
+/* Icon rail */
 .nav {
   position: sticky;
-  top: 0;
-  height: 100vh;
+  top: var(--space-4);
+  height: calc(100vh - 2 * var(--space-4));
+  margin: var(--space-4) 0 var(--space-4) var(--space-4);
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: var(--space-6);
-  padding: var(--space-5) var(--space-3);
+  padding: var(--space-5) var(--space-1);
   background: var(--surface-raised);
-  border-right: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--elev-1);
 }
-.brand { display: flex; align-items: center; gap: var(--space-2); padding: 0 var(--space-2); color: var(--on-surface); }
+.brand { display: flex; align-items: center; justify-content: center; color: var(--on-surface); }
 .logo {
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
-  flex-shrink: 0;
-  color: var(--primary);
+  width: 40px;
+  height: 40px;
+  color: var(--primary-container);
   background: var(--secondary-fixed);
-  border-radius: var(--radius-field);
+  border-radius: var(--radius-pill);
 }
-.entries { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.entries { display: flex; flex-direction: column; align-items: center; gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
 .link {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  min-height: 44px;
-  padding: 0 var(--space-3);
-  font-size: var(--text-sm);
-  font-weight: 500;
-  color: var(--on-surface-variant);
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  color: var(--secondary);
   text-decoration: none;
-  border-radius: var(--radius-field);
+  border-radius: var(--radius-pill);
   transition: background var(--duration-fast) var(--ease), color var(--duration-fast) var(--ease);
 }
-.link svg { flex-shrink: 0; }
-.link:hover { color: var(--on-surface); background: var(--surface-sunken); }
+.link:hover { color: var(--on-surface); background: var(--secondary-fixed); }
 .link:focus-visible { outline: none; box-shadow: var(--focus-ring); }
-.active, .active:hover { color: var(--primary); background: var(--secondary-fixed); }
+.active, .active:hover { color: var(--on-primary); background: var(--primary-container); }
+.brandName, .label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
 
-/* Top bar and page */
-.page { display: flex; flex-direction: column; min-width: 0; }
+/* Floating top bar and page */
+.page { display: flex; flex-direction: column; min-width: 0; padding: var(--space-4) var(--space-4) 0 var(--space-4); }
 .topbar {
   position: sticky;
-  top: 0;
+  top: var(--space-4);
   z-index: 5;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
   min-height: 64px;
-  padding: var(--space-2) var(--space-7);
+  padding: var(--space-2) var(--space-5);
   background: var(--surface-raised);
-  border-bottom: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--elev-1);
 }
-.title { margin: 0; font-size: var(--text-2xl); line-height: var(--leading-2xl); font-weight: 600; }
+.topbarStart { display: flex; align-items: center; gap: var(--space-5); min-width: 0; }
+.wordmark { display: inline-flex; align-items: baseline; gap: var(--space-1); }
+.wordmarkLogo {
+  display: inline-grid;
+  place-items: center;
+  align-self: center;
+  width: 24px;
+  height: 24px;
+  margin-right: var(--space-1);
+  color: var(--on-primary);
+  background: var(--primary-container);
+  border-radius: 6px;
+}
+.wordmarkName { font-size: var(--text-lg); line-height: var(--leading-lg); font-weight: 700; color: var(--primary); letter-spacing: -0.01em; }
+.wordmarkTag { font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--secondary); }
+/* The space's name as Stitch's chip ("ESPACE PRATICIEN"); still the page's h1 for screen readers */
+.title {
+  margin: 0;
+  padding: 2px var(--space-3);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--primary);
+  background: var(--secondary-fixed);
+  border-radius: var(--radius-field);
+  white-space: nowrap;
+}
 .title:focus { outline: none; } /* focused by code after a navigation, never by Tab */
 .account { display: flex; align-items: center; gap: var(--space-3); }
 .who { display: flex; flex-direction: column; }
-.name { font-size: var(--text-sm); line-height: var(--leading-sm); font-weight: 500; }
-.role { font-size: var(--text-xs); line-height: var(--leading-xs); color: var(--text-muted); }
-.main { flex: 1; padding: var(--space-7); }
+.name { font-size: var(--text-sm); line-height: var(--leading-sm); font-weight: 600; }
+.role { font-size: var(--text-xs); line-height: var(--leading-xs); color: var(--secondary); }
+.main { flex: 1; padding: var(--space-6) var(--space-2) var(--space-7); }
 .main:focus { outline: none; } /* the skip link's target */
 .content { max-width: var(--content-space); }
 /* A page that needs the whole width (a week agenda) says so with data-width="wide" on its root */
 .content:has(> [data-width='wide']) { max-width: none; }
 
-/* Hidden from the eye, still read by screen readers: the label of a menu entry or of the logout button */
 @media (min-width: 768px) and (max-width: 1023px) {
-  .shell { grid-template-columns: 72px minmax(0, 1fr); }
-  .brand { justify-content: center; padding: 0; }
-  .link { justify-content: center; padding: 0; }
-  .brandName, .label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-  }
+  .shell { grid-template-columns: 96px minmax(0, 1fr); }
+  .wordmarkTag { display: none; }
 }
 
 @media (max-width: 767px) {
@@ -112,26 +138,20 @@
     inset: auto 0 0 0;
     z-index: 10;
     height: auto;
+    margin: 0;
     flex-direction: row;
     padding: var(--space-1) var(--space-2) calc(var(--space-1) + env(safe-area-inset-bottom));
+    border-radius: 0;
     border-top: 1px solid var(--border);
-    border-right: 0;
   }
   .brand { display: none; }
-  .entries { flex: 1; flex-direction: row; justify-content: space-around; }
-  .entries li { flex: 1; max-width: 120px; }
-  .link {
-    flex-direction: column;
-    justify-content: center;
-    gap: 2px;
-    min-height: 56px;
-    padding: var(--space-1);
-    font-size: var(--text-xs);
-    line-height: var(--leading-xs);
-    text-align: center;
-  }
-  .topbar { min-height: 56px; padding: var(--space-2) var(--space-4); }
-  .title { font-size: var(--text-xl); line-height: var(--leading-xl); }
+  .entries { flex: 1; flex-direction: row; justify-content: space-around; gap: 0; }
+  .entries li { flex: 1; max-width: 120px; display: grid; place-items: center; }
+  .link { width: auto; height: auto; min-height: 56px; padding: var(--space-1) var(--space-2); display: flex; flex-direction: column; gap: 2px; border-radius: var(--radius-field); }
+  .label { position: static; width: auto; height: auto; overflow: visible; clip: auto; font-size: var(--text-xs); line-height: var(--leading-xs); }
+  .page { padding: var(--space-2) var(--space-2) 0; }
+  .topbar { top: var(--space-2); min-height: 56px; padding: var(--space-2) var(--space-3); }
+  .wordmark { display: none; }
   .who { display: none; }
   .logoutLabel {
     position: absolute;
@@ -141,5 +161,5 @@
     clip: rect(0, 0, 0, 0);
     white-space: nowrap;
   }
-  .main { padding: var(--space-4); }
+  .main { padding: var(--space-4) 0 var(--space-6); }
 }

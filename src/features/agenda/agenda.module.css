@@ -12,7 +12,7 @@
 .panel, .week {
   display: flex; flex-direction: column; gap: var(--space-4);
   padding: var(--space-5); background: var(--surface-raised);
-  border: 1px solid var(--border); border-radius: var(--radius-sheet); box-shadow: var(--elev-1);
+  border: 0; border-radius: var(--radius-sheet); box-shadow: var(--elev-1);
 }
 .week { padding: var(--space-5); min-width: 0; }
 .panelHead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-1) var(--space-2); }
@@ -26,7 +26,7 @@
   border: 1px solid var(--border); border-radius: var(--radius-pill); background: var(--surface-raised);
   color: var(--on-surface); cursor: pointer;
 }
-.iconButton:hover { background: var(--surface-container); }
+.iconButton:hover { background: var(--stitch-surface-container); }
 .iconButton:focus-visible, .monthDay:focus-visible, .linkButton:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 .linkButton {
   padding: var(--space-1) var(--space-2); border: 0; border-radius: var(--radius-field); background: none;
@@ -41,16 +41,16 @@
   height: 28px; padding: 0; border: 0; border-radius: var(--radius-pill); background: none;
   color: var(--on-surface); font: inherit; font-size: var(--text-xs); line-height: var(--leading-xs); cursor: pointer;
 }
-.monthDay:hover { background: var(--surface-container); }
+.monthDay:hover { background: var(--stitch-surface-container); }
 .monthDay[data-outside] { color: var(--text-muted); }
-.monthDay[data-week] { background: var(--accent-soft); }
+.monthDay[data-week] { background: var(--stitch-surface-high); }
 .monthDay[aria-current='date'] { background: var(--primary); color: var(--on-primary); font-weight: 600; }
 
 /* Clinic filter */
 .filters { display: flex; flex-direction: column; gap: var(--space-2); }
 .filter {
   display: flex; align-items: center; justify-content: space-between; gap: var(--space-2);
-  padding: var(--space-3); border-radius: var(--radius-control); background: var(--surface-low);
+  padding: var(--space-3); border-radius: var(--radius-control); background: var(--stitch-surface-low);
 }
 .filterName { font-size: var(--text-sm); line-height: var(--leading-sm); font-weight: 600; }
 .dot { width: 8px; height: 8px; border-radius: var(--radius-pill); background: var(--clinic-1); flex-shrink: 0; }
@@ -58,8 +58,8 @@
 /* Occupancy */
 .occupancyTitle { margin: 0; font-size: var(--text-sm); line-height: var(--leading-sm); font-weight: 600; }
 .rate { white-space: nowrap; font-size: var(--text-2xl); line-height: var(--leading-xl); font-weight: 700; color: var(--primary); }
-.bar { height: 8px; border-radius: var(--radius-pill); background: var(--surface-container); overflow: hidden; }
-.bar span { display: block; height: 100%; border-radius: inherit; background: var(--primary); }
+.bar { height: 8px; border-radius: var(--radius-pill); background: var(--stitch-surface-container); overflow: hidden; }
+.bar span { display: block; height: 100%; border-radius: inherit; background: var(--primary-container); }
 .occupancyCounts {
   display: flex; justify-content: space-between; gap: var(--space-2); margin: 0;
   color: var(--text-muted); font-size: var(--text-xs); line-height: var(--leading-xs); white-space: nowrap;
@@ -78,7 +78,7 @@
 .chips { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
 .chip {
   display: inline-flex; align-items: center; gap: var(--space-2); padding: 2px var(--space-3);
-  border-radius: var(--radius-field); background: var(--surface-low); font-size: var(--text-xs); line-height: var(--leading-xs); font-weight: 600;
+  border-radius: var(--radius-field); background: var(--stitch-surface-low); font-size: var(--text-xs); line-height: var(--leading-xs); font-weight: 600;
 }
 
 /* The week table (Stitch): a pale rounded box in every cell, pastel cards, the free slots dashed and centred */
@@ -90,7 +90,7 @@
 }
 .hourHead { text-transform: uppercase; letter-spacing: 0.04em; }
 .dayHead {
-  padding: var(--space-2); border-radius: var(--radius-control); background: var(--surface-low);
+  padding: var(--space-2); border-radius: var(--radius-control); background: var(--stitch-surface-low);
   text-align: center; vertical-align: top; font-weight: 400;
 }
 .dayHead[data-today] { background: var(--primary); color: var(--on-primary); box-shadow: var(--elev-1); }
@@ -101,30 +101,30 @@
 .dayHead:not([data-today]) .weekday { color: var(--text-muted); }
 .dayHead[data-today] .dayClinics { color: var(--on-primary); }
 .cell { padding: 0; vertical-align: top; height: 72px; }
-.cell[data-empty] { border-radius: var(--radius-control); background: var(--surface-low); opacity: 0.6; }
+.cell[data-empty] { border-radius: var(--radius-control); background: var(--stitch-surface-low); opacity: 0.7; }
 .slots { display: flex; flex-direction: column; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
 
 .slot {
   display: flex; flex-direction: column; gap: var(--space-1); min-height: 72px;
   padding: 10px; border-radius: var(--radius-control);
-  background: var(--clinic-1-container); color: var(--on-surface);
+  background: var(--clinic-1-container); color: var(--on-clinic-1-container);
   font-size: 0.6875rem; line-height: var(--leading-xs);
 }
 .slot[data-status='OPEN'] {
   min-height: 0; padding: var(--space-2); align-items: center; justify-content: center; text-align: center;
-  background: var(--surface-raised); border: 2px dashed var(--border); color: var(--text-muted);
+  background: transparent; border: 2px dashed var(--stitch-outline-variant); color: var(--text-muted);
 }
 .slot[data-status='CLOSED'] {
   min-height: 0; padding: var(--space-2); align-items: center; text-align: center;
-  background: var(--surface-low); color: var(--text-muted);
+  background: var(--stitch-surface-low); color: var(--text-muted);
 }
 .slotPatient { display: flex; align-items: center; gap: var(--space-1); min-width: 0; }
-.slotName { flex: 1; min-width: 0; font-size: var(--text-xs); font-weight: 700; overflow-wrap: break-word; }
+.slotName { flex: 1; min-width: 0; font-size: var(--text-xs); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .slotState { display: inline-flex; align-items: center; gap: 2px; font-weight: 600; }
 .slot[data-status='OPEN'] .slotState { color: var(--on-surface-variant); }
 .slotTime { white-space: nowrap; }
 .slot[data-status='BOOKED'] .slotTime { font-weight: 600; }
-.slotClinic { display: inline-flex; align-items: center; gap: 2px; margin-top: auto; color: var(--on-surface-variant); }
+.slotClinic { display: inline-flex; align-items: center; gap: 2px; margin-top: auto; opacity: 0.85; }
 .confirmed { width: 8px; height: 8px; border-radius: var(--radius-pill); background: var(--primary-container); flex-shrink: 0; }
 
 /* Legend */
@@ -133,17 +133,17 @@
   border-top: 1px solid var(--border); font-size: var(--text-xs); line-height: var(--leading-xs);
 }
 .legendItem { display: inline-flex; align-items: center; gap: var(--space-2); }
-.swatch { width: 14px; height: 14px; border-radius: 4px; background: var(--clinic-1-container); border-left: 3px solid var(--clinic-1); }
+.swatch { width: 14px; height: 14px; border-radius: var(--radius-pill); background: var(--clinic-1-container); border: 1px solid var(--clinic-1); }
 .swatchOpen { width: 14px; height: 14px; border-radius: 4px; border: 1px dashed var(--border-strong); }
 .swatchClosed { width: 14px; height: 14px; border-radius: 4px; background: var(--surface-sunken); border: 1px solid var(--border); }
 
 /* Clinic tones 2 and 3 (tone 1 is the default above) */
 [data-tone='2'] .dot, .dot[data-tone='2'] { background: var(--clinic-2); }
 [data-tone='3'] .dot, .dot[data-tone='3'] { background: var(--clinic-3); }
-[data-tone='2'] .swatch { background: var(--clinic-2-container); border-left-color: var(--clinic-2); }
-[data-tone='3'] .swatch { background: var(--clinic-3-container); border-left-color: var(--clinic-3); }
-.slot[data-tone='2'][data-status='BOOKED'] { background: var(--clinic-2-container); }
-.slot[data-tone='3'][data-status='BOOKED'] { background: var(--clinic-3-container); }
+[data-tone='2'] .swatch { background: var(--clinic-2-container); border-color: var(--clinic-2); }
+[data-tone='3'] .swatch { background: var(--clinic-3-container); border-color: var(--clinic-3); }
+.slot[data-tone='2'][data-status='BOOKED'] { background: var(--clinic-2-container); color: var(--on-clinic-2-container); }
+.slot[data-tone='3'][data-status='BOOKED'] { background: var(--clinic-3-container); color: var(--on-clinic-3-container); }
 
 @media (max-width: 1023px) {
   .layout { grid-template-columns: minmax(0, 1fr); }

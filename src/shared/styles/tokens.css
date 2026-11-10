@@ -48,12 +48,24 @@
   --warning-container: #fdf0d5;
   /* The agenda's clinics (MLink-26): one tone each, always shown with the clinic's name (never colour alone).
      The strong tone marks an edge or a dot (≥ 3:1 on white); text on a container stays --on-surface. */
-  --clinic-1: #1d5fa0;
-  --clinic-1-container: #e4eef8;
-  --clinic-2: #a3324f;
-  --clinic-2-container: #f9e5eb;
-  --clinic-3: #8a5a00;
-  --clinic-3-container: #fdf0d5;
+  --clinic-1: #2c5e8a;
+  --clinic-1-container: #e1f0fa;
+  --on-clinic-1-container: #0a3d62;
+  --clinic-2: #933a44;
+  --clinic-2-container: #fde8e9;
+  --on-clinic-2-container: #7a1e28;
+  --clinic-3: #97600a;
+  --clinic-3-container: #fff3e0;
+  --on-clinic-3-container: #6d4200;
+  /* The Stitch "Sage & Forest" design of the agenda (MLink-26): its light lavender surfaces and its yellow action */
+  --stitch-surface: #f9f9ff;
+  --stitch-surface-low: #f0f3ff;
+  --stitch-surface-container: #e7eeff;
+  --stitch-surface-high: #dee8ff;
+  --stitch-outline-variant: #bfc9c4;
+  --stitch-action: #ffe087;
+  --stitch-action-hover: #ebc23e;
+  --on-stitch-action: #241a00;
   --on-warning-container: #6a4700;
 
   /* Shape */
