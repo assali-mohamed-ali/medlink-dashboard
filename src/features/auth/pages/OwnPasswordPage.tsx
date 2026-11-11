@@ -10,20 +10,16 @@ import styles from './PasswordPage.module.css'
  * the space's menu, title and logout stay around it. The space's guard has checked the role. On success the API
  * ends every session of the person: `endSession` clears it here too, and the guard opens the login page, which
  * says the password changed (code owner's review on #11: a public page made the person look logged out).
- * The card sits in the middle of the page; a practitioner, who opens it from their profile, gets a way back to it.
+ * The card sits in the middle of the screen; a practitioner, who opens it from their profile, gets a way back to it
+ * under the button.
  */
 export default function OwnPasswordPage() {
   const { user, endSession } = useAuth()
   const fromProfile = user?.roles.includes('PRACTITIONER') ?? false
 
   return (
-    <div className={styles.inSpace}>
-      {fromProfile && (
-        <Link to={paths.practitioner.profile} className={styles.back}>
-          <ArrowLeft size={16} aria-hidden="true" />
-          Retour au profil
-        </Link>
-      )}
+    // data-width: the space gives the page its whole width, so the card sits in the middle of the screen
+    <div className={styles.inSpace} data-width="wide">
       <section className={`${styles.card} ${styles.spaceCard}`} aria-labelledby="own-password-title">
         <div className={styles.head}>
           <span className={styles.icon} aria-hidden="true">
@@ -37,6 +33,12 @@ export default function OwnPasswordPage() {
           </p>
         </div>
         <PasswordForm mode="own" email={user?.email ?? ''} onChanged={endSession} />
+        {fromProfile && (
+          <Link to={paths.practitioner.profile} className={styles.back}>
+            <ArrowLeft size={16} aria-hidden="true" />
+            Retour au profil
+          </Link>
+        )}
       </section>
     </div>
   )
