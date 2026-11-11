@@ -17,6 +17,8 @@ export type MenuEntry = {
   to: string
   /** A lucide icon: alone in the icon rail (768–1023 px), above the label in the phone's bottom bar. */
   icon: LucideIcon
+  /** Pages reached from this entry's page, with no entry of their own: on them, this entry stays marked current. */
+  also?: readonly string[]
 }
 
 /** A part of the space shown on its home: a link when its page exists, "Bientôt disponible" until then. */
@@ -66,8 +68,8 @@ export const SPACES: Record<Role, Space> = {
     menu: [
       { label: 'Accueil', to: paths.practitioner.root, icon: House },
       { label: 'Agenda', to: paths.practitioner.agenda, icon: CalendarDays },
-      { label: 'Profil', to: paths.practitioner.profile, icon: UserRound },
-      { label: 'Mot de passe', to: paths.practitioner.password, icon: KeyRound },
+      // The password page opens from the profile ("Modifier le mot de passe"), not from the menu
+      { label: 'Profil', to: paths.practitioner.profile, icon: UserRound, also: [paths.practitioner.password] },
     ],
     home: {
       intro: 'Votre journée en un coup d’œil.',

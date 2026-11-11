@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useRef } from 'react'
 import { LogOut, Plus } from 'lucide-react'
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { NotificationBell } from '@/features/alerts'
 import { useAuth, type Role } from '@/features/auth'
 import UserAvatar from '@/shared/components/UserAvatar'
@@ -48,19 +48,24 @@ export default function SpaceLayout({ role }: { role: Role }) {
           <strong className={styles.brandName}>MedLink</strong>
         </span>
         <ul className={styles.entries}>
-          {space.menu.map(({ label, to, icon: Icon }) => (
-            <li key={to}>
-              <NavLink
-                to={to}
-                end
-                title={label}
-                className={({ isActive }) => (isActive ? `${styles.link} ${styles.active}` : styles.link)}
-              >
-                <Icon size={20} aria-hidden="true" />
-                <span className={styles.label}>{label}</span>
-              </NavLink>
-            </li>
-          ))}
+          {space.menu.map(({ label, to, icon: Icon, also }) => {
+            // The entry of this page, or of the page it was reached from (e.g. the password page from "Profil")
+            const path = pathname.replace(/\/+$/, '') || '/'
+            const current = path === to || also?.includes(path)
+            return (
+              <li key={to}>
+                <Link
+                  to={to}
+                  title={label}
+                  aria-current={current ? 'page' : undefined}
+                  className={current ? `${styles.link} ${styles.active}` : styles.link}
+                >
+                  <Icon size={20} aria-hidden="true" />
+                  <span className={styles.label}>{label}</span>
+                </Link>
+              </li>
+            )
+          })}
         </ul>
       </nav>
       <div className={styles.page}>
