@@ -1,5 +1,5 @@
 import { roleHome, useAuth } from '@/features/auth'
-import StatusPage from './StatusPage'
+import StatusPage from '@/shared/components/StatusPage'
 
 /** Where the guards send a person who opened another role's page (MLink-61). */
 export default function AccessDeniedPage() {

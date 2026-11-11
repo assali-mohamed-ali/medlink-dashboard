@@ -1,5 +1,5 @@
 import { paths } from '@/shared/config/paths'
-import StatusPage from './StatusPage'
+import StatusPage from '@/shared/components/StatusPage'
 
 /**
  * The router's errorElement: a page crashed or failed to load (e.g. a lazy chunk after a new deployment).

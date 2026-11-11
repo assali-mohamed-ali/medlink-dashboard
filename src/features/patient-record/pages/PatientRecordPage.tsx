@@ -1,6 +1,7 @@
 import { useEffect, useId, useState } from 'react'
 import { ArrowLeft, FileText, IdCard } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
+import StatusPage from '@/shared/components/StatusPage'
 import UserAvatar from '@/shared/components/UserAvatar'
 import { ApiError } from '@/shared/api/apiClient'
 import { messageFor } from '@/shared/api/errors'
@@ -13,12 +14,12 @@ import styles from '../record.module.css'
 type Load =
   | { status: 'loading' }
   | { status: 'ready'; record: PatientRecord }
-  | { status: 'error'; message: string; canRetry: boolean }
+  | { status: 'refused' }
+  | { status: 'error'; message: string }
 
 /** What the last answer was for (a patient and an attempt); another key means it is not the current one. */
 type Answer = { key: string; load: Load }
 
-const NOT_ACCESSIBLE = 'Ce dossier n’est pas accessible : ce patient n’a pas de rendez-vous avec vous.'
 
 /** "12 mars 1985 (41 ans)": the date as written, the age on today's date. */
 function birthLabel(birthDate: string, today: Date) {
@@ -59,10 +60,7 @@ export default function PatientRecordPage() {
         if (!current) return
         // 403: not attached, unknown or malformed id (one answer for the three): nothing to try again
         const refused = error instanceof ApiError && error.status === 403
-        setAnswer({
-          key,
-          load: { status: 'error', message: refused ? NOT_ACCESSIBLE : messageFor(error), canRetry: !refused },
-        })
+        setAnswer({ key, load: refused ? { status: 'refused' } : { status: 'error', message: messageFor(error) } })
       },
     )
     return () => {
@@ -71,6 +69,18 @@ export default function PatientRecordPage() {
   }, [patientId, key])
 
   const patient = load.status === 'ready' ? load.record.patient : null
+
+  // MLink-31 (31.5): the "Accès refusé" screen of 16.5, inside the space, with no data of any patient
+  if (load.status === 'refused') {
+    return (
+      // data-width: on the same sage background as the agenda and the record
+      <div data-width="wide">
+        <StatusPage inLayout title="Accès refusé" action={{ label: 'Retour à l’agenda', to: paths.practitioner.agenda }}>
+          <p>Ce patient n’est pas rattaché à votre agenda.</p>
+        </StatusPage>
+      </div>
+    )
+  }
 
   return (
     <section aria-labelledby={titleId} className={styles.page} data-width="wide">
@@ -91,11 +101,9 @@ export default function PatientRecordPage() {
       {load.status === 'error' && (
         <div className={styles.error}>
           <Alert tone="error">{load.message}</Alert>
-          {load.canRetry && (
-            <Button variant="secondary" onClick={() => setAttempt((n) => n + 1)}>
-              Réessayer
-            </Button>
-          )}
+          <Button variant="secondary" onClick={() => setAttempt((n) => n + 1)}>
+            Réessayer
+          </Button>
         </div>
       )}
 
