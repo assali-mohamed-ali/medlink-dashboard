@@ -57,7 +57,7 @@ test('lists the saved reports, newest first: date in Tunis time and the start of
   fetchReports.mockResolvedValue([OLD, long])
   renderPage()
 
-  const list = within(await reportsRegion()).getByRole('list', { name: 'Comptes-rendus enregistrés' })
+  const list = await within(await reportsRegion()).findByRole('list', { name: 'Comptes-rendus enregistrés' })
   const items = within(list).getAllByRole('listitem')
   expect(items).toHaveLength(2)
   expect(items[0]).toHaveTextContent('5 novembre 2026 à 16:00')
@@ -72,7 +72,7 @@ test('no report yet: "Aucun compte-rendu"', async () => {
   fetchReports.mockResolvedValue([])
   renderPage()
 
-  expect(within(await reportsRegion()).getByText('Aucun compte-rendu')).toBeInTheDocument()
+  expect(await within(await reportsRegion()).findByText('Aucun compte-rendu')).toBeInTheDocument()
 })
 
 test('"Nouveau compte-rendu" opens the editor; "Enregistrer" sends the text, then the list is read again and shows it', async () => {

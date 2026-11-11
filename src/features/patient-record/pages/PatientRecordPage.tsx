@@ -1,13 +1,14 @@
 import { useEffect, useId, useState } from 'react'
-import { ArrowLeft, FileText, IdCard } from 'lucide-react'
+import { ArrowLeft, IdCard } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 import StatusPage from '@/shared/components/StatusPage'
 import UserAvatar from '@/shared/components/UserAvatar'
 import { ApiError } from '@/shared/api/apiClient'
 import { messageFor } from '@/shared/api/errors'
 import { paths } from '@/shared/config/paths'
-import { Alert, Button, EmptyState, Skeleton } from '@/shared/ui'
+import { Alert, Button, Skeleton } from '@/shared/ui'
 import { fetchPatientRecord } from '../api'
+import ReportsPanel from '../components/ReportsPanel'
 import type { PatientRecord } from '../types'
 import styles from '../record.module.css'
 
@@ -44,7 +45,6 @@ export default function PatientRecordPage() {
   const { patientId = '' } = useParams()
   const titleId = useId()
   const identityId = useId()
-  const reportsId = useId()
   const [today] = useState(() => new Date())
   const [attempt, setAttempt] = useState(0)
   const [answer, setAnswer] = useState<Answer | null>(null)
@@ -132,22 +132,7 @@ export default function PatientRecordPage() {
             </dl>
           </section>
 
-          <section aria-labelledby={reportsId} className={styles.card}>
-            <h3 id={reportsId} className={styles.cardTitle}>
-              <FileText size={16} aria-hidden="true" />
-              Comptes-rendus
-            </h3>
-            {load.record.reports.length === 0 ? (
-              <EmptyState icon={FileText} title="Aucun compte-rendu" compact headingLevel={4}>
-                Les comptes-rendus de vos consultations avec ce patient apparaîtront ici.
-              </EmptyState>
-            ) : (
-              <p>
-                {load.record.reports.length} compte{load.record.reports.length > 1 ? 's' : ''}-rendu
-                {load.record.reports.length > 1 ? 's' : ''}
-              </p>
-            )}
-          </section>
+          <ReportsPanel patientId={patientId} />
         </div>
       )}
     </section>

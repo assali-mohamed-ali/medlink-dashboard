@@ -63,7 +63,7 @@ test('no report yet: "Aucun compte-rendu"', async () => {
   renderPage()
 
   const reports = await screen.findByRole('region', { name: 'Comptes-rendus' })
-  expect(within(reports).getByText('Aucun compte-rendu')).toBeInTheDocument()
+  expect(await within(reports).findByText('Aucun compte-rendu')).toBeInTheDocument()
 })
 
 test('says it is loading, then shows the record', async () => {
