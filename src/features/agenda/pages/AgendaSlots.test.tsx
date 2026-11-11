@@ -241,3 +241,29 @@ test('a second click while the change is sent does nothing', async () => {
   expect(changeSlotStatus).toHaveBeenCalledTimes(1)
   expect(screen.getByRole('button', { name: /Fermer le créneau/ })).toBeDisabled()
 })
+
+test('an overlap with a slot hidden by the filter shows that clinic and its week again, the form stays open', async () => {
+  openSlot.mockRejectedValue(
+    new ApiError(409, 'SLOT_OVERLAP', 'Vous avez déjà un créneau de 10:00 à 10:30 à Clinique MedLink Sfax le 17/11/2026.', {
+      conflictClinic: 'Clinique MedLink Sfax',
+      conflictStartsAt: '2026-11-17T09:00:00Z',
+      conflictEndsAt: '2026-11-17T09:30:00Z',
+      conflictStatus: 'OPEN',
+    }),
+  )
+  const user = userEvent.setup()
+  renderPage()
+  await screen.findByRole('table')
+  await user.click(screen.getByRole('checkbox', { name: /Sfax/ })) // Sfax hidden
+  await user.click(screen.getByRole('button', { name: /Ajouter un créneau/ }))
+  const form = screen.getByRole('form', { name: 'Ouvrir un créneau' })
+
+  await fill(user, form, { clinic: 'c1', date: '2026-11-17', start: '10:00', end: '10:30' })
+  await user.click(within(form).getByRole('button', { name: 'Ouvrir le créneau' }))
+
+  expect(await within(form).findByRole('alert')).toHaveTextContent('à Clinique MedLink Sfax le 17/11/2026')
+  expect(await screen.findByRole('heading', { name: 'Semaine du 16 au 21 novembre 2026' })).toBeInTheDocument()
+  expect(await screen.findByRole('checkbox', { name: /Sfax/ })).toBeChecked()
+  expect(screen.getByRole('form', { name: 'Ouvrir un créneau' })).toBeInTheDocument()
+  expect(within(screen.getByRole('form', { name: 'Ouvrir un créneau' })).getByLabelText('Début')).toHaveValue('10:00')
+})
