@@ -66,3 +66,25 @@ test.each(['PATIENT', 'ADMINISTRATIVE_STAFF'] as const)('a %s gets "Accès refus
   expect(await screen.findByRole('heading', { name: 'Accès refusé' })).toBeInTheDocument()
   expect(screen.queryByRole('heading', { name: 'Profil & sécurité' })).toBeNull()
 })
+
+test('the practitioner’s password page has a way back to the profile, the card in the middle of the page', async () => {
+  const user = userEvent.setup()
+  loggedInAs('PRACTITIONER')
+  const router = renderAt('/praticien/mot-de-passe')
+
+  expect(await screen.findByRole('heading', { name: 'Changer mon mot de passe' })).toBeInTheDocument()
+  const rules = screen.getByRole('list', { name: 'Règles du mot de passe' })
+  expect(screen.getByText('Votre nouveau mot de passe doit contenir :')).toBeInTheDocument()
+  expect(rules).toBeInTheDocument()
+
+  await user.click(screen.getByRole('link', { name: 'Retour au profil' }))
+  await waitFor(() => expect(router.state.location.pathname).toBe('/praticien/profil'))
+})
+
+test('the patient’s password page has no "Retour au profil" (their menu keeps "Mot de passe")', async () => {
+  loggedInAs('PATIENT')
+  renderAt('/patient/mot-de-passe')
+
+  expect(await screen.findByRole('heading', { name: 'Changer mon mot de passe' })).toBeInTheDocument()
+  expect(screen.queryByRole('link', { name: 'Retour au profil' })).toBeNull()
+})
