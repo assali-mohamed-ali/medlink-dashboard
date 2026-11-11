@@ -19,6 +19,8 @@ type Props = {
   today: string
   onOpened: (slot: AgendaItem) => void
   onCancel: () => void
+  /** A 409 SLOT_OVERLAP: the slot in the way (its clinic and start, in `details`), for the page to show it. */
+  onConflict: (details: unknown) => void
 }
 
 /** What the form checks itself; the API checks the rest (future, length, overlap) and its messages land here too. */
@@ -36,7 +38,7 @@ function check(clinicId: string, date: string, start: string, end: string): Erro
  * MLink-26 (26.8): opens a slot in one of the practitioner's clinics. Times are typed in Tunis time and sent as
  * instants; the request leaves once, however many clicks.
  */
-export default function OpenSlotForm({ id, clinics, today, onOpened, onCancel }: Props) {
+export default function OpenSlotForm({ id, clinics, today, onOpened, onCancel, onConflict }: Props) {
   const [clinicId, setClinicId] = useState('')
   const [date, setDate] = useState(today)
   const [start, setStart] = useState('')
@@ -69,6 +71,7 @@ export default function OpenSlotForm({ id, clinics, today, onOpened, onCancel }:
         : {}
       if (Object.keys(perField).length > 0) setErrors(perField)
       else setFailure(messageFor(error))
+      if (error instanceof ApiError && error.code === 'SLOT_OVERLAP') onConflict(error.details)
     } finally {
       sendingRef.current = false
       setSending(false)

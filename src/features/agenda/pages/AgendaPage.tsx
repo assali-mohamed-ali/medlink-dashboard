@@ -12,7 +12,7 @@ import MonthCalendar from '../components/MonthCalendar'
 import Occupancy from '../components/Occupancy'
 import OpenSlotForm from '../components/OpenSlotForm'
 import WeekTable from '../components/WeekTable'
-import type { Agenda, AgendaItem } from '../types'
+import type { Agenda, AgendaItem, ClinicRef } from '../types'
 import { addDays, isoWeek, longDayLabel, mondayOf, monthOf, timeLabel, tunisDay, weekPeriod, weekTitle } from '../week'
 import styles from '../agenda.module.css'
 
@@ -59,6 +59,8 @@ export default function AgendaPage() {
   const [pending, setPending] = useState<string | null>(null)
   const pendingRef = useRef<string | null>(null)
   const addButton = useRef<HTMLButtonElement>(null)
+  // The practitioner's clinics, kept while another week loads (the form stays open meanwhile)
+  const [knownClinics, setKnownClinics] = useState<readonly ClinicRef[] | null>(null)
 
   const key = `${monday}#${attempt}`
   // Loading until the answer for this week (and this attempt) arrives: nothing to reset when the week changes
@@ -73,7 +75,11 @@ export default function AgendaPage() {
     let current = true
     const { from, to } = weekPeriod(monday)
     fetchAgenda(from, to).then(
-      (agenda) => current && setAnswer({ key, load: { status: 'ready', agenda } }),
+      (agenda) => {
+        if (!current) return
+        setAnswer({ key, load: { status: 'ready', agenda } })
+        setKnownClinics(agenda.clinics)
+      },
       (error) => current && setAnswer({ key, load: { status: 'error', message: messageFor(error) } }),
     )
     return () => {
@@ -107,6 +113,23 @@ export default function AgendaPage() {
     closeForm()
     showWeek(tunisDay(item.startsAt))
     reload()
+  }
+
+  /** The slot in the way of a new one may be hidden (filter, other week): show its clinic and its week. */
+  function showConflict(details: unknown) {
+    if (!details || typeof details !== 'object') return
+    const { conflictClinic, conflictStartsAt } = details as Record<string, unknown>
+    const clinic = knownClinics?.find((known) => known.name === conflictClinic)
+    if (clinic) {
+      setHidden((before) => {
+        const next = new Set(before)
+        next.delete(clinic.id)
+        return next
+      })
+    }
+    if (typeof conflictStartsAt === 'string' && !Number.isNaN(Date.parse(conflictStartsAt))) {
+      showWeek(tunisDay(conflictStartsAt))
+    }
   }
 
   /** Closes or reopens a slot; one request at a time, then the agenda is read again. */
@@ -165,7 +188,7 @@ export default function AgendaPage() {
             className={styles.action}
             aria-expanded={formOpen}
             aria-controls={formOpen ? formId : undefined}
-            disabled={!clinics || clinics.length === 0}
+            disabled={!knownClinics || knownClinics.length === 0}
             onClick={() => {
               setNotice(null)
               setFormOpen((open) => !open)
@@ -176,8 +199,15 @@ export default function AgendaPage() {
         </div>
       </header>
 
-      {formOpen && clinics && (
-        <OpenSlotForm id={formId} clinics={clinics} today={today} onOpened={opened} onCancel={closeForm} />
+      {formOpen && knownClinics && (
+        <OpenSlotForm
+          id={formId}
+          clinics={knownClinics}
+          today={today}
+          onOpened={opened}
+          onCancel={closeForm}
+          onConflict={showConflict}
+        />
       )}
       {notice && <Alert tone={notice.tone}>{notice.text}</Alert>}
 
