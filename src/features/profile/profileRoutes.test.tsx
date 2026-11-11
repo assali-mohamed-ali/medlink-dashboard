@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { RouterProvider, createMemoryRouter } from 'react-router-dom'
 import { beforeEach, expect, test, vi } from 'vitest'
@@ -48,9 +48,15 @@ test('a practitioner opens "Profil" from the menu, then the password page from t
   expect(await screen.findByRole('heading', { name: 'Profil & sécurité', level: 2 })).toBeInTheDocument()
   expect(router.state.location.pathname).toBe('/praticien/profil')
 
+  // The password page is reached from the profile only: no "Mot de passe" entry in the practitioner's menu
+  const menu = screen.getByRole('navigation', { name: 'Menu de l’espace' })
+  expect(within(menu).queryByRole('link', { name: 'Mot de passe' })).toBeNull()
+
   await user.click(screen.getByRole('link', { name: 'Modifier le mot de passe' }))
   // The password page is a lazy route: the move completes once its chunk is loaded
   await waitFor(() => expect(router.state.location.pathname).toBe('/praticien/mot-de-passe'))
+  // On the password page, "Profil" stays the current entry of the menu
+  expect(await within(menu).findByRole('link', { name: 'Profil' })).toHaveAttribute('aria-current', 'page')
 })
 
 test.each(['PATIENT', 'ADMINISTRATIVE_STAFF'] as const)('a %s gets "Accès refusé"', async (role) => {
