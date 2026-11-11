@@ -1,0 +1,27 @@
+/* MLink-31: the patient record, after the Stitch cards of the agenda. Tokens only. */
+.page { display: flex; flex-direction: column; gap: var(--space-5); }
+.back {
+  display: inline-flex; align-items: center; gap: var(--space-1); align-self: flex-start;
+  color: var(--primary); font-size: var(--text-sm); line-height: var(--leading-sm); font-weight: 600; text-decoration: none;
+}
+.back:hover { text-decoration: underline; }
+.back:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--radius-field); }
+.eyebrow { margin: 0; color: var(--text-muted); font-size: var(--text-xs); line-height: var(--leading-xs); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+.title { margin: 0; font-size: var(--text-3xl); line-height: var(--leading-3xl); font-weight: 700; letter-spacing: -0.01em; }
+.layout { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: var(--space-5); align-items: start; }
+.card {
+  display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-5);
+  background: var(--surface-raised); border: 1px solid var(--border); border-radius: var(--radius-sheet); box-shadow: var(--elev-1);
+}
+.cardTitle { margin: 0; display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); line-height: var(--leading-sm); font-weight: 600; }
+.who { display: flex; align-items: center; gap: var(--space-3); }
+.name { font-size: var(--text-lg); line-height: var(--leading-lg); font-weight: 700; }
+.facts { display: grid; gap: var(--space-3); margin: 0; }
+.fact { display: flex; flex-direction: column; gap: 2px; padding: var(--space-3); border-radius: var(--radius-control); background: var(--surface-low); }
+.fact dt { color: var(--text-muted); font-size: var(--text-xs); line-height: var(--leading-xs); font-weight: 600; }
+.fact dd { margin: 0; font-size: var(--text-sm); line-height: var(--leading-sm); font-weight: 600; }
+.error { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); }
+
+@media (max-width: 1023px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+}

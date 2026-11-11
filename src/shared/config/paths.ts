@@ -16,7 +16,7 @@ export const paths = {
   activateAccount: '/activer-compte', // mailed by the API
   accessDenied: '/acces-refuse',
   patient: { root: '/patient' },
-  practitioner: { root: '/praticien', agenda: '/praticien/agenda' },
+  practitioner: { root: '/praticien', agenda: '/praticien/agenda', patients: '/praticien/patients' }, // a record: patients/:id
   staff: { root: '/admin', accounts: '/admin/comptes' },
   specimen: '/__specimen', // dev only (npm run dev): the UI refresh specimen, absent from production builds
 } as const

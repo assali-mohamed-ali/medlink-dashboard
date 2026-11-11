@@ -1,4 +1,6 @@
-import { CalendarX, MapPin, Plus, RotateCcw, X } from 'lucide-react'
+import { CalendarX, FolderOpen, MapPin, Plus, RotateCcw, X } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { paths } from '@/shared/config/paths'
 import UserAvatar from '@/shared/components/UserAvatar'
 import { EmptyState } from '@/shared/ui'
 import { shortName, sortedClinics } from '../clinicTones'
@@ -233,6 +235,15 @@ function SlotCard({ item, day, tone, action }: { item: AgendaItem; day: string; 
             <MapPin size={12} aria-hidden="true" />
             {shortName(item.clinic.name)}
           </span>
+          {/* MLink-31: the patient's record, from their appointment */}
+          <Link
+            to={`${paths.practitioner.patients}/${encodeURIComponent(patient.id)}`}
+            className={styles.openRecord}
+            aria-label={`Ouvrir le dossier de ${patient.firstName} ${patient.lastName}`}
+          >
+            <FolderOpen size={12} aria-hidden="true" />
+            Dossier
+          </Link>
         </>
       ) : (
         <>

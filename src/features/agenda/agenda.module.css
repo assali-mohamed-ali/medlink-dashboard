@@ -201,3 +201,12 @@
 .reopen:hover { background: var(--surface-container); }
 .slotAction:focus-visible, .reopen:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 .slotAction:disabled, .reopen:disabled { cursor: wait; opacity: 0.6; }
+
+/* MLink-31: "Ouvrir le dossier" on an appointment */
+.openRecord {
+  display: inline-flex; align-items: center; gap: 2px; align-self: flex-start; min-height: 24px; padding: 0 var(--space-2);
+  border-radius: var(--radius-pill); background: var(--surface-raised); color: var(--primary);
+  font-weight: 600; text-decoration: none; white-space: nowrap;
+}
+.openRecord:hover { background: var(--surface-container); }
+.openRecord:focus-visible { outline: none; box-shadow: var(--focus-ring); }

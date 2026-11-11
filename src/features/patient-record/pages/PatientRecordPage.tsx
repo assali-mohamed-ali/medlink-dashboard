@@ -1,0 +1,147 @@
+import { useEffect, useId, useState } from 'react'
+import { ArrowLeft, FileText, IdCard } from 'lucide-react'
+import { Link, useParams } from 'react-router-dom'
+import UserAvatar from '@/shared/components/UserAvatar'
+import { ApiError } from '@/shared/api/apiClient'
+import { messageFor } from '@/shared/api/errors'
+import { paths } from '@/shared/config/paths'
+import { Alert, Button, EmptyState, Skeleton } from '@/shared/ui'
+import { fetchPatientRecord } from '../api'
+import type { PatientRecord } from '../types'
+import styles from '../record.module.css'
+
+type Load =
+  | { status: 'loading' }
+  | { status: 'ready'; record: PatientRecord }
+  | { status: 'error'; message: string; canRetry: boolean }
+
+/** What the last answer was for (a patient and an attempt); another key means it is not the current one. */
+type Answer = { key: string; load: Load }
+
+const NOT_ACCESSIBLE = 'Ce dossier n’est pas accessible : ce patient n’a pas de rendez-vous avec vous.'
+
+/** "12 mars 1985 (41 ans)": the date as written, the age on today's date. */
+function birthLabel(birthDate: string, today: Date) {
+  const [year, month, day] = birthDate.split('-').map(Number)
+  const date = new Date(Date.UTC(year, month - 1, day)).toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  })
+  const beforeBirthday =
+    today.getUTCMonth() + 1 < month || (today.getUTCMonth() + 1 === month && today.getUTCDate() < day)
+  const age = today.getUTCFullYear() - year - (beforeBirthday ? 1 : 0)
+  return `${date} (${age} an${age > 1 ? 's' : ''})`
+}
+
+/**
+ * MLink-31 (31.4): the record of a patient the practitioner has an appointment with, opened from the agenda. It lives
+ * in this page's state only: never in the browser's storage.
+ */
+export default function PatientRecordPage() {
+  const { patientId = '' } = useParams()
+  const titleId = useId()
+  const identityId = useId()
+  const reportsId = useId()
+  const [today] = useState(() => new Date())
+  const [attempt, setAttempt] = useState(0)
+  const [answer, setAnswer] = useState<Answer | null>(null)
+
+  const key = `${patientId}#${attempt}`
+  const load: Load = answer?.key === key ? answer.load : { status: 'loading' }
+
+  useEffect(() => {
+    let current = true
+    fetchPatientRecord(patientId).then(
+      (record) => current && setAnswer({ key, load: { status: 'ready', record } }),
+      (error) => {
+        if (!current) return
+        // 403: not attached, unknown or malformed id (one answer for the three): nothing to try again
+        const refused = error instanceof ApiError && error.status === 403
+        setAnswer({
+          key,
+          load: { status: 'error', message: refused ? NOT_ACCESSIBLE : messageFor(error), canRetry: !refused },
+        })
+      },
+    )
+    return () => {
+      current = false
+    }
+  }, [patientId, key])
+
+  const patient = load.status === 'ready' ? load.record.patient : null
+
+  return (
+    <section aria-labelledby={titleId} className={styles.page} data-width="wide">
+      <Link to={paths.practitioner.agenda} className={styles.back}>
+        <ArrowLeft size={16} aria-hidden="true" />
+        Retour à l’agenda
+      </Link>
+
+      <header>
+        <p className={styles.eyebrow}>Dossier patient</p>
+        <h2 id={titleId} className={styles.title}>
+          {patient ? `${patient.firstName} ${patient.lastName}` : 'Dossier patient'}
+        </h2>
+      </header>
+
+      {load.status === 'loading' && <Skeleton lines={5} label="Chargement du dossier…" />}
+
+      {load.status === 'error' && (
+        <div className={styles.error}>
+          <Alert tone="error">{load.message}</Alert>
+          {load.canRetry && (
+            <Button variant="secondary" onClick={() => setAttempt((n) => n + 1)}>
+              Réessayer
+            </Button>
+          )}
+        </div>
+      )}
+
+      {load.status === 'ready' && patient && (
+        <div className={styles.layout}>
+          <section aria-labelledby={identityId} className={styles.card}>
+            <h3 id={identityId} className={styles.cardTitle}>
+              <IdCard size={16} aria-hidden="true" />
+              Identité du patient
+            </h3>
+            <div className={styles.who}>
+              <UserAvatar firstName={patient.firstName} lastName={patient.lastName} size="lg" />
+              <span className={styles.name}>
+                {patient.firstName} {patient.lastName}
+              </span>
+            </div>
+            <dl className={styles.facts}>
+              <div className={styles.fact}>
+                <dt>Date de naissance</dt>
+                <dd>{birthLabel(patient.birthDate, today)}</dd>
+              </div>
+              <div className={styles.fact}>
+                <dt>Téléphone</dt>
+                <dd>{patient.phone || 'Non renseigné'}</dd>
+              </div>
+            </dl>
+          </section>
+
+          <section aria-labelledby={reportsId} className={styles.card}>
+            <h3 id={reportsId} className={styles.cardTitle}>
+              <FileText size={16} aria-hidden="true" />
+              Comptes-rendus
+            </h3>
+            {load.record.reports.length === 0 ? (
+              <EmptyState icon={FileText} title="Aucun compte-rendu" compact headingLevel={4}>
+                Les comptes-rendus de vos consultations avec ce patient apparaîtront ici.
+              </EmptyState>
+            ) : (
+              <p>
+                {load.record.reports.length} compte{load.record.reports.length > 1 ? 's' : ''}-rendu
+                {load.record.reports.length > 1 ? 's' : ''}
+              </p>
+            )}
+          </section>
+        </div>
+      )}
+    </section>
+  )
+}
