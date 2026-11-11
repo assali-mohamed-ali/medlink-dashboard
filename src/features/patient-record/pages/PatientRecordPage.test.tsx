@@ -75,16 +75,21 @@ test('says it is loading, then shows the record', async () => {
   expect(await screen.findByRole('heading', { name: 'Ahmed Kacem', level: 2 })).toBeInTheDocument()
 })
 
-test('a patient who is not theirs (403) gets a French message and a way back to the agenda, nothing of the record', async () => {
+test('a patient who is not theirs (403) gets the "Accès refusé" screen (16.5) with a way back to the agenda, no data', async () => {
   const user = userEvent.setup()
   fetchPatientRecord.mockRejectedValue(new ApiError(403, 'FORBIDDEN', 'Access Denied'))
   renderPage('p9')
 
-  expect(await screen.findByRole('alert')).toHaveTextContent(
-    'Ce dossier n’est pas accessible : ce patient n’a pas de rendez-vous avec vous.',
-  )
+  expect(await screen.findByRole('heading', { name: 'Accès refusé', level: 2 })).toBeInTheDocument()
+  expect(screen.getByText('Ce patient n’est pas rattaché à votre agenda.')).toBeInTheDocument()
+  // Nothing of a record, and nothing to try again: the answer will not change
   expect(screen.queryByRole('region', { name: 'Identité du patient' })).toBeNull()
-  await user.click(screen.getByRole('link', { name: /Retour à l’agenda/ }))
+  expect(screen.queryByRole('region', { name: 'Comptes-rendus' })).toBeNull()
+  expect(screen.queryByRole('button', { name: 'Réessayer' })).toBeNull()
+  // Inside the space's layout: no second main landmark
+  expect(screen.queryByRole('main')).toBeNull()
+
+  await user.click(screen.getByRole('link', { name: 'Retour à l’agenda' }))
   expect(screen.getByRole('heading', { name: 'Agenda' })).toBeInTheDocument()
 })
 

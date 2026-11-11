@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { RouterProvider, createMemoryRouter } from 'react-router-dom'
 import { beforeEach, expect, test, vi } from 'vitest'
 import { routes } from '@/app/routes'
+import { ApiError } from '@/shared/api/apiClient'
 import * as agendaApi from '@/features/agenda/api'
 import * as authApi from '@/features/auth/api'
 import AuthProvider from '@/features/auth/AuthProvider'
@@ -72,4 +73,17 @@ test.each(['PATIENT', 'ADMINISTRATIVE_STAFF'] as const)('a %s gets "Accès refus
 
   expect(await screen.findByRole('heading', { name: 'Accès refusé' })).toBeInTheDocument()
   expect(api.fetchPatientRecord).not.toHaveBeenCalled()
+})
+
+test('a practitioner opening an unknown patient’s record gets "Accès refusé", with no data (31.5)', async () => {
+  vi.mocked(api.fetchPatientRecord).mockRejectedValue(new ApiError(403, 'FORBIDDEN', 'Access Denied'))
+  loggedInAs('PRACTITIONER')
+  renderAt('/praticien/patients/00000000-0000-4000-8000-000000000999')
+
+  expect(await screen.findByRole('heading', { name: 'Accès refusé' })).toBeInTheDocument()
+  expect(screen.getByText('Ce patient n’est pas rattaché à votre agenda.')).toBeInTheDocument()
+  expect(screen.getByRole('link', { name: 'Retour à l’agenda' })).toHaveAttribute('href', '/praticien/agenda')
+  expect(screen.queryByText(/Ahmed|Kacem/)).toBeNull()
+  // The space's own frame stays: one main landmark only
+  expect(screen.getAllByRole('main')).toHaveLength(1)
 })
