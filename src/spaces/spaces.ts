@@ -19,14 +19,14 @@ export const SPACES: Record<Role, Space> = {
     title: 'Espace patient',
     menu: [
       { label: 'Accueil', to: paths.patient.root },
-      { label: 'Mot de passe', to: paths.password },
+      { label: 'Mot de passe', to: paths.patient.password },
     ],
   },
   PRACTITIONER: {
     title: 'Espace praticien',
     menu: [
       { label: 'Accueil', to: paths.practitioner.root },
-      { label: 'Mot de passe', to: paths.password },
+      { label: 'Mot de passe', to: paths.practitioner.password },
     ],
   },
   ADMINISTRATIVE_STAFF: {
@@ -34,7 +34,7 @@ export const SPACES: Record<Role, Space> = {
     menu: [
       { label: 'Accueil', to: paths.staff.root },
       { label: 'Gestion des comptes', to: paths.staff.accounts },
-      { label: 'Mot de passe', to: paths.password },
+      { label: 'Mot de passe', to: paths.staff.password },
     ],
   },
 }

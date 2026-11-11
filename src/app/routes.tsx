@@ -1,5 +1,5 @@
 import type { RouteObject } from 'react-router-dom'
-import { RequireAuth, authRoutes, type Role } from '@/features/auth'
+import { RequireAuth, authRoutes, ownPasswordRoute, type Role } from '@/features/auth'
 import { mfaRoutes } from '@/features/mfa'
 import AccessDeniedPage from '@/pages/AccessDeniedPage'
 import NotFoundPage from '@/pages/NotFoundPage'
@@ -42,11 +42,13 @@ export const routes: RouteObject[] = [
       { path: paths.activateAccount, element: <PlaceholderPage title="Activation du compte" /> },
       { path: paths.accessDenied, element: <AccessDeniedPage /> },
 
-      space('PATIENT', paths.patient.root),
-      space('PRACTITIONER', paths.practitioner.root),
+      // Each space has its own password page (MLink-89), so the change happens inside the space
+      space('PATIENT', paths.patient.root, [ownPasswordRoute(paths.patient.password)]),
+      space('PRACTITIONER', paths.practitioner.root, [ownPasswordRoute(paths.practitioner.password)]),
       space('ADMINISTRATIVE_STAFF', paths.staff.root, [
         // MLink-73 (back-office) replaces this placeholder
         { path: paths.staff.accounts, element: <PlaceholderPage title="Gestion des comptes" /> },
+        ownPasswordRoute(paths.staff.password),
       ]),
 
       { path: '*', element: <NotFoundPage /> },
