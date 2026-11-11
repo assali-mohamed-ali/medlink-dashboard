@@ -236,7 +236,8 @@ the PR. "Mine" = Mohamed; "Ahlem" = her ticket, or her written OK.
 - **D1** accessibility: keyboard-only run of every flow, screen reader spot check (NVDA), zoom 200 %, `axe` in the
   browser (dev tool, not a dependency), contrast script green.
 - **D2** responsive: screenshots at 320, 375, 768, 1024, 1440 for each page; no horizontal scroll.
-- **D3** performance: entry JS stays ≤ 75 kB gzip, fonts ≤ 90 kB, no layout shift from fonts (`size-adjust` fallback if
+- **D3** performance: the JS a first visit downloads (entry + preloaded chunks) stays ≤ 110 kB gzip (was "entry ≤ 75 kB":
+  Rollup moved react-router into the entry on 2026-11-11 with the same 106 kB download; Mohamed's decision), fonts ≤ 90 kB, no layout shift from fonts (`size-adjust` fallback if
   needed), images keep width/height.
 - **D4** docs: `docs/ONBOARDING.md` §7 (UI library and tokens, the type and spacing rules, "how to build a page that
   looks right"), `docs/MANUAL-TESTING.md` (visual checks), CONTRIBUTING (no raw sizes or colours).

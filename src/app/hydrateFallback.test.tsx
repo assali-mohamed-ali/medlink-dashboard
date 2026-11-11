@@ -20,6 +20,7 @@ test('the first lazy page shows a loader while it downloads, with no router warn
       <RouterProvider router={router} />
     </AuthProvider>,
   )
-  expect(await screen.findByRole('heading', { level: 1 })).toBeInTheDocument()
+  // The login chunk is imported for real: under a full parallel run it can take over findBy's default 1 s
+  expect(await screen.findByRole('heading', { level: 1 }, { timeout: 5000 })).toBeInTheDocument()
   expect(warn).not.toHaveBeenCalledWith(expect.stringContaining('HydrateFallback'))
 })

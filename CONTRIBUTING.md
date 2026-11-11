@@ -103,9 +103,17 @@ These rules keep several people working on the same code without stepping on eac
   everyone on the epic commits to it, no branch per ticket. A small fix, docs or chore outside any epic keeps its own
   `fix/…`, `docs/…` or `chore/…` branch. Commits start with `feat:`, `fix:`, `test:`, `refactor:`, `docs:`,
   `chore:` and name the YouTrack ticket.
-- **Pull, work, push only when green:** `git pull --ff-only` before you start and before you push; push only
-  commits whose `npm test`, lint and build are green (a red test commit goes up together with its green one). Never
-  rebase or force-push an epic branch; merge `master` into it when `master` moves.
+- **The loop, for every task:**
+  1. **Pull:** `git checkout epic/MLink-<n> && git pull --no-rebase`.
+  2. **Work and commit:** the red test commit, then the green code commit (ticket id in both).
+  3. **Check green:** `npm test`, `npm run lint` and `npm run build`.
+  4. **Pull again:** `git pull --no-rebase`. If a teammate pushed in the meantime, this merges their commits into
+     yours: fix any conflict, commit the merge, and go back to step 3.
+  5. **Push:** `git push`. Refused because someone pushed first? Go back to step 4.
+
+  The red test commit is pushed together with its green commit, never alone: every push ends on a green commit.
+  Never rebase or force-push an epic branch (`--no-rebase` makes every pull a merge). When `master` moves:
+  `git fetch origin && git merge origin/master` on the epic branch, then steps 3 to 5.
 - **One PR per epic, at the end**, to `master`: only when every task of the epic is done, tested and walked through
   by the team. No draft or early PR. Never delete a branch unless the lead asks.
 - **Shared files** (`app/routes.tsx`, `shared/**`, `features/auth/**`, `spaces/**`, `.oxlintrc.json`, CI): say on

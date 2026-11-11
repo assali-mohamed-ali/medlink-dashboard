@@ -18,10 +18,15 @@ type RequireAuthProps = {
  * This only spares people screens they can't use: the API checks the role on every call.
  */
 export function RequireAuth({ role, children }: RequireAuthProps) {
-  const { status, role: currentRole, sessionExpired } = useAuth()
+  const { status, role: currentRole, sessionExpired, passwordChanged } = useAuth()
   const location = useLocation()
 
   if (status === 'loading') return <PageLoader />
+  // The person just changed their password (the API ended the session): the login page says so, and no page is
+  // kept to come back to (the password page again would make no sense)
+  if (status === 'anonymous' && passwordChanged) {
+    return <Navigate to={paths.login} replace state={{ passwordChanged: true }} />
+  }
   if (status === 'anonymous') {
     return (
       <Navigate to={paths.login} replace state={{ from: location.pathname, sessionExpired }} />

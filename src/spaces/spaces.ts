@@ -48,7 +48,7 @@ export const SPACES: Record<Role, Space> = {
     roleLabel: 'Patient',
     menu: [
       { label: 'Accueil', to: paths.patient.root, icon: House },
-      { label: 'Mot de passe', to: paths.password, icon: KeyRound },
+      { label: 'Mot de passe', to: paths.patient.password, icon: KeyRound },
     ],
     home: {
       intro: 'Vos rendez-vous, vos documents et vos échanges avec vos soignants, au même endroit.',
@@ -65,7 +65,7 @@ export const SPACES: Record<Role, Space> = {
     menu: [
       { label: 'Accueil', to: paths.practitioner.root, icon: House },
       { label: 'Agenda', to: paths.practitioner.agenda, icon: CalendarDays },
-      { label: 'Mot de passe', to: paths.password, icon: KeyRound },
+      { label: 'Mot de passe', to: paths.practitioner.password, icon: KeyRound },
     ],
     home: {
       intro: 'Votre journée en un coup d’œil.',
@@ -87,7 +87,7 @@ export const SPACES: Record<Role, Space> = {
     menu: [
       { label: 'Accueil', to: paths.staff.root, icon: House },
       { label: 'Gestion des comptes', to: paths.staff.accounts, icon: Users },
-      { label: 'Mot de passe', to: paths.password, icon: KeyRound },
+      { label: 'Mot de passe', to: paths.staff.password, icon: KeyRound },
     ],
     home: {
       intro: 'Les comptes et l’organisation des trois cliniques.',

@@ -18,8 +18,8 @@ plainer words. Plan and decisions: `docs/ui-refresh/PLAN.md`; step by step: `doc
 - **Fonts** self-hosted with `@fontsource` (Latin only, 2 files, 50.4 kB, CSP stays `'self'`).
 - **Tokens v2** (`shared/styles/tokens.css`): type scale, greys, spacing 4–96 px, radius, 3 elevations, motion, layout
   widths; the old names stay as aliases, so every page repaints with no change in its own files.
-- **Checks in CI**: `npm run check:contrast` (26 colour pairs) and `npm run check:budget` (entry JavaScript ≤ 75 kB
-  gzip, now 70.8 kB; fonts ≤ 90 kB).
+- **Checks in CI**: `npm run check:contrast` (26 colour pairs) and `npm run check:budget` (first-visit JavaScript,
+  entry + preloaded chunks, ≤ 110 kB gzip, now 106.0 kB; fonts ≤ 90 kB).
 - **Components**: Button sizes and `danger`, Alert `warning`/title/icons, TextField count and disabled look, 44 px
   targets; new Card, EmptyState, Skeleton, Select, Checkbox, RadioGroup (`shared/ui`), StatusBadge and UserAvatar
   (`shared/components`, on shadcn/Watermelon).

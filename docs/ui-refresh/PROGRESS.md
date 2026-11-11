@@ -7,7 +7,19 @@ Work for: **Mohamed** (YouTrack `Mohamed.BenNaima`, also "Al-Assad"). Ticket: **
 Teammate: **Ahlem** (`Ahlem.SAKLY`, GitHub `sakly123`) owns Home, Signup and the password pages (MLink-51/81/89): change
 her files only with her written OK, or when Mohamed explicitly decides it (then comment on her ticket what changed).
 
-## Where things stand (2026-11-05, end of session)
+## Where things stand (2026-11-11)
+
+- **Code owner's review on #11 (2026-11-10) answered**: "change password is out of logged in interface". The own
+  change is now a page of each space (`/patient|/praticien|/admin/mot-de-passe`, `OwnPasswordPage`); `/mot-de-passe`
+  keeps the forced step only. On #11: `d532c64` red, `90ba893` green, `b7c16b3` tests, `545a9b4` docs; merged here.
+  Seen on a mock API at 1440 px: menu entry marked, wrong current password stays, success opens `/connexion` with
+  "Mot de passe changé" and the next login lands on the space home. Ahlem still to be told on MLink-89.
+- **Open for Ahlem (not touched)**: A9 still visible (at 742 px high the login card's top logo hides under the header,
+  Phase C2); her `epic/MLink-10` will conflict with #11 in `paths.ts`, `routes.tsx`, `spaces.ts`, `MANUAL-TESTING.md`
+  (one line each); fonts differ: her agenda uses Plus Jakarta Sans, this branch Geist (`PublicFooter.css` from #11
+  was set to `var(--font-sans)` in the merge, audit A1).
+
+### 2026-11-05, end of session
 
 - **Done and pushed** on `feat/MLink-128-ui-kit` (in sync with GitHub, 0 commits behind #11): plan, decisions, B0–B6,
   Phase D except the manual checks below. 195 tests, lint, build, `check:contrast` (26 pairs), `check:budget` green.
@@ -79,6 +91,10 @@ MLink-89 and MLink-81, and give me a brief."*
 
 ## Log
 
+- **2026-11-11**: #11 merged in twice (review fix for MLink-89, then its follow-ups). Conflicts in `paths.ts`,
+  `routes.tsx`, `spaces.ts`, `MANUAL-TESTING.md` resolved by keeping both sides (icons + space password paths,
+  `SpaceComingSoon` + staff password route, 7b + renamed 7c). `PublicFooter.css` named an unloaded face (audit A1):
+  now `var(--font-sans)`. `hydrateFallback.test` waits up to 5 s for the real login chunk (flaked at 1.6 s).
 - **2026-11-05**: #11 merged in: `/mot-de-passe` (MLink-89, built by Mohamed with his decision; `d0c2aaf`, `ed53de3`), the
   last blocker of #11. "Mot de passe" added to each space menu with the `KeyRound` icon. 195 tests, lint, tsc, build,
   contrast (26 pairs) and budget green on the merge.
