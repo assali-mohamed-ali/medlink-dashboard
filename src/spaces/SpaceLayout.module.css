@@ -4,7 +4,8 @@
   min-height: 100vh;
   display: grid;
   grid-template-columns: 112px minmax(0, 1fr);
-  background: var(--stitch-surface);
+  /* The same light sage as the home page (HomePage.css --canvas), for every page of every space */
+  background: var(--stitch-canvas);
 }
 
 /* Off screen until focused by the keyboard */
@@ -163,6 +164,3 @@
   }
   .main { padding: var(--space-4) 0 var(--space-6); }
 }
-
-/* The agenda (a wide page) sits on the Stitch sage background */
-.shell:has([data-width='wide']) { background: var(--stitch-canvas); }

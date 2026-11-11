@@ -132,7 +132,7 @@
   --space-12: 96px;
 }
 
-/* MLink-26: the Stitch sage background behind the agenda (text-muted 4.58:1, on-surface 13.6:1) */
+/* MLink-26: the light sage background of the home page, behind every space too (text-muted 5.1:1, on-surface 15.1:1) */
 :root {
-  --stitch-canvas: #dfe8dc;
+  --stitch-canvas: #eff2ed;
 }
