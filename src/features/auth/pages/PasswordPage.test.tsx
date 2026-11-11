@@ -53,12 +53,11 @@ const loggedIn = () => vi.mocked(api.fetchMe).mockResolvedValue({ user: patient 
 const anonymous = () =>
   vi.mocked(api.fetchMe).mockRejectedValue(new ApiError(401, 'UNAUTHENTICATED', 'Non connecté.'))
 
-async function fill(fields: { current?: string; next: string; confirm: string }) {
+async function fill(fields: { next: string; confirm: string }) {
   const user = userEvent.setup()
-  if (fields.current !== undefined) await user.type(screen.getByLabelText(/^Mot de passe actuel/), fields.current)
   await user.type(screen.getByLabelText(/^Nouveau mot de passe/), fields.next)
   await user.type(screen.getByLabelText(/^Confirmez le nouveau mot de passe/), fields.confirm)
-  await user.click(screen.getByRole('button', { name: /Changer le mot de passe|Enregistrer/ }))
+  await user.click(screen.getByRole('button', { name: 'Enregistrer le mot de passe' }))
 }
 
 beforeEach(() => {
@@ -74,6 +73,14 @@ test('forced: asks only for the new password, twice, and explains why', async ()
   expect(screen.queryByLabelText(/^Mot de passe actuel/)).toBeNull()
   expect(screen.getByLabelText(/^Nouveau mot de passe/)).toHaveAttribute('autocomplete', 'new-password')
   expect(screen.getByLabelText(/^Confirmez le nouveau mot de passe/)).toHaveAttribute('autocomplete', 'new-password')
+})
+
+test('forced: a public page (no session yet, so no space around it)', async () => {
+  anonymous()
+  renderPage({ forced: true })
+  await screen.findByRole('heading', { name: 'Choisissez un nouveau mot de passe' })
+  expect(screen.getByRole('banner')).toBeInTheDocument()
+  expect(screen.queryByRole('navigation', { name: 'Menu de l’espace' })).toBeNull()
 })
 
 test('forced: 204 sends only the new password, then the login page says to log in again', async () => {
