@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { RouterProvider, createMemoryRouter } from 'react-router-dom'
 import { beforeEach, expect, test, vi } from 'vitest'
 import { routes } from '@/app/routes'
+import * as alertsApi from '@/features/alerts/api'
 import * as authApi from '@/features/auth/api'
 import AuthProvider from '@/features/auth/AuthProvider'
 import type { Role } from '@/features/auth/roles'
@@ -16,6 +17,7 @@ vi.mock('@/features/auth/api', () => ({
   resendVerification: vi.fn(),
 }))
 const fetchMe = vi.mocked(authApi.fetchMe)
+vi.mock('@/features/alerts/api', () => ({ fetchUnreadAlerts: vi.fn(), markAlertRead: vi.fn() }))
 
 function renderAs(role: Role, path: string) {
   fetchMe.mockResolvedValue({
@@ -32,6 +34,7 @@ function renderAs(role: Role, path: string) {
 
 beforeEach(() => {
   vi.resetAllMocks()
+  vi.mocked(alertsApi.fetchUnreadAlerts).mockResolvedValue([])
 })
 
 test('the first Tab reaches "Aller au contenu", which leads to the page content', async () => {
@@ -83,4 +86,17 @@ test('a page still to build says so honestly, with one main region and one page 
   expect(screen.getByText('Bientôt disponible')).toBeInTheDocument()
   expect(screen.getAllByRole('main')).toHaveLength(1)
   expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
+})
+
+test('MLink-37: the practitioner’s top bar has the notification bell; other spaces do not', async () => {
+  renderAs('PRACTITIONER', '/praticien')
+  const banner = await screen.findByRole('banner')
+  expect(await within(banner).findByRole('button', { name: /^Notifications/ })).toBeInTheDocument()
+})
+
+test.each(['PATIENT', 'ADMINISTRATIVE_STAFF'] as const)('MLink-37: no bell in the %s space', async (role) => {
+  renderAs(role, role === 'PATIENT' ? '/patient' : '/admin')
+  const banner = await screen.findByRole('banner')
+  expect(within(banner).queryByRole('button', { name: /^Notifications/ })).toBeNull()
+  expect(alertsApi.fetchUnreadAlerts).not.toHaveBeenCalled()
 })
