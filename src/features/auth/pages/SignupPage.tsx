@@ -3,6 +3,8 @@ import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Link } from 'react-router-dom'
+import PublicFooter from '@/shared/layout/PublicFooter'
+import assistanceImg from '@/assets/home/assistance.jpg'
 import {
   Calendar,
   Check,
@@ -286,35 +288,44 @@ export default function SignupPage() {
               </ul>
             </div>
 
-            <div className="signup-side__card signup-side__card--help">
-              <span className="signup-side__tag">Assistance Enrôlement</span>
-              <h3 className="signup-side__title">
-                Besoin d&apos;aide pour vous inscrire ?
-              </h3>
-              <p className="signup-side__text">
-                Notre permanence d&apos;accueil vous guide pour finaliser votre
-                compte patient.
-              </p>
-              <div className="signup-side__phone">
-                <span className="signup-side__phone-icon" aria-hidden="true">
-                  <Headset size={20} />
-                </span>
-                <div>
-                  <strong>Ligne directe gratuite</strong>
-                  <a href="tel:+21671800900">+216 71 800 900</a>
-                </div>
-              </div>
-              <div className="signup-side__hosting">
-                <ShieldCheck size={16} aria-hidden="true" />
-                <div>
-                  <strong>Garantie d&apos;hébergement HDS</strong>
-                  <span>
-                    Vos informations médicales restent en Tunisie, chiffrées et
-                    journalisées.
-                  </span>
-                </div>
-              </div>
-            </div>
+         <div className="signup-side__card signup-side__card--help">
+  <div className="signup-side__photo">
+    <img
+      src={assistanceImg}
+      alt="Conseillère MedLink accueillant une patiente"
+    />
+    <span className="signup-side__tag">Assistance Enrôlement</span>
+  </div>
+
+  <div className="signup-side__help-body">
+    <h3 className="signup-side__title">
+      Besoin d&apos;aide pour vous inscrire ?
+    </h3>
+    <p className="signup-side__text">
+      Notre permanence d&apos;accueil vous guide pour finaliser votre
+      compte patient.
+    </p>
+    <div className="signup-side__phone">
+      <span className="signup-side__phone-icon" aria-hidden="true">
+        <Headset size={20} />
+      </span>
+      <div>
+        <strong>Ligne directe gratuite</strong>
+        <a href="tel:+21671800900">+216 71 800 900</a>
+      </div>
+    </div>
+    <div className="signup-side__hosting">
+      <ShieldCheck size={16} aria-hidden="true" />
+      <div>
+        <strong>Garantie d&apos;hébergement HDS</strong>
+        <span>
+          Vos informations médicales restent en Tunisie, chiffrées et
+          journalisées.
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
           </>
         }
         footer={footer}
@@ -617,6 +628,9 @@ export default function SignupPage() {
           </form>
         </div>
       </MedLinkShell>
+     <PublicFooter />
+
+
     </>
   )
 }

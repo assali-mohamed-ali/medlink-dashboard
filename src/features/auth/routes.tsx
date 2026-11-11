@@ -14,7 +14,12 @@ export const authRoutes: RouteObject[] = [
   },
   // Opened from a mail, logged in or not
   { path: paths.verifyEmail, lazy: lazyPage(() => import('./pages/VerifyEmailPage')) },
-  // Logged in (own change) or right after a login that asked for a new password (no session yet): the page
-  // chooses, and sends anyone else to the login page
+  // Right after a login that asked for a new password (no session yet). A logged-in person goes to the password
+  // page of their space; anyone else to the login page
   { path: paths.password, lazy: lazyPage(() => import('./pages/PasswordPage')) },
 ]
+
+/** The own password change, as a page of a space (MLink-89): `space(..., [ownPasswordRoute(paths.patient.password)])`. */
+export function ownPasswordRoute(path: string): RouteObject {
+  return { path, lazy: lazyPage(() => import('./pages/OwnPasswordPage')) }
+}

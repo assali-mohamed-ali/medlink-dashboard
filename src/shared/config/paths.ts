@@ -12,11 +12,11 @@ export const paths = {
   verifyEmail: '/verifier-email', // mailed by the API
   mfa: '/double-authentification',
   configureCode: '/configurer-code', // mailed by the API
-  password: '/mot-de-passe',
+  password: '/mot-de-passe', // the forced change right after a login (no session yet); logged in: the space's page
   activateAccount: '/activer-compte', // mailed by the API
   accessDenied: '/acces-refuse',
-  patient: { root: '/patient' },
-  practitioner: { root: '/praticien' },
-  staff: { root: '/admin', accounts: '/admin/comptes' },
+  patient: { root: '/patient', password: '/patient/mot-de-passe' },
+  practitioner: { root: '/praticien', password: '/praticien/mot-de-passe' },
+  staff: { root: '/admin', accounts: '/admin/comptes', password: '/admin/mot-de-passe' },
   specimen: '/__specimen', // dev only (npm run dev): the UI refresh specimen, absent from production builds
 } as const
