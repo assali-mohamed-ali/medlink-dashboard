@@ -224,3 +224,15 @@ test('the weekly occupancy counts booked slots among the bookable ones', async (
   expect(within(occupancy).getByText('1 rendez-vous fixé')).toBeInTheDocument()
   expect(within(occupancy).getByText('1 disponible')).toBeInTheDocument()
 })
+
+test('an appointment links to its patient’s record (MLink-31); a free or closed slot does not', async () => {
+  renderPage()
+
+  const booked = await screen.findByRole('listitem', { name: /réservé/ })
+  expect(within(booked).getByRole('link', { name: 'Ouvrir le dossier de Ahmed Kacem' })).toHaveAttribute(
+    'href',
+    '/praticien/patients/p1',
+  )
+  expect(within(screen.getByRole('listitem', { name: /fermé/ })).queryByRole('link')).toBeNull()
+  expect(screen.getAllByRole('link', { name: /Ouvrir le dossier/ })).toHaveLength(1)
+})
