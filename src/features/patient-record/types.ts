@@ -12,3 +12,9 @@ export type PatientIdentity = {
 
 /** The record: the identity and the consultation reports (typed by MLink-32; always empty until then). */
 export type PatientRecord = { patient: PatientIdentity; reports: unknown[] }
+
+/** A consultation report (MLink-32, GET/POST /api/patients/{id}/reports): the text is decrypted by the API. */
+export type Report = { id: string; createdAt: string; content: string }
+
+/** What the editor sends: the text only (the API knows the author and the patient). */
+export type NewReport = { content: string }

@@ -9,7 +9,7 @@ import PatientRecordPage from './PatientRecordPage'
 
 // MLink-31 (31.4): the record of a patient the practitioner has an appointment with. The API is mocked at the
 // feature's api.ts; "now" is fixed (11 November 2026) so the age holds.
-vi.mock('../api', () => ({ fetchPatientRecord: vi.fn() }))
+vi.mock('../api', () => ({ fetchPatientRecord: vi.fn(), fetchReports: vi.fn(), createReport: vi.fn() }))
 const fetchPatientRecord = vi.mocked(api.fetchPatientRecord)
 
 const RECORD: PatientRecord = {
@@ -33,6 +33,7 @@ beforeEach(() => {
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(new Date('2026-11-11T09:00:00Z'))
   fetchPatientRecord.mockResolvedValue(RECORD)
+  vi.mocked(api.fetchReports).mockResolvedValue([])
 })
 
 afterEach(() => {
