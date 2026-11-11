@@ -1,6 +1,7 @@
 import { Suspense, useEffect, useRef } from 'react'
 import { LogOut, Plus } from 'lucide-react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { NotificationBell } from '@/features/alerts'
 import { useAuth, type Role } from '@/features/auth'
 import UserAvatar from '@/shared/components/UserAvatar'
 import { paths } from '@/shared/config/paths'
@@ -77,6 +78,8 @@ export default function SpaceLayout({ role }: { role: Role }) {
             </h1>
           </div>
           <div className={styles.account}>
+            {/* MLink-37: the practitioner's alerts (cancelled appointments) */}
+            {role === 'PRACTITIONER' && <NotificationBell />}
             {user && (
               <>
                 <UserAvatar firstName={user.firstName} lastName={user.lastName} />

@@ -19,7 +19,7 @@ const FIRST = alert('al1', 'Rendez-vous annulé : Ahmed Kacem, jeudi 12 novembre
 const SECOND = alert('al2', 'Rendez-vous annulé : Sana Trabelsi, vendredi 13 novembre à 14:00, Clinique MedLink Tunis.', '2026-11-11T09:30:00Z')
 
 function setup() {
-  const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+  const user = userEvent.setup()
   render(<NotificationBell />)
   return user
 }
@@ -30,7 +30,7 @@ function bell() {
 
 beforeEach(() => {
   vi.resetAllMocks()
-  vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'setTimeout', 'clearTimeout', 'Date'] })
+  vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'Date'] })
   vi.setSystemTime(new Date('2026-11-11T10:00:00Z'))
   fetchUnreadAlerts.mockResolvedValue([FIRST])
 })
