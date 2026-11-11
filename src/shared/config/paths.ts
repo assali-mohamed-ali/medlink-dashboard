@@ -21,6 +21,7 @@ export const paths = {
     root: '/praticien',
     agenda: '/praticien/agenda',
     patients: '/praticien/patients',
+    profile: '/praticien/profil',
     password: '/praticien/mot-de-passe',
   },
   staff: { root: '/admin', accounts: '/admin/comptes', password: '/admin/mot-de-passe' },

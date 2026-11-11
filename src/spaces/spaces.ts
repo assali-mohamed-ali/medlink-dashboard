@@ -5,6 +5,7 @@ import {
   KeyRound,
   MessageSquare,
   Stethoscope,
+  UserRound,
   Users,
   type LucideIcon,
 } from 'lucide-react'
@@ -65,6 +66,7 @@ export const SPACES: Record<Role, Space> = {
     menu: [
       { label: 'Accueil', to: paths.practitioner.root, icon: House },
       { label: 'Agenda', to: paths.practitioner.agenda, icon: CalendarDays },
+      { label: 'Profil', to: paths.practitioner.profile, icon: UserRound },
       { label: 'Mot de passe', to: paths.practitioner.password, icon: KeyRound },
     ],
     home: {

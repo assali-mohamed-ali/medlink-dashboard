@@ -1,0 +1,72 @@
+/* The practitioner's profile, after the Stitch "Profil & Paramètres de Sécurité" design. Tokens only. */
+.page { display: flex; flex-direction: column; gap: var(--space-6); }
+.header { display: flex; flex-direction: column; gap: var(--space-1); }
+.eyebrow {
+  display: inline-flex; align-items: center; gap: var(--space-2); margin: 0;
+  color: var(--primary); font-size: var(--text-xs); line-height: var(--leading-xs); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+}
+.liveDot { width: 8px; height: 8px; border-radius: var(--radius-pill); background: var(--primary-container); }
+.title { margin: 0; font-size: var(--text-3xl); line-height: var(--leading-3xl); font-weight: 700; letter-spacing: -0.01em; }
+.subtitle { margin: 0; color: var(--text-muted); font-size: var(--text-sm); line-height: var(--leading-sm); }
+
+/* Three pastel cards, the clinic tones of the agenda */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
+.stat {
+  display: flex; align-items: center; gap: var(--space-4); padding: var(--space-5);
+  border-radius: var(--radius-sheet); background: var(--clinic-1-container); color: var(--on-clinic-1-container);
+}
+.stat[data-tone='2'] { background: var(--clinic-2-container); color: var(--on-clinic-2-container); }
+.stat[data-tone='3'] { background: var(--clinic-3-container); color: var(--on-clinic-3-container); }
+.statIcon { flex-shrink: 0; padding: 10px; box-sizing: content-box; border-radius: var(--radius-pill); background: var(--surface-raised); }
+.statLabel { display: block; font-size: var(--text-xs); line-height: var(--leading-xs); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+.statValue { display: block; font-size: var(--text-lg); line-height: var(--leading-lg); font-weight: 700; }
+
+.layout { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: var(--space-5); align-items: start; }
+.side { display: flex; flex-direction: column; gap: var(--space-5); }
+.card {
+  display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-6);
+  background: var(--surface-raised); border-radius: var(--radius-sheet); box-shadow: var(--elev-1);
+}
+.who { display: flex; align-items: center; gap: var(--space-4); padding-bottom: var(--space-4); border-bottom: 1px solid var(--border); }
+.name { margin: 0 0 var(--space-1); font-size: var(--text-xl); line-height: var(--leading-xl); font-weight: 700; }
+.badge {
+  display: inline-flex; align-items: center; gap: var(--space-1); padding: 2px var(--space-3); border-radius: var(--radius-pill);
+  background: var(--secondary-fixed); color: var(--primary); font-size: var(--text-xs); line-height: var(--leading-xs); font-weight: 600;
+}
+.field { display: flex; flex-direction: column; gap: var(--space-2); }
+.fieldLabel { font-size: var(--text-sm); line-height: var(--leading-sm); font-weight: 600; }
+.fieldBox { display: flex; align-items: center; gap: var(--space-3); padding: 0 var(--space-4); border-radius: var(--radius-control); background: var(--surface-low); }
+.fieldIcon { display: inline-flex; color: var(--text-muted); }
+.fieldInput {
+  flex: 1; min-width: 0; min-height: 48px; padding: 0; border: 0; background: none;
+  color: var(--on-surface); font: inherit; font-size: var(--text-base, 1rem);
+}
+.fieldInput:focus-visible { outline: none; }
+.fieldBox:focus-within { box-shadow: var(--focus-ring); }
+.clinics { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.clinic { padding: var(--space-2) var(--space-3); border-radius: var(--radius-pill); background: var(--surface-low); font-size: var(--text-sm); line-height: var(--leading-sm); font-weight: 600; }
+.note { margin: 0; padding-top: var(--space-4); border-top: 1px solid var(--border); color: var(--text-muted); font-size: var(--text-sm); line-height: var(--leading-sm); }
+.muted { margin: 0; color: var(--text-muted); font-size: var(--text-sm); line-height: var(--leading-sm); }
+
+.cardHead { display: flex; align-items: center; gap: var(--space-3); }
+.cardIcon { display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: var(--radius-pill); background: var(--secondary-fixed); color: var(--primary); flex-shrink: 0; }
+.cardTitle { flex: 1; margin: 0; font-size: var(--text-lg); line-height: var(--leading-lg); font-weight: 700; }
+.pill { padding: 2px var(--space-3); border-radius: var(--radius-pill); background: var(--secondary-fixed); color: var(--primary); font-size: var(--text-xs); line-height: var(--leading-xs); font-weight: 600; }
+.inset { display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-4); border-radius: var(--radius-control); background: var(--surface-low); }
+.insetTitle { font-size: var(--text-sm); line-height: var(--leading-sm); }
+.insetText { margin: 0; color: var(--text-muted); font-size: var(--text-sm); line-height: var(--leading-sm); }
+.rules { display: flex; flex-direction: column; gap: var(--space-1); margin: 0; padding-left: var(--space-5); font-size: var(--text-sm); line-height: var(--leading-sm); }
+
+.secondaryAction, .dangerAction {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: 48px; padding: 0 var(--space-5);
+  border: 0; border-radius: var(--radius-pill); font: inherit; font-size: var(--text-sm); font-weight: 600; text-decoration: none; cursor: pointer;
+}
+.secondaryAction { background: var(--stitch-surface-container); color: var(--primary); }
+.secondaryAction:hover { background: var(--stitch-surface-high); }
+.dangerAction { background: var(--error-container); color: var(--error); }
+.dangerAction:hover { filter: brightness(0.97); }
+.secondaryAction:focus-visible, .dangerAction:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+@media (max-width: 1023px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+}

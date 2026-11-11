@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { ApiError } from '@/shared/api/apiClient'
-import * as agenda from '@/features/agenda'
+import * as api from '../api'
 import ProfilePage from './ProfilePage'
 
 // Practitioner profile (after the Stitch "Profil & Paramètres de Sécurité" design): what the API knows only, read-only
@@ -15,11 +15,11 @@ vi.mock('@/features/auth', () => ({
     logout,
   }),
 }))
-vi.mock('@/features/agenda', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@/features/agenda')>()),
-  fetchAgenda: vi.fn(),
+vi.mock('../api', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../api')>()),
+  fetchWeek: vi.fn(),
 }))
-const fetchAgenda = vi.mocked(agenda.fetchAgenda)
+const fetchAgenda = vi.mocked(api.fetchWeek)
 
 const SOUSSE = { id: 'c1', name: 'Clinique MedLink Sousse' }
 const TUNIS = { id: 'c3', name: 'Clinique MedLink Tunis' }
