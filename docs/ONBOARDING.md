@@ -60,7 +60,7 @@ src/
 │   ├─ routes.tsx           the whole route table: public pages, one branch per role space, 404
 │   └─ router.ts            the browser router built from routes.tsx
 ├─ spaces/                  the role spaces: one layout, configured per role
-│   ├─ spaces.ts            SPACES: each role's title and menu (data only)
+│   ├─ spaces.ts            SPACES: each role's title, role label and menu with icons (data only)
 │   ├─ SpaceLayout.tsx      header (title, who is logged in, logout) + menu + <Outlet />
 │   └─ SpaceHome.tsx        the first page of a space
 ├─ features/<domain>/       one folder per business area
@@ -316,7 +316,9 @@ flowchart TD
 3. Add the route under the space in `app/routes.tsx`:
    `space('PATIENT', paths.patient.root, [{ path: paths.patient.appointments, lazy: lazyPage(() => import('@/features/appointments/pages/MyAppointmentsPage')) }])`.
    (When a feature has several routes, export them from `features/x/routes.tsx` like `authRoutes`.)
-4. Add the menu entry in `spaces/spaces.ts`: `{ label: 'Mes rendez-vous', to: paths.patient.appointments }`.
+4. Add the menu entry in `spaces/spaces.ts`: `{ label: 'Mes rendez-vous', to: paths.patient.appointments, icon: CalendarDays }`
+   (a lucide icon; at most 5 entries, the phone's bottom bar holds no more). Until the page exists, route it to
+   `<SpaceComingSoon title="Mes rendez-vous" />`. A space page starts at `<h2>`: the shell's top bar holds the `<h1>`.
 5. Test it in `app/routes.test.tsx` style: the right role sees it, another role gets "Accès refusé".
 
 ### Recipe: add a public page
@@ -330,11 +332,18 @@ Build screens from these, not from raw `<input>`/`<button>` with page CSS:
 
 | Component | Use it for | Accessibility it gives you for free |
 |---|---|---|
-| `Button` | every button; `variant` `primary` / `secondary` / `ghost`, `fullWidth`, `loading` | `type="button"` by default (no accidental submit); `loading` disables it and sets `aria-busy` |
-| `TextField` | every text input; `label`, `hint`, `error` | label linked to the input, `aria-invalid`, hint and error read with the field, error announced (`role="alert"`) |
+| `Button` | every button; `variant` `primary` / `secondary` / `ghost` / `danger`, `size` `sm` / `md` / `lg` (44/48/56 px), `fullWidth`, `loading` | `type="button"` by default (no accidental submit); `loading` disables it and sets `aria-busy` |
+| `TextField` | every text input; `label`, `hint`, `error`; with `maxLength` a "n / max caractères" count | label linked to the input, `aria-invalid`, hint and error read with the field, error announced (`role="alert"`) |
 | `PasswordField` | passwords | everything of `TextField` + a show/hide toggle (`aria-pressed`, French labels) |
-| `Alert` | messages: `tone` `error` / `success` / `info` | error interrupts the screen reader (`role="alert"`), the others wait (`role="status"`) |
-| `Spinner`, `PageLoader` | something is loading | announced as "Chargement…" (or your `label`) |
+| `Alert` | messages: `tone` `error` / `warning` / `success` / `info`, optional `title`; an icon per tone | error interrupts the screen reader (`role="alert"`), the others wait (`role="status"`) |
+| `Spinner`, `PageLoader` | something is loading (a button, a whole page) | announced as "Chargement…" (or your `label`) |
+| `Skeleton` | page content loading (lists, cards) | announced once; the grey lines are hidden |
+| `Select` | a choice in a list; `label`, `hint`, `error`, `<option>` children | native `<select>`: keyboard and phones for free, same wiring as `TextField` |
+| `Checkbox`, `RadioGroup` | yes/no; one choice among a few (`legend`, `name`, `options`) | native inputs, rows of 44 px, the group named by its legend, errors announced |
+| `Card` | a white box; `title`, `headingLevel`, `action`, `footer` | with a title it is a `<section>` named by it |
+| `EmptyState` | a list or page with nothing yet: `icon`, `title`, one sentence, one `action` | the icon is hidden; say "Bientôt disponible", never fake data |
+| `StatusBadge` (`shared/components`) | a status: `tone` `neutral` / `info` / `success` / `warning` / `danger` | words + icon, never colour alone |
+| `UserAvatar` (`shared/components`) | initials of `firstName` `lastName` | decorative next to the name; `alone` makes it an image named after the person |
 
 ```tsx
 import { Alert, Button, PasswordField, TextField } from '@/shared/ui'
@@ -357,6 +366,56 @@ import { Alert, Button, PasswordField, TextField } from '@/shared/ui'
   in `shared/ui/index.ts` and in this table.
 - `HomePage.css`, `MedLinkShell.css` and `PublicHeader.css` still hold local copies of the same token
   values (from before `tokens.css`); new code reads the tokens.
+
+### Tokens: type, colour, space (`shared/styles/tokens.css`)
+
+The UI refresh (docs/ui-refresh/PLAN.md §4) set one scale for each; read a token, never write a raw value.
+
+| Group | Tokens | Rule |
+|---|---|---|
+| Faces | `--font-sans` (Geist), `--font-display` (Instrument Serif) | the display face only for public and auth titles ≥ 32 px; never in forms, tables or spaces. Both load once from `fonts.css` (self-hosted, Latin only) |
+| Sizes | `--text-xs`…`--text-3xl` with `--leading-*`, `--display-sm`, `--display-lg` | body and inputs `--text-md` (16 px); weights 400 text, 500 labels and buttons, 600 headings |
+| Greys | `--bg`, `--surface-raised`, `--surface-sunken`, `--border`, `--border-strong`, `--text-muted` | `--border` is for dividers only; a field or control edge uses `--border-strong` (3:1). Old names (`--surface`, `--outline-variant`…) are aliases: new code uses the new names |
+| Space, shape, depth, motion | `--space-1`…`--space-12` (4 → 96 px), `--radius-*`, `--elev-1..3`, `--duration-*`, `--ease` | 3 shadow levels only; animate `opacity` and `transform` only |
+
+`npm run check:contrast` (`scripts/contrast.mjs`, also in CI) checks every text pair at 4.5:1 and every edge at 3:1.
+A new text or edge colour gets its pair added there. Numbers in lists and tables take `.tabular-nums`.
+
+### Watermelon UI and shadcn/ui (`shared/components`)
+
+For richer pieces (sidebars, menus, dialogs, dashboards) we take components from
+[Watermelon UI](https://ui.watermelon.sh) or [shadcn/ui](https://ui.shadcn.com) instead of writing them from scratch.
+They are copied into the repo (we own and review the code), styled with Tailwind CSS 4, built on Base UI primitives
+(`@base-ui/react`) and already painted in MedLink's colours.
+
+| Folder | What lives there |
+|---|---|
+| `shared/ui/` | our own components (CSS Modules): `Button`, `TextField`… as above |
+| `shared/components/ui/` | shadcn primitives (`button.tsx`…), added by the shadcn CLI |
+| `shared/components/watermelon/` | Watermelon items, added the same way |
+
+```bash
+npx shadcn@4.23.0 add button                                            # a shadcn primitive
+npx shadcn@4.23.0 add https://registry.watermelon.sh/r/<slug>.json      # a Watermelon item (slug from its page)
+npx shadcn@4.23.0 add https://registry.watermelon.sh/r/<slug>.json --dry-run --view   # look before you add
+```
+
+How it is wired, and the traps:
+- **Never run `shadcn init`**: it writes its own `--primary`/`--secondary` and would repaint the app. Everything is
+  already configured (`components.json`, `shared/styles/tailwind.css`, the Vite plugin).
+- **Colours**: Tailwind's `bg-primary`, `text-muted-foreground`, `border-border`… point at our tokens (`@theme` in
+  `tailwind.css`). Our `--secondary` is a *text* colour; shadcn code that writes `var(--secondary)` must use
+  `var(--secondary-fixed)`: `shared/components/shadcnTokens.test.ts` fails until you fix it.
+- **No reset, limited scan**: Tailwind's preflight is off and it reads class names in `shared/components` only, so the
+  existing pages are untouched. A new folder that uses Tailwind classes needs an `@source` line in `tailwind.css`.
+- **Dependencies**: read what `add` installs. Prefer a version at least two weeks old; `cn` (shadcn's class merger)
+  is pinned to an exact version for that reason. Explain each new package in the PR (why, size, alternative).
+- **CSP**: Tailwind compiles into our own CSS file, fine for `'self'`. A primitive that injects a `<style>` element
+  (some scroll locks, toasts) is blocked by the CSP: after adding a dialog, menu or toast, check the console of the
+  production image (`http://localhost:8090`) for CSP errors before you open the PR.
+- **Wrap before use in pages**: a page imports a Watermelon/shadcn piece through `shared/components` (or a feature
+  wrapper with French texts and our props), never straight from a registry URL. Text stays French; icons stay
+  `lucide-react`.
 
 ## 8. Where do I put…?
 

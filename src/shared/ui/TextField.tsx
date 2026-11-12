@@ -1,4 +1,4 @@
-import { useId } from 'react'
+import { useId, useState } from 'react'
 import type { ComponentPropsWithRef, ReactNode } from 'react'
 import styles from './TextField.module.css'
 
@@ -16,6 +16,7 @@ export type TextFieldProps = ComponentPropsWithRef<'input'> & {
 /**
  * Label + input + hint + error, wired for accessibility. Any native <input> prop works, including the
  * `ref` and handlers react-hook-form's `register()` returns: `<TextField label="Nom" {...register('lastName')} />`.
+ * With `maxLength`, a count ("7 / 100 caractères") is shown and read with the field.
  */
 export default function TextField({
   label,
@@ -24,14 +25,19 @@ export default function TextField({
   endAdornment,
   id,
   className,
+  onChange,
   ...rest
 }: TextFieldProps) {
   const generatedId = useId()
   const inputId = id ?? generatedId
+  // Typed length for an uncontrolled field; a controlled one (`value`) is measured directly
+  const [typed, setTyped] = useState(() => String(rest.value ?? rest.defaultValue ?? '').length)
+  const length = rest.value !== undefined ? String(rest.value).length : typed
   const hintId = hint ? `${inputId}-hint` : undefined
+  const countId = rest.maxLength !== undefined ? `${inputId}-count` : undefined
   const errorId = error ? `${inputId}-error` : undefined
   const describedBy =
-    [rest['aria-describedby'], hintId, errorId].filter(Boolean).join(' ') || undefined
+    [rest['aria-describedby'], hintId, countId, errorId].filter(Boolean).join(' ') || undefined
 
   return (
     <div className={[styles.field, className].filter(Boolean).join(' ')}>
@@ -45,13 +51,26 @@ export default function TextField({
           className={endAdornment ? `${styles.input} ${styles.withEnd}` : styles.input}
           aria-invalid={error ? 'true' : 'false'}
           aria-describedby={describedBy}
+          onChange={(event) => {
+            setTyped(event.target.value.length)
+            onChange?.(event)
+          }}
         />
         {endAdornment && <span className={styles.end}>{endAdornment}</span>}
       </div>
-      {hint && (
-        <p id={hintId} className={styles.hint}>
-          {hint}
-        </p>
+      {(hint || countId) && (
+        <div className={styles.footer}>
+          {hint && (
+            <p id={hintId} className={styles.hint}>
+              {hint}
+            </p>
+          )}
+          {countId && (
+            <p id={countId} className={styles.count}>
+              {length} / {rest.maxLength} caractères
+            </p>
+          )}
+        </div>
       )}
       {error && (
         <p id={errorId} className={styles.error} role="alert">

@@ -13,8 +13,8 @@ test("falls back to the API's French message", () => {
 })
 
 test('gives a generic message for anything that is not an ApiError', () => {
-  expect(messageFor(new Error('boom'))).toBe('Une erreur est survenue. Veuillez réessayer.')
-  expect(messageFor('boom')).toBe('Une erreur est survenue. Veuillez réessayer.')
+  expect(messageFor(new Error('boom'))).toBe('Un problème est survenu de notre côté. Réessayez dans un instant.')
+  expect(messageFor('boom')).toBe('Un problème est survenu de notre côté. Réessayez dans un instant.')
 })
 
 test('keeps only the expected fields that carry a message', () => {

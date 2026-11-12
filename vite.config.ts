@@ -1,11 +1,13 @@
 import { fileURLToPath } from 'node:url'
+import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vitest/config'
 
 const API_PROXY = { '/api': 'http://localhost:8080' }
 
 export default defineConfig({
-  plugins: [react()],
+  // Tailwind compiles at build time into our own CSS file: nothing is loaded from elsewhere (CSP 'self')
+  plugins: [react(), tailwindcss()],
   resolve: {
     // Same alias as tsconfig.app.json "paths": @/x = src/x
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },

@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import type { RouteObject } from 'react-router-dom'
 import { RequireAuth, authRoutes, ownPasswordRoute, type Role } from '@/features/auth'
 import { mfaRoutes } from '@/features/mfa'
@@ -8,8 +9,7 @@ import RouteErrorPage from '@/pages/RouteErrorPage'
 import { paths } from '@/shared/config/paths'
 import { lazyPage } from '@/shared/lib/lazyPage'
 import { PageLoader } from '@/shared/ui'
-import SpaceHome from '@/spaces/SpaceHome'
-import SpaceLayout from '@/spaces/SpaceLayout'
+import { SpaceComingSoon, SpaceHome, SpaceLayout } from './spaceChunks'
 
 /**
  * A role's space: one guard and one layout for the whole branch, so no page of the space can forget the
@@ -20,11 +20,13 @@ function space(role: Role, root: string, pages: RouteObject[] = []): RouteObject
     path: root,
     element: (
       <RequireAuth role={role}>
-        <SpaceLayout role={role} />
+        <Suspense fallback={<PageLoader />}>
+          <SpaceLayout role={role} />
+        </Suspense>
       </RequireAuth>
     ),
     errorElement: <RouteErrorPage />,
-    children: [{ index: true, element: <SpaceHome /> }, ...pages],
+    children: [{ index: true, element: <SpaceHome role={role} /> }, ...pages],
   }
 }
 
@@ -47,9 +49,15 @@ export const routes: RouteObject[] = [
       space('PRACTITIONER', paths.practitioner.root, [ownPasswordRoute(paths.practitioner.password)]),
       space('ADMINISTRATIVE_STAFF', paths.staff.root, [
         // MLink-73 (back-office) replaces this placeholder
-        { path: paths.staff.accounts, element: <PlaceholderPage title="Gestion des comptes" /> },
+        { path: paths.staff.accounts, element: <SpaceComingSoon title="Gestion des comptes" /> },
         ownPasswordRoute(paths.staff.password),
       ]),
+
+      // Dev-only design tool (UI refresh B0). import.meta.env.DEV is false in `vite build`, so the branch and the
+      // page's chunk (with its fonts) are dropped from production
+      ...(import.meta.env.DEV
+        ? [{ path: paths.specimen, lazy: lazyPage(() => import('@/pages/specimen/SpecimenPage')) }]
+        : []),
 
       { path: '*', element: <NotFoundPage /> },
     ],

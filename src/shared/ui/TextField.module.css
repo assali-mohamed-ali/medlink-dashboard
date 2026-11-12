@@ -20,7 +20,7 @@
   border: 1px solid var(--outline-variant);
   border-radius: var(--radius-field);
   outline: none;
-  transition: border-color 0.15s, background 0.15s;
+  transition: border-color var(--duration-fast) var(--ease), background var(--duration-fast) var(--ease);
 }
 .input::placeholder { color: var(--outline); }
 .input:focus-visible {
@@ -29,7 +29,17 @@
   box-shadow: var(--focus-ring);
 }
 .input[aria-invalid='true'] { border-color: var(--error); }
-.withEnd { padding-right: 52px; }
-.end { position: absolute; top: 50%; right: 6px; display: flex; transform: translateY(-50%); }
+/* Disabled: no fill, a light edge, muted text (WCAG exempts inactive controls from contrast minimums) */
+.input:disabled {
+  color: var(--text-muted);
+  background: transparent;
+  border-color: var(--border);
+  border-style: dashed;
+  cursor: not-allowed;
+}
+.withEnd { padding-right: 56px; }
+.end { position: absolute; top: 50%; right: 2px; display: flex; transform: translateY(-50%); }
+.footer { display: flex; justify-content: space-between; gap: var(--space-3); }
+.count { margin: 0 0 0 auto; font-size: var(--text-sm); color: var(--text-muted); white-space: nowrap; }
 .hint { margin: 0; font-size: var(--text-sm); color: var(--on-surface-variant); }
 .error { margin: 0; font-size: var(--text-sm); color: var(--error); }

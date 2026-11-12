@@ -1,6 +1,6 @@
 import { ApiError } from './apiClient'
 
-const GENERIC_MESSAGE = 'Une erreur est survenue. Veuillez réessayer.'
+const GENERIC_MESSAGE = 'Un problème est survenu de notre côté. Réessayez dans un instant.'
 
 // The API's messages are already French: only the codes a screen words itself are listed here.
 // Add a line when a screen needs its own text for a code; never repeat the API's message.
