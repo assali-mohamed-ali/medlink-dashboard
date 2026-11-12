@@ -33,6 +33,10 @@
   line-height: var(--leading-sm);
 }
 
+.table td:first-child {
+  white-space: nowrap;
+}
+
 .table th,
 .table td {
   padding: var(--space-3) var(--space-4);
