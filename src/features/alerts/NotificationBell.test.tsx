@@ -28,6 +28,11 @@ function bell() {
   return screen.getByRole('button', { name: /^Notifications/ })
 }
 
+/** Opens the list unless it already opened by itself (37.6: unread alerts at login open it). */
+async function openList(user: ReturnType<typeof userEvent.setup>) {
+  if (bell().getAttribute('aria-expanded') !== 'true') await user.click(bell())
+}
+
 beforeEach(() => {
   vi.resetAllMocks()
   vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'Date'] })
@@ -75,7 +80,7 @@ test('the list opens under the bell: each alert with its message and when it cam
   const user = setup()
   await screen.findByRole('button', { name: 'Notifications, 2 non lues' })
 
-  await user.click(bell())
+  await openList(user)
 
   expect(bell()).toHaveAttribute('aria-expanded', 'true')
   const panel = screen.getByRole('region', { name: 'Alertes' })
@@ -90,7 +95,7 @@ test('"Marquer comme lue" tells the API, takes the alert off the list and the co
   markAlertRead.mockResolvedValue(undefined)
   const user = setup()
   await screen.findByRole('button', { name: 'Notifications, 2 non lues' })
-  await user.click(bell())
+  await openList(user)
 
   const panel = screen.getByRole('region', { name: 'Alertes' })
   const first = within(panel).getAllByRole('listitem').find((item) => item.textContent?.includes('Ahmed Kacem'))!
@@ -105,7 +110,7 @@ test('a failed "Marquer comme lue" keeps the alert and says so', async () => {
   markAlertRead.mockRejectedValue(new ApiError(0, 'NETWORK_ERROR', 'Connexion impossible.'))
   const user = setup()
   await screen.findByRole('button', { name: 'Notifications, 1 non lue' })
-  await user.click(bell())
+  await openList(user)
 
   const panel = screen.getByRole('region', { name: 'Alertes' })
   await user.click(within(panel).getByRole('button', { name: 'Marquer comme lue' }))
@@ -120,7 +125,7 @@ test('nothing new: the open list says so', async () => {
   const user = setup()
   await screen.findByRole('button', { name: 'Notifications, aucune non lue' })
 
-  await user.click(bell())
+  await openList(user)
 
   expect(within(screen.getByRole('region', { name: 'Alertes' })).getByText('Aucune nouvelle alerte.')).toBeInTheDocument()
 })
@@ -128,7 +133,8 @@ test('nothing new: the open list says so', async () => {
 test('alerts that cannot be read say so in the list; the next minute tries again', async () => {
   fetchUnreadAlerts.mockRejectedValueOnce(new ApiError(0, 'NETWORK_ERROR', 'Connexion impossible.'))
   const user = setup()
-  await user.click(await screen.findByRole('button', { name: /^Notifications/ }))
+  await screen.findByRole('button', { name: /^Notifications/ })
+  await openList(user)
 
   expect(await within(screen.getByRole('region', { name: 'Alertes' })).findByText('Les alertes n’ont pas pu être chargées.')).toBeInTheDocument()
 
@@ -140,8 +146,9 @@ test('alerts that cannot be read say so in the list; the next minute tries again
 
 test('Escape closes the list and gives the focus back to the bell', async () => {
   const user = setup()
-  await screen.findByRole('button', { name: 'Notifications, 1 non lue' })
-  await user.click(bell())
+  await screen.findByRole('region', { name: 'Alertes' }) // opened by itself at login (37.6)
+  await user.click(bell()) // closed
+  await user.click(bell()) // opened by hand: the focus is on the bell
 
   await user.keyboard('{Escape}')
 

@@ -21,7 +21,8 @@ function bellName(count: number) {
 }
 
 /**
- * MLink-37 (37.5): the practitioner's unread alerts (cancelled appointments). Asks the API when it appears, then every
+ * MLink-37 (37.5, 37.6): the practitioner's unread alerts (cancelled appointments). At login, alerts received while
+ * away open the list once, said as such. Asks the API when it appears, then every
  * minute while it is on screen; the list opens under the bell, each alert can be marked as read.
  */
 export default function NotificationBell() {
@@ -31,11 +32,16 @@ export default function NotificationBell() {
   const [open, setOpen] = useState(false)
   const [markFailed, setMarkFailed] = useState(false)
   const [marking, setMarking] = useState<string | null>(null)
+  // 37.6: the list opened by itself at login, for the alerts received while away (said once, never again)
+  const [away, setAway] = useState(false)
+  const [announcement, setAnnouncement] = useState('')
   const button = useRef<HTMLButtonElement>(null)
   const root = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     let current = true
+    // The bell appears with the space, right after the login (or a reload): its first answer that arrives holds what came while away
+    let first = true
     // A missed poll keeps what is shown; the next minute tries again (a 401 is handled by apiFetch)
     const poll = () =>
       fetchUnreadAlerts().then(
@@ -43,6 +49,15 @@ export default function NotificationBell() {
           if (!current) return
           setAlerts([...unread].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt)))
           setLoadFailed(false)
+          if (first && unread.length > 0) {
+            // 37.6: open the list once, without taking the focus from where the person is
+            setOpen(true)
+            setAway(true)
+            setAnnouncement(
+              `${unread.length} alerte${unread.length > 1 ? 's' : ''} reçue${unread.length > 1 ? 's' : ''} pendant votre absence.`,
+            )
+          }
+          first = false
         },
         () => current && setLoadFailed(true),
       )
@@ -54,20 +69,30 @@ export default function NotificationBell() {
     }
   }, [])
 
-  // Close on a click outside the bell and its list
+  // Close on a click outside the bell and its list, and on Escape wherever the focus is (the list may have opened by
+  // itself at login, while the person works elsewhere: then the focus stays where it is)
   useEffect(() => {
     if (!open) return
     function onPointer(event: PointerEvent) {
-      if (root.current && !root.current.contains(event.target as Node)) setOpen(false)
+      if (root.current && !root.current.contains(event.target as Node)) {
+        setOpen(false)
+        setAway(false)
+      }
+    }
+    function onKey(event: KeyboardEvent) {
+      if (event.key !== 'Escape') return
+      const inside = root.current?.contains(document.activeElement) ?? false
+      setOpen(false)
+      setAway(false)
+      if (inside) button.current?.focus()
     }
     document.addEventListener('pointerdown', onPointer)
-    return () => document.removeEventListener('pointerdown', onPointer)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('pointerdown', onPointer)
+      document.removeEventListener('keydown', onKey)
+    }
   }, [open])
-
-  function close() {
-    setOpen(false)
-    button.current?.focus()
-  }
 
   async function markRead(alert: Alert) {
     if (marking) return
@@ -86,16 +111,7 @@ export default function NotificationBell() {
   const count = alerts.length
 
   return (
-    <div
-      ref={root}
-      className={styles.root}
-      onKeyDown={(event) => {
-        if (event.key === 'Escape' && open) {
-          event.stopPropagation()
-          close()
-        }
-      }}
-    >
+    <div ref={root} className={styles.root}>
       <button
         ref={button}
         type="button"
@@ -105,6 +121,7 @@ export default function NotificationBell() {
         aria-controls={open ? panelId : undefined}
         onClick={() => {
           setMarkFailed(false)
+          setAway(false)
           setOpen((was) => !was)
         }}
       >
@@ -116,9 +133,16 @@ export default function NotificationBell() {
         )}
       </button>
 
+      {announcement && (
+        <p role="status" className="visually-hidden">
+          {announcement}
+        </p>
+      )}
+
       {open && (
         <section id={panelId} aria-label="Alertes" className={styles.panel}>
           <h2 className={styles.panelTitle}>Alertes</h2>
+          {away && <p className={styles.away}>Reçues pendant votre absence</p>}
           {markFailed && (
             <p role="alert" className={styles.failure}>
               L’alerte n’a pas pu être marquée comme lue. Réessayez.

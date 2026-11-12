@@ -39,3 +39,8 @@
 .read:hover { background: var(--surface-container); }
 .read:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 .read:disabled { cursor: wait; opacity: 0.6; }
+/* 37.6: the list opened at login */
+.away {
+  margin: 0; align-self: flex-start; padding: 2px var(--space-3); border-radius: var(--radius-pill);
+  background: var(--stitch-action); color: var(--on-stitch-action); font-size: var(--text-xs); line-height: var(--leading-xs); font-weight: 600;
+}
