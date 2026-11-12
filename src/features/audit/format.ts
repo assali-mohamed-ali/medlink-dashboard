@@ -1,10 +1,17 @@
-/** The French words of the audit actions the screen knows; an unknown one is shown as the API sends it. */
+/** The French words of the audit actions of the API; an unknown one is shown as the API sends it. */
 export const ACTION_LABELS: Record<string, string> = {
+  ACCESS_DENIED: 'Accès refusé',
   LOGIN: 'Connexion',
   PASSWORD_CHANGE_REQUIRED: 'Changement de mot de passe exigé',
-  ACCOUNT_UPDATED: 'Compte modifié',
-  ACCESS_DENIED: 'Accès refusé',
   DATA_READ: 'Consultation de données',
+  ACCOUNT_CREATED: 'Compte créé',
+  ACCOUNT_UPDATED: 'Compte modifié',
+  ROLE_CHANGED: 'Rôle modifié',
+  ACCOUNT_ENABLED: 'Compte activé',
+  ACCOUNT_DISABLED: 'Compte désactivé',
+  SLOT_OPENED: 'Créneau ouvert',
+  SLOT_CLOSED: 'Créneau fermé',
+  RECORD_VIEWED: 'Dossier patient consulté',
 }
 
 export function actionLabel(action: string): string {
@@ -14,6 +21,7 @@ export function actionLabel(action: string): string {
 const OUTCOMES = {
   SUCCESS: { label: 'Réussi', tone: 'success' },
   FAILURE: { label: 'Échec', tone: 'danger' },
+  DENIED: { label: 'Refusé', tone: 'danger' },
 } as const
 
 export function outcomeView(outcome: string) {
