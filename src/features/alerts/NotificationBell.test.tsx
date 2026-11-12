@@ -161,3 +161,55 @@ test('it stops asking once the bell is gone (logout, another space)', async () =
 
   expect(fetchUnreadAlerts).toHaveBeenCalledTimes(1)
 })
+
+// ---- 37.6: alerts received while logged out show at the next login ----
+
+test('37.6: unread alerts waiting at login open the list by themselves, said as received while away', async () => {
+  fetchUnreadAlerts.mockResolvedValue([FIRST, SECOND])
+  render(<NotificationBell />)
+
+  const panel = await screen.findByRole('region', { name: 'Alertes' })
+  expect(within(panel).getByText('Reçues pendant votre absence')).toBeInTheDocument()
+  expect(within(panel).getAllByRole('listitem')).toHaveLength(2)
+  expect(bell()).toHaveAttribute('aria-expanded', 'true')
+  // Said to screen readers too, without moving the focus away from where the person is
+  expect(screen.getByRole('status')).toHaveTextContent('2 alertes reçues pendant votre absence.')
+  expect(bell()).not.toHaveFocus()
+})
+
+test('37.6: nothing waiting at login: the list stays closed', async () => {
+  fetchUnreadAlerts.mockResolvedValue([])
+  render(<NotificationBell />)
+
+  await screen.findByRole('button', { name: 'Notifications, aucune non lue' })
+  expect(screen.queryByRole('region', { name: 'Alertes' })).toBeNull()
+})
+
+test('37.6: only at login: an alert coming later raises the counter without opening the list', async () => {
+  const user = userEvent.setup()
+  fetchUnreadAlerts.mockResolvedValue([FIRST])
+  render(<NotificationBell />)
+  await screen.findByRole('region', { name: 'Alertes' })
+  await user.keyboard('{Escape}')
+
+  fetchUnreadAlerts.mockResolvedValue([SECOND, FIRST])
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(POLL_MS)
+  })
+
+  expect(await screen.findByRole('button', { name: 'Notifications, 2 non lues' })).toBeInTheDocument()
+  expect(screen.queryByRole('region', { name: 'Alertes' })).toBeNull()
+})
+
+test('37.6: once opened by hand later, the list no longer says "pendant votre absence"', async () => {
+  const user = userEvent.setup()
+  fetchUnreadAlerts.mockResolvedValue([FIRST])
+  render(<NotificationBell />)
+  await screen.findByRole('region', { name: 'Alertes' })
+  await user.keyboard('{Escape}')
+
+  await user.click(bell())
+
+  const panel = screen.getByRole('region', { name: 'Alertes' })
+  expect(within(panel).queryByText('Reçues pendant votre absence')).toBeNull()
+})

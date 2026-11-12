@@ -100,3 +100,20 @@ test.each(['PATIENT', 'ADMINISTRATIVE_STAFF'] as const)('MLink-37: no bell in th
   expect(within(banner).queryByRole('button', { name: /^Notifications/ })).toBeNull()
   expect(alertsApi.fetchUnreadAlerts).not.toHaveBeenCalled()
 })
+
+test('MLink-37 (37.6): a practitioner who logs in finds the alerts received while away, the list open', async () => {
+  vi.mocked(alertsApi.fetchUnreadAlerts).mockResolvedValue([
+    {
+      id: 'al1',
+      type: 'APPOINTMENT_CANCELLED',
+      message: 'Rendez-vous annulé : Ahmed Kacem, jeudi 12 novembre à 09:00, Clinique MedLink Sousse.',
+      appointmentId: 'a1',
+      createdAt: '2026-11-11T08:00:00Z',
+    },
+  ])
+  renderAs('PRACTITIONER', '/praticien')
+
+  const panel = await screen.findByRole('region', { name: 'Alertes' })
+  expect(within(panel).getByText(/Ahmed Kacem/)).toBeInTheDocument()
+  expect(within(panel).getByText('Reçues pendant votre absence')).toBeInTheDocument()
+})
