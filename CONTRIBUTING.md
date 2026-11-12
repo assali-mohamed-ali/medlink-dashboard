@@ -51,3 +51,67 @@ pre-commit autoupdate
 pre-commit validate-config
 pre-commit run --all-files
 ```
+
+## Team rules
+
+New here? Read **[docs/ONBOARDING.md](docs/ONBOARDING.md)** first: first run, architecture, request flow, recipes.
+These rules keep several people working on the same code without stepping on each other.
+
+### Structure and code
+
+- **Folders:** `app/` (wiring), `spaces/` (role layouts), `pages/` (pages of no feature), `features/<domain>/`
+  (business areas), `shared/` (generic). **Imports go one way:** `app` → `spaces`/`pages` → `features` → `shared`.
+  A feature is imported through its `index.ts` only; across folders use the `@/` alias, never `../../`.
+  `npm run lint` enforces all of this (`.oxlintrc.json`, `no-restricted-imports`).
+- **One way to call the API:** a function in the feature's `api.ts`, which calls `apiFetch`. Never `fetch()` in a
+  component. Show errors with `messageFor(error)`, map field errors with `fieldErrors(details, FIELDS)`.
+- **One way to know who is logged in:** `useAuth()`. Nothing about the session in `localStorage`/`sessionStorage`.
+- **URLs** come from `shared/config/paths.ts`, never typed strings. Pages the API mails are part of its contract.
+- **UI:** build from `shared/ui` (Button, TextField, PasswordField, Alert…). Styles: CSS Modules and the tokens of
+  `shared/styles/tokens.css`, no raw colours. A component moves to `shared/ui` the second time it is needed.
+- **Naming:** components `PascalCase.tsx`, everything else `camelCase.ts`; tests and styles next to their file
+  (`X.test.tsx`, `X.module.css`). Code, comments and docs in English; text on screen in French.
+- **Keep it simple:** no new state library, no new UI kit, no abstraction for a single use. A new dependency is
+  explained in the PR (why, size, alternative considered) and agreed by the team.
+
+### Security (a health portal)
+
+- The browser never talks to Keycloak. No token, password, code or mailed token is ever logged, stored or shown.
+- A token read from a mailed link leaves the address bar at once (`useTokenFromUrl`); single-use calls run once
+  (`useSingleRequest`).
+- Never reveal whether an account exists: show the API's neutral answers as they are.
+- No `dangerouslySetInnerHTML`, no third-party script, style, font or image (the CSP allows `'self'` only).
+- The front's role checks are comfort; the API is the security. Every protected page sits under its space's guard.
+
+### Tests and definition of done
+
+- Test first (a red commit, then green); break the rule once on purpose to see a test fail.
+- A page has a test per answer the API can give (200 and each error code); a guarded page has a test for the
+  right role and one for a wrong role. Query by role and label, as a user would.
+- Done = `npm test`, `npm run lint` and `npm run build` green, the onboarding guide updated if a rule, a folder or
+  a flow changed, and the PR template filled honestly.
+
+### Git and teamwork
+
+- **One shared branch per epic** (team rule of 2026-11-06): `epic/MLink-<epic id>`, created once from `master`;
+  everyone on the epic commits to it, no branch per ticket. A small fix, docs or chore outside any epic keeps its own
+  `fix/…`, `docs/…` or `chore/…` branch. Commits start with `feat:`, `fix:`, `test:`, `refactor:`, `docs:`,
+  `chore:` and name the YouTrack ticket.
+- **The loop, for every task:**
+  1. **Pull:** `git checkout epic/MLink-<n> && git pull --no-rebase`.
+  2. **Work and commit:** the red test commit, then the green code commit (ticket id in both).
+  3. **Check green:** `npm test`, `npm run lint` and `npm run build`.
+  4. **Pull again:** `git pull --no-rebase`. If a teammate pushed in the meantime, this merges their commits into
+     yours: fix any conflict, commit the merge, and go back to step 3.
+  5. **Push:** `git push`. Refused because someone pushed first? Go back to step 4.
+
+  The red test commit is pushed together with its green commit, never alone: every push ends on a green commit.
+  Never rebase or force-push an epic branch (`--no-rebase` makes every pull a merge). When `master` moves:
+  `git fetch origin && git merge origin/master` on the epic branch, then steps 3 to 5.
+- **One PR per epic, at the end**, to `master`: only when every task of the epic is done, tested and walked through
+  by the team. No draft or early PR. Never delete a branch unless the lead asks.
+- **Shared files** (`app/routes.tsx`, `shared/**`, `features/auth/**`, `spaces/**`, `.oxlintrc.json`, CI): say on
+  your ticket what you change before changing it, keep commits small, pull before you push, never force-push a
+  branch someone else works on.
+- YouTrack mirrors the work: *In Progress* when you start, *To Verify* when the task's commit is pushed green on the
+  epic branch (with the commit link), *Done* when the epic PR is merged.
