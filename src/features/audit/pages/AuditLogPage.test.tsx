@@ -196,5 +196,3 @@ test('the chosen filters stay when changing page', async () => {
     expect(fetchAuditEntries).toHaveBeenLastCalledWith({ page: 1, size: 50, action: 'LOGIN' }),
   )
 })
-
-
