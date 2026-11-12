@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 import type { RouteObject } from 'react-router-dom'
+import { staffAuditPages } from '@/features/audit'
 import { RequireAuth, authRoutes, ownPasswordRoute, type Role } from '@/features/auth'
 import { mfaRoutes } from '@/features/mfa'
 import AccessDeniedPage from '@/pages/AccessDeniedPage'
@@ -50,6 +51,7 @@ export const routes: RouteObject[] = [
       space('ADMINISTRATIVE_STAFF', paths.staff.root, [
         // MLink-73 (back-office) replaces this placeholder
         { path: paths.staff.accounts, element: <SpaceComingSoon title="Gestion des comptes" /> },
+        ...staffAuditPages,
         ownPasswordRoute(paths.staff.password),
       ]),
 
