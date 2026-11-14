@@ -84,7 +84,8 @@ Start with an account that has no code yet (reset helper above).
 5. [ ] Type a wrong 6-digit code: "Code incorrect. Vérifiez le code affiché dans votre application." You stay.
 6. [ ] Type the code shown in the app: you land on **`/praticien`** ("Espace praticien").
 7. [ ] Log out, then open the same mail link again: it never shows a new QR code (the link works once).
-8. [ ] Same steps with `staff.dev`: you land on **`/admin`**, with the extra menu entry "Gestion des comptes".
+8. [ ] Same steps with `staff.dev`: you land on **`/admin`**, with the extra menu entries "Gestion des comptes" and
+   "Journal d’audit".
 
 Extra cases:
 - [ ] Open the setup link **before** logging in (or in a private window): you are sent to `/connexion`; after the
@@ -107,12 +108,12 @@ Extra cases:
 
 | Logged in as | Open | Expected |
 |---|---|---|
-| patient | `/praticien`, `/admin`, `/admin/comptes` | "Accès refusé" |
-| practitioner | `/patient`, `/admin` | "Accès refusé" |
+| patient | `/praticien`, `/admin`, `/admin/comptes`, `/admin/journal-audit` | "Accès refusé" |
+| practitioner | `/patient`, `/admin`, `/admin/journal-audit` | "Accès refusé" |
 | staff | `/patient`, `/praticien` | "Accès refusé" |
 | nobody | any of them | `/connexion` |
 
-- [ ] All rows checked. (The front's guard is comfort; the API refuses the data anyway.)
+- [ ] All rows checked. (The front's guard is comfort; the API refuses the data anyway: see section 7d, part C.)
 
 ## 7. Errors and outages
 
@@ -130,8 +131,8 @@ At 1440, 900 and 375 px wide (DevTools device bar), on `/`, `/connexion`, `/insc
 - [ ] Tab through a page: every stop shows the green focus ring or an outline; in a space the first Tab shows
   "Aller au contenu".
 - [ ] Space menu: a sidebar at 1440, icons only at 900, a bottom bar at 375; the current page is highlighted.
-- [ ] Space home: "Bonjour <prénom>", the role's parts; only "Gestion des comptes" (staff) is a link, the others say
-  "Bientôt disponible".
+- [ ] Space home: "Bonjour <prénom>", the role's parts; only "Gestion des comptes" and "Journal d’audit" (staff) are
+  links, the others say "Bientôt disponible".
 - [ ] Zoom 200 % (Ctrl +) at 1440: the page reflows, no text cut off.
 
 ## 7c. Password (MLink-89)
@@ -158,6 +159,89 @@ Forced change (staff reset it):
 - [ ] Wait more than 5 minutes, then submit: back to `/connexion` with "Votre étape de connexion a expiré".
 - [ ] Log in again, choose a new password: `/connexion` with "Mot de passe changé…"; the new password logs you in.
 - [ ] Open `/mot-de-passe` logged out (no forced step): you are sent to `/connexion`.
+
+## 7d. Audit log: screen, completeness and access (MLink-116, MLink-117)
+
+The audit log is append-only and only the administrative staff can read it (`GET /api/admin/audit-entries`). The
+API must run with the audit feature (the branches of MLink-115 and MLink-72 or later), and you need `staff.dev`
+with its code set up (section 4). Do part A last, after parts B and C have produced entries to look at.
+
+If the API runs on another port than 8080 (for example 8081 because another program uses 8080), point the proxy of
+your own copy of `vite.config.ts` at it and never commit that change.
+
+### Part A. The screen (staff)
+
+- [ ] Logged in as `staff.dev`: the menu has "Journal d’audit"; it opens `/admin/journal-audit` and the entry is
+  marked as the current page.
+- [ ] Network shows `GET /api/admin/audit-entries` answering `200`: the rows come from the API, not from a mock.
+- [ ] While loading, grey placeholders show; then a table of entries (date, action, outcome, and who/what it
+  concerns). Dates are on one line; actions and outcomes are in French (no raw `ACCOUNT_CREATED` unless the
+  action is unknown to the front).
+- [ ] An outcome that failed or was refused is shown with a "danger" look (icon and text, not colour alone):
+  "Échec" or "Refusé"; a good one is "Réussi".
+- [ ] Filter by action: only those entries remain; the list restarts at page 1.
+- [ ] Filter by dates: an end date before the start date is refused with a message, and **nothing is sent**
+  (Network).
+- [ ] Type something that is not a UUID in the user or resource filter: refused with a message, nothing sent.
+- [ ] More than 50 entries: the pager works (next, previous), the first page has no "previous".
+- [ ] Stop the API, reload the page: an error message with a "Réessayer" button; start the API, click it: the table
+  comes back without reloading.
+- [ ] Empty result (a filter nothing matches): a clear "no entry" message, not an empty table.
+- [ ] The log never shows a password, a code, a token or an e-mail address in clear: only identifiers.
+
+### Part B. Completeness: every sensitive action leaves an entry
+
+For each row: do the action, then reload `/admin/journal-audit` as staff and look for the new entry (right action,
+right outcome, a date of a few seconds ago, an identifier and not personal data). Rows marked "to confirm" are
+the ones to check in `api-MedLink` if the entry does not appear: a missing entry is a finding, not a mistake of
+yours.
+
+| Action shown | How to cause it | Expected entry |
+|---|---|---|
+| Connexion (`LOGIN`) | Log in with a dev account (section 3 or 5) | "Connexion", "Réussi"; a wrong password gives "Échec" (to confirm) |
+| Changement de mot de passe exigé (`PASSWORD_CHANGE_REQUIRED`) | Forced change, section 7c | "Changement de mot de passe exigé" for that account |
+| Accès refusé (`ACCESS_DENIED`) | Part C, step 4 (a patient calls the audit API) | "Accès refusé", "Refusé" |
+| Consultation de données (`DATA_READ`) | Staff reads the audit log or lists accounts (to confirm) | an entry, or a gap to report (see part D) |
+| Compte créé (`ACCOUNT_CREATED`) | A patient signs up (section 2) or staff creates an account (to confirm) | "Compte créé" |
+| Compte modifié (`ACCOUNT_UPDATED`) | Staff edits an account (no screen yet: API only) | **Never recorded today**: see part D |
+| Rôle modifié (`ROLE_CHANGED`) | Staff changes a role (no screen yet: API only, to confirm) | "Rôle modifié" |
+| Compte activé / désactivé (`ACCOUNT_ENABLED`, `ACCOUNT_DISABLED`) | Staff enables or disables an account (no screen yet: API only, to confirm) | "Compte activé" / "Compte désactivé" |
+| Créneau ouvert / fermé (`SLOT_OPENED`, `SLOT_CLOSED`) | A practitioner opens or closes a slot (no screen yet) | "Créneau ouvert" / "Créneau fermé" |
+| Dossier patient consulté (`RECORD_VIEWED`) | A practitioner opens a patient record (no screen yet) | "Dossier patient consulté" |
+
+- [ ] Every row you can cause today is checked. For the others, write "no screen yet" in the MLink-117 comment
+  instead of ticking it.
+- [ ] A refused or failed action leaves an entry too (outcome "Échec" or "Refusé"), not only the successful ones.
+- [ ] Nothing in the log can be edited or deleted from the screen (it has no such button), and the API has no such
+  route.
+
+### Part C. Access restriction
+
+1. [ ] **Staff** (`staff.dev`): `/admin/journal-audit` opens the table; Network shows `GET /api/admin/audit-entries`
+   answering `200`.
+2. [ ] **Patient** (`patient.dev`): open `/admin/journal-audit`: "Accès refusé", and Network shows **no** request to
+   `/api/admin/audit-entries`. The menu of the patient space has no audit entry.
+3. [ ] **Practitioner** (`practitioner.dev`): same as the patient.
+4. [ ] **The API refuses even without the front**: logged in as the patient, in the Console type
+   `fetch('/api/admin/audit-entries').then(r => console.log(r.status))`. Expected: `403`. Then, as staff, reload
+   the log: an "Accès refusé" entry from that attempt appears (to confirm).
+5. [ ] **Nobody logged in**: open `/admin/journal-audit`: you land on `/connexion`. The same `fetch` in the Console
+   answers `401`.
+6. [ ] An unknown action in the filter (in the Console: `fetch('/api/admin/audit-entries?action=NOPE')`)
+   answers `400`, not `500`.
+
+### Part D. Gaps found while preparing MLink-117 (to report to Md. Assali, not to fix here)
+
+Each line is a finding in the API, written after reading its code or seeing it on a running stack; none is fixed
+by the front.
+
+- `ACCOUNT_UPDATED` exists in the list of actions and the front labels it, but **no code records it**: editing an
+  account leaves no entry.
+- Not seen recording an entry: the account activation by mail link, a user's own password change, the code
+  (MFA) setup, the patient sign-up, and reading the audit log itself.
+- To confirm on a running stack: the "Connexion" entry shows no user and no IP address, which makes it of little
+  use for tracing who logged in.
+- When you finish parts B and C, add here every row that stayed without an entry.
 
 ## 8. Not testable by hand yet
 
