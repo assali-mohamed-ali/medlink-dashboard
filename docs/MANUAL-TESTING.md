@@ -166,6 +166,13 @@ The audit log is append-only and only the administrative staff can read it (`GET
 API must run with the audit feature (the branches of MLink-115 and MLink-72 or later), and you need `staff.dev`
 with its code set up (section 4). Do part A last, after parts B and C have produced entries to look at.
 
+The API records its actions in several branches that are not merged yet (state read in the code on 15 November
+2026): MLink-114 (login success and failure, forced password change, account update, data read), MLink-70/72/74
+(account created, role changed, account enabled or disabled), `master` (slots opened or closed, patient record
+viewed), and the access-denied handler (MLink-115 stack). A stack that has only some of them shows only some
+entries: say which branches your stack is made of in the MLink-117 comment, and run part B again once they are
+merged.
+
 If the API runs on another port than 8080 (for example 8081 because another program uses 8080), point the proxy of
 your own copy of `vite.config.ts` at it and never commit that change.
 
@@ -198,12 +205,12 @@ yours.
 
 | Action shown | How to cause it | Expected entry |
 |---|---|---|
-| Connexion (`LOGIN`) | Log in with a dev account (section 3 or 5) | "Connexion", "Réussi"; a wrong password gives "Échec" (to confirm) |
+| Connexion (`LOGIN`) | Log in with a dev account (section 3 or 5); then one wrong password (recorded by `LoginService`, branch MLink-114) | "Connexion", "Réussi"; the wrong password gives "Échec" (to confirm) |
 | Changement de mot de passe exigé (`PASSWORD_CHANGE_REQUIRED`) | Forced change, section 7c | "Changement de mot de passe exigé" for that account |
 | Accès refusé (`ACCESS_DENIED`) | Part C, step 4 (a patient calls the audit API) | "Accès refusé", "Refusé" |
-| Consultation de données (`DATA_READ`) | Staff reads the audit log or lists accounts (to confirm) | an entry, or a gap to report (see part D) |
+| Consultation de données (`DATA_READ`) | Staff lists the users or reads one account (recorded by `UserService`, branch MLink-114; to confirm) | "Consultation de données" |
 | Compte créé (`ACCOUNT_CREATED`) | A patient signs up (section 2) or staff creates an account (to confirm) | "Compte créé" |
-| Compte modifié (`ACCOUNT_UPDATED`) | Staff edits an account (no screen yet: API only) | **Never recorded today**: see part D |
+| Compte modifié (`ACCOUNT_UPDATED`) | The account row is updated at a login (recorded by `UserProvisioningService`, branch MLink-114; no screen; to confirm) | "Compte modifié" |
 | Rôle modifié (`ROLE_CHANGED`) | Staff changes a role (no screen yet: API only, to confirm) | "Rôle modifié" |
 | Compte activé / désactivé (`ACCOUNT_ENABLED`, `ACCOUNT_DISABLED`) | Staff enables or disables an account (no screen yet: API only, to confirm) | "Compte activé" / "Compte désactivé" |
 | Créneau ouvert / fermé (`SLOT_OPENED`, `SLOT_CLOSED`) | A practitioner opens or closes a slot (no screen yet) | "Créneau ouvert" / "Créneau fermé" |
@@ -230,17 +237,20 @@ yours.
 6. [ ] An unknown action in the filter (in the Console: `fetch('/api/admin/audit-entries?action=NOPE')`)
    answers `400`, not `500`.
 
-### Part D. Gaps found while preparing MLink-117 (to report to Md. Assali, not to fix here)
+### Part D. What was checked, and what is still open (to report to Md. Assali, not to fix here)
 
-Each line is a finding in the API, written after reading its code or seeing it on a running stack; none is fixed
-by the front.
+Each line comes from the code or from a running stack; none is fixed by the front.
 
-- `ACCOUNT_UPDATED` exists in the list of actions and the front labels it, but **no code records it**: editing an
-  account leaves no entry.
-- Not seen recording an entry: the account activation by mail link, a user's own password change, the code
-  (MFA) setup, the patient sign-up, and reading the audit log itself.
-- To confirm on a running stack: the "Connexion" entry shows no user and no IP address, which makes it of little
-  use for tracing who logged in.
+- **Checked by hand** on a stack made of MLink-74 and MLink-115: staff reads the log; a patient who calls the
+  audit API gets `403`, and the log then holds an "Accès refusé / Refusé" entry with the patient's identifier, the
+  request (`GET /api/admin/audit-entries`) and the IP address.
+- **Seen in the code, not yet seen on a running stack:** the rows that other branches record (login and its
+  failure, forced password change, account update, data read in MLink-114; slots and patient record in `master`).
+  Run part B again on a stack that has them.
+- **Open questions for the API:** a failed login is recorded with the user "UNKNOWN" and no identifier (is that
+  wanted when the e-mail exists but the password is wrong?); no recording was seen in the code read so far for the
+  account activation by mail link, a user's own password change, the code (MFA) setup, the patient sign-up, or the
+  reading of the audit log itself (to confirm in each branch).
 - When you finish parts B and C, add here every row that stayed without an entry.
 
 ## 8. Not testable by hand yet
