@@ -12,6 +12,8 @@
   justify-content: center;
   gap: 24px;
   padding: 24px 16px;
+  background: #eef2ed;
+
 }
 
 .login__card {

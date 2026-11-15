@@ -15,6 +15,8 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [status, setStatus] = useState<SessionStatus>('loading')
   const [sessionExpired, setSessionExpired] = useState(false)
+  // Why the session ended on purpose: the guards carry it to the login page, so its notice survives the redirect
+  const [passwordChanged, setPasswordChanged] = useState(false)
   // Whether a session is open right now: a 401 then means it ended; before, it only means "nobody yet"
   const sessionOpen = useRef(false)
 
@@ -23,6 +25,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     setUser(next)
     setStatus('authenticated')
     setSessionExpired(false)
+    setPasswordChanged(false)
   }, [])
 
   const closeSession = useCallback(() => {
@@ -50,6 +53,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     setUnauthorizedHandler(() => {
       // The page load's GET /api/auth/me answers 401 for a visitor too: not an expired session
       if (sessionOpen.current) setSessionExpired(true)
+      setPasswordChanged(false)
       closeSession()
     })
     return () => setUnauthorizedHandler(null)
@@ -71,11 +75,13 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
       // The session is already over on the server side: clear it here too.
     }
     setSessionExpired(false)
+    setPasswordChanged(false)
     closeSession()
   }, [closeSession])
 
   const endSession = useCallback(() => {
     setSessionExpired(false)
+    setPasswordChanged(true)
     closeSession()
   }, [closeSession])
 
@@ -85,12 +91,13 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
       user,
       role: user?.roles[0] ?? null,
       sessionExpired,
+      passwordChanged,
       login,
       completeLogin: openSession,
       logout,
       endSession,
     }),
-    [status, user, sessionExpired, login, openSession, logout, endSession],
+    [status, user, sessionExpired, passwordChanged, login, openSession, logout, endSession],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

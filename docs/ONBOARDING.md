@@ -428,7 +428,9 @@ PR template (`.github/pull_request_template.md`) carries the checklist and the A
 
 ## 14. Work in progress
 
-The password page (`/mot-de-passe`, MLink-89) is built: own change and forced change, `features/auth/pages/PasswordPage.tsx`.
+The password pages (MLink-89) are built: the own change is a page of each space (`/patient/mot-de-passe`,
+`/praticien/mot-de-passe`, `/admin/mot-de-passe`, `features/auth/pages/OwnPasswordPage.tsx`), the forced change after a
+login is the public `/mot-de-passe` (`PasswordPage.tsx`); both use `components/PasswordForm.tsx`.
 Still to build on this foundation: the account activation page (`/activer-compte`, once the API's MLink-71 lands) and the back-office accounts page
 (MLink-73, `/admin/comptes`, once the API's MLink-69/70 land). Each follows the recipes above.
 

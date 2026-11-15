@@ -2,7 +2,7 @@
 // Pages are the exception: the routes import them lazily so that each one is its own chunk.
 export { default as AuthProvider } from './AuthProvider'
 export { GuestOnly, RequireAuth } from './guards'
-export { authRoutes } from './routes'
+export { authRoutes, ownPasswordRoute } from './routes'
 export { useAuth } from './useAuth'
 export { landingAfterLogin, roleHome } from './roles'
 export type { Role } from './roles'

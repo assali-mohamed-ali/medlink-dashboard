@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { RouterProvider, createMemoryRouter } from 'react-router-dom'
 import { beforeEach, expect, test, vi } from 'vitest'
@@ -10,6 +10,7 @@ import { routes } from './routes'
 
 // The real route table, with the API mocked at the auth feature's api.ts
 vi.mock('@/features/auth/api', () => ({
+  changePassword: vi.fn(),
   fetchMe: vi.fn(),
   login: vi.fn(),
   logout: vi.fn(),
@@ -104,6 +105,46 @@ test('logout from a space goes back to the login page', async () => {
   const router = renderAt('/patient')
   await userEvent.click(await screen.findByRole('button', { name: 'Se déconnecter' }))
   expect(logout).toHaveBeenCalledTimes(1)
+  expect(await screen.findByRole('heading', { name: 'Bienvenue sur MedLink' })).toBeInTheDocument()
+  expect(router.state.location.pathname).toBe('/connexion')
+})
+
+// ---- Password change (MLink-89): a page of each space, not a public page (code owner's review on #11) ----
+
+const PASSWORD_PAGES = SPACES.map(([role, root, title]) => [role, `${root}/mot-de-passe`, title] as const)
+
+test.each(PASSWORD_PAGES)('a %s changes the password inside their space (%s)', async (role, path, title) => {
+  loggedInAs(role)
+  renderAt(path)
+  expect(await screen.findByRole('heading', { name: 'Changer mon mot de passe' })).toBeInTheDocument()
+  // Still in the space: its title, who is logged in, logout, and the menu entry of this page marked current
+  expect(screen.getByRole('heading', { name: title })).toBeInTheDocument()
+  expect(screen.getByText(/Amel Test/)).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Se déconnecter' })).toBeInTheDocument()
+  const entry = within(screen.getByRole('navigation', { name: 'Menu de l’espace' })).getByRole('link', {
+    name: 'Mot de passe',
+  })
+  expect(entry).toHaveAttribute('href', path)
+  expect(entry).toHaveAttribute('aria-current', 'page')
+  // Not the public site's header, which made the person look logged out
+  expect(screen.queryByRole('link', { name: 'Créer un compte' })).toBeNull()
+})
+
+test.each(SPACES)('a logged-in %s opening /mot-de-passe goes to the password page of their space', async (role, root) => {
+  loggedInAs(role)
+  const router = renderAt('/mot-de-passe')
+  expect(await screen.findByRole('heading', { name: 'Changer mon mot de passe' })).toBeInTheDocument()
+  expect(router.state.location.pathname).toBe(`${root}/mot-de-passe`)
+})
+
+test('a patient opening the practitioner password page gets "Accès refusé"', async () => {
+  loggedInAs('PATIENT')
+  renderAt('/praticien/mot-de-passe')
+  expect(await screen.findByRole('heading', { name: 'Accès refusé' })).toBeInTheDocument()
+})
+
+test('a visitor opening a space password page is sent to the login page', async () => {
+  const router = renderAt('/patient/mot-de-passe')
   expect(await screen.findByRole('heading', { name: 'Bienvenue sur MedLink' })).toBeInTheDocument()
   expect(router.state.location.pathname).toBe('/connexion')
 })

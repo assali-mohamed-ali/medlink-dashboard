@@ -121,19 +121,22 @@ Extra cases:
   text.
 - [ ] Restart the API, try again: it works without reloading the page.
 
-## 7c. Password (`/mot-de-passe`, MLink-89)
+## 7c. Password (MLink-89)
 
 Use the account you created in section 2 (`test1@medlink.local`), not a dev account: Keycloak keeps the last 3
 passwords, so a dev account cannot go back to its usual password (`scripts/setup-dev.ps1 -Reset` restores them all).
 
-Own change (logged in):
-- [ ] Menu "Mot de passe": the page asks the current password, the new one and its confirmation, and says you will
-  be logged out of every device. The rule checklist ticks as you type (icon and text, not colour alone).
+Own change (logged in), a page of your space (`/patient/mot-de-passe`, `/praticien/…`, `/admin/…`):
+- [ ] Menu "Mot de passe": you **stay in your space** (its menu with "Mot de passe" marked, your name, "Se
+  déconnecter"; no public header). The page asks the current password, the new one and its confirmation, and says
+  you will be logged out of every device. The rule checklist ticks as you type (icon and text, not colour alone).
+- [ ] Logged in, type `/mot-de-passe` in the address bar: you land on your space's password page.
 - [ ] Two different new passwords: "Les deux mots de passe ne sont pas identiques.", nothing sent (Network).
 - [ ] A wrong current password: "Le mot de passe actuel est incorrect." under that field; you stay.
 - [ ] One of your last 3 passwords: Keycloak's message under the new password.
-- [ ] Right values: back to `/connexion` with "Mot de passe changé…"; F5 and `/patient` show you are logged out;
-  the old password is refused, the new one works.
+- [ ] Right values: back to `/connexion` with "Mot de passe changé…" (not "session expirée"); F5 and `/patient` show
+  you are logged out; the old password is refused, the new one works and opens your space's home (not the password
+  page).
 
 Forced change (staff reset it):
 - [ ] Keycloak admin (`http://localhost:8180`, dev only) > realm `medlink` > Users > the account > "Required user

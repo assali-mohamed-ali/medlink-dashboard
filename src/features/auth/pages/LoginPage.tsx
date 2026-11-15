@@ -193,6 +193,7 @@ export default function LoginPage() {
       <p className="login__footer">
         Réseau de cliniques MedLink · Données de santé hébergées en Tunisie
       </p>
+
     </main>
     </>
   )

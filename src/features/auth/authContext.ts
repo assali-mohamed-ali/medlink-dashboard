@@ -12,13 +12,18 @@ export type AuthState = {
   role: Role | null
   /** True once the API ended the session (expired, revoked, account disabled) until the next login. */
   sessionExpired: boolean
+  /** True once the person ended the session by changing their password (`endSession`), until the next login. */
+  passwordChanged: boolean
   /** POST /api/auth/login; opens the session when the answer holds the user (patients). */
   login: (email: string, password: string) => Promise<LoginResponse>
   /** Opens the session with the user an extra step returned (POST /api/auth/mfa/verify). */
   completeLogin: (user: AuthUser) => void
   /** POST /api/auth/logout; the session is cleared here even if the call fails. */
   logout: () => Promise<void>
-  /** The API already ended the session on purpose (password changed): clear it here, no call, no "expired" notice. */
+  /**
+   * The API already ended the session on purpose (password changed): clear it here, no call, no "expired" notice;
+   * sets `passwordChanged`, so the guard's redirect to the login page says so.
+   */
   endSession: () => void
 }
 
