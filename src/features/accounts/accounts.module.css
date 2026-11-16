@@ -1,0 +1,56 @@
+/* The back-office page (MLink-73): the profile page's look (sage canvas, white sheets, pill buttons). Tokens only. */
+.page { display: flex; flex-direction: column; gap: var(--space-6); }
+.header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--space-4); }
+.eyebrow {
+  margin: 0 0 var(--space-1); color: var(--primary);
+  font-size: var(--text-xs); line-height: var(--leading-xs); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+}
+.title { margin: 0; font-size: var(--text-3xl); line-height: var(--leading-3xl); font-weight: 700; letter-spacing: -0.01em; }
+.subtitle { margin: var(--space-1) 0 0; color: var(--text-muted); font-size: var(--text-sm); line-height: var(--leading-sm); }
+
+.card {
+  display: flex; flex-direction: column; gap: var(--space-5); padding: var(--space-6);
+  background: var(--surface-raised); border-radius: var(--radius-sheet); box-shadow: var(--elev-1);
+}
+.search { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--space-3); }
+.searchField { flex: 1; min-width: 240px; }
+.failure { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); }
+
+.tableWrap { overflow-x: auto; }
+.table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); line-height: var(--leading-sm); }
+.caption {
+  /* Read by screen readers (it names the table), hidden on screen: the page title already says it */
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+.table th {
+  padding: var(--space-3); text-align: left; color: var(--text-muted);
+  font-size: var(--text-xs); line-height: var(--leading-xs); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+.table td { padding: var(--space-3); vertical-align: middle; border-bottom: 1px solid var(--border); }
+.table tbody tr:hover { background: var(--surface-low); }
+.email { font-weight: 600; word-break: break-all; }
+.actions { display: flex; flex-wrap: wrap; gap: var(--space-1); }
+
+.pager { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-3); font-size: var(--text-sm); }
+
+/* Dialogs */
+.backdrop {
+  position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: var(--space-4);
+  background: color-mix(in srgb, var(--on-surface) 35%, transparent);
+}
+.dialog {
+  display: flex; flex-direction: column; gap: var(--space-4); width: min(560px, 100%); max-height: calc(100vh - 2 * var(--space-4));
+  overflow-y: auto; padding: var(--space-6); background: var(--surface-raised); border-radius: var(--radius-sheet); box-shadow: var(--elev-3);
+}
+.dialogTitle { margin: 0; font-size: var(--text-xl); line-height: var(--leading-xl); font-weight: 700; }
+.dialogText { color: var(--on-surface); font-size: var(--text-sm); line-height: var(--leading-sm); }
+.dialogText p { margin: 0; }
+.dialogActions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-3); }
+.form { display: flex; flex-direction: column; gap: var(--space-4); }
+.twoColumns { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--space-4); }
+.profile { display: flex; flex-direction: column; gap: var(--space-4); }
+.clinics { display: flex; flex-direction: column; gap: var(--space-2); margin: 0; padding: 0; border: 0; }
+.legend { margin-bottom: var(--space-2); padding: 0; font-size: var(--text-sm); line-height: var(--leading-sm); font-weight: 600; }
+.fieldError { margin: 0; color: var(--error); font-size: var(--text-sm); line-height: var(--leading-sm); }
+.muted { margin: 0; color: var(--text-muted); font-size: var(--text-sm); line-height: var(--leading-sm); }

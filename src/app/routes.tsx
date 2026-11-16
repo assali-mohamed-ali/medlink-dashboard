@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 import type { RouteObject } from 'react-router-dom'
+import { staffAccountsPages } from '@/features/accounts'
 import { practitionerAgendaPages } from '@/features/agenda'
 import { practitionerRecordPages } from '@/features/patient-record'
 import { practitionerProfilePages } from '@/features/profile'
@@ -12,7 +13,7 @@ import RouteErrorPage from '@/pages/RouteErrorPage'
 import { paths } from '@/shared/config/paths'
 import { lazyPage } from '@/shared/lib/lazyPage'
 import { PageLoader } from '@/shared/ui'
-import { SpaceComingSoon, SpaceHome, SpaceLayout } from './spaceChunks'
+import { SpaceHome, SpaceLayout } from './spaceChunks'
 
 /**
  * A role's space: one guard and one layout for the whole branch, so no page of the space can forget the
@@ -56,8 +57,7 @@ export const routes: RouteObject[] = [
         ownPasswordRoute(paths.practitioner.password),
       ]),
       space('ADMINISTRATIVE_STAFF', paths.staff.root, [
-        // MLink-73 (back-office) replaces this placeholder
-        { path: paths.staff.accounts, element: <SpaceComingSoon title="Gestion des comptes" /> },
+        ...staffAccountsPages,
         ownPasswordRoute(paths.staff.password),
       ]),
 
