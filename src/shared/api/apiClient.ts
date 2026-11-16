@@ -67,13 +67,13 @@ async function send(path: string, init: RequestInit): Promise<Response> {
       throw new ApiError(0, 'TIMEOUT', 'Le serveur met trop de temps à répondre. Veuillez réessayer.')
     }
     // fetch() only throws when no answer arrived at all (offline, API down, DNS)
-    throw new ApiError(0, 'NETWORK_ERROR', 'Impossible de joindre le serveur. Veuillez réessayer.')
+    throw new ApiError(0, 'NETWORK_ERROR', 'Connexion impossible. Vérifiez votre accès à Internet puis réessayez.')
   }
 }
 
 async function toApiError(response: Response): Promise<ApiError> {
   let code = 'UNKNOWN'
-  let message = 'Une erreur est survenue. Veuillez réessayer.'
+  let message = 'Un problème est survenu de notre côté. Réessayez dans un instant.'
   let details: unknown
   try {
     const data = await response.json()

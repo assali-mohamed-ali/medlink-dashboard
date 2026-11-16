@@ -182,6 +182,14 @@
       "rules": {
         "no-restricted-imports": "off"
       }
+    },
+    {
+      "files": [
+        "src/shared/components/ui/**"
+      ],
+      "rules": {
+        "react/only-export-components": "off"
+      }
     }
   ]
 }
