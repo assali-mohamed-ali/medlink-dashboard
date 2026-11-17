@@ -24,9 +24,11 @@ import {
 } from '../week'
 import styles from './SlotSearchPage.module.css'
 
-/** The API gives 50 slots at most per call: a week is read page by page, up to this many pages. */
+/**
+ * The API gives 50 slots at most per call: a week is read page by page, to its last page (review on #18: no cap, a
+ * busy week of more than 500 slots is shown whole). An empty page ends the reading, so it never runs away.
+ */
 const PAGE_SIZE = 50
-const MAX_PAGES = 10
 const FIELDS = ['from', 'to', 'clinicId', 'specialtyId', 'practitionerId'] as const
 type Field = (typeof FIELDS)[number]
 
@@ -88,11 +90,13 @@ export default function SlotSearchPage() {
       try {
         const first = await searchSlots({ ...search, page: 0, size: PAGE_SIZE })
         let slots = first.items
-        const pages = Math.min(Math.ceil(first.total / PAGE_SIZE), MAX_PAGES)
-        for (let page = 1; page < pages && current; page++) {
-          slots = slots.concat((await searchSlots({ ...search, page, size: PAGE_SIZE })).items)
+        for (let page = 1; slots.length < first.total && current; page++) {
+          const next = await searchSlots({ ...search, page, size: PAGE_SIZE })
+          if (next.items.length === 0) break
+          slots = slots.concat(next.items)
         }
-        if (current) setResult({ slots, total: first.total, message: first.message })
+        // The count is what the grid holds: never more than the patient can see and book
+        if (current) setResult({ slots, total: slots.length, message: first.message })
       } catch (e) {
         if (!current) return
         setResult(null)
