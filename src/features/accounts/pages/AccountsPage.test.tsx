@@ -136,14 +136,39 @@ test('a staff member, a patient, an account still to activate and one with two r
   expect(await rowOf('odd@medlink.local')).toHaveTextContent('Rôle à corriger')
 })
 
-test('the search sends the text and starts again from the first page', async () => {
+test('the list filters while typing, without a button: one request once the typing pauses, from the first page', async () => {
+  fetchAccounts.mockResolvedValue({ items: [SAMI], total: 45 })
   const user = renderPage()
   await table()
+  await user.click(screen.getByRole('button', { name: 'Page suivante' }))
+  await waitFor(() => expect(fetchAccounts).toHaveBeenLastCalledWith('', 1))
 
   await user.type(screen.getByRole('searchbox', { name: 'Rechercher un compte' }), 'sami')
-  await user.click(screen.getByRole('button', { name: 'Rechercher' }))
 
   await waitFor(() => expect(fetchAccounts).toHaveBeenLastCalledWith('sami', 0))
+  expect(screen.queryByRole('button', { name: 'Rechercher' })).toBeNull()
+  // Not one request per letter
+  expect(fetchAccounts.mock.calls.map((call) => call[0])).not.toContain('s')
+  expect(fetchAccounts.mock.calls.map((call) => call[0])).not.toContain('sa')
+})
+
+test('emptying the search field shows every account again', async () => {
+  const user = renderPage()
+  await table()
+  const field = screen.getByRole('searchbox', { name: 'Rechercher un compte' })
+
+  await user.type(field, 'nour')
+  await waitFor(() => expect(fetchAccounts).toHaveBeenLastCalledWith('nour', 0))
+  await user.clear(field)
+
+  await waitFor(() => expect(fetchAccounts).toHaveBeenLastCalledWith('', 0))
+})
+
+test('the number of accounts found is shown above the table', async () => {
+  fetchAccounts.mockResolvedValue({ items: [SAMI, NOUR], total: 45 })
+  renderPage()
+
+  expect(await screen.findByText('45 comptes')).toBeInTheDocument()
 })
 
 test('no match: says so instead of an empty table', async () => {
