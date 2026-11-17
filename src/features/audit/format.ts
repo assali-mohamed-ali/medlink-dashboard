@@ -12,6 +12,8 @@ export const ACTION_LABELS: Record<string, string> = {
   SLOT_OPENED: 'Créneau ouvert',
   SLOT_CLOSED: 'Créneau fermé',
   RECORD_VIEWED: 'Dossier patient consulté',
+  REPORT_CREATED: 'Compte rendu de consultation créé',
+  REPORT_VIEWED: 'Comptes rendus de consultation consultés',
 }
 
 export function actionLabel(action: string): string {
@@ -22,6 +24,10 @@ const OUTCOMES = {
   SUCCESS: { label: 'Réussi', tone: 'success' },
   FAILURE: { label: 'Échec', tone: 'danger' },
   DENIED: { label: 'Refusé', tone: 'danger' },
+  // Written before an operation outside our database starts; a SUCCESS or FAILURE entry closes it.
+  // One that is never closed shows an operation to check, so it is not shown as a success.
+  ATTEMPTED: { label: 'Tentative', tone: 'neutral' },
+  NOT_NEEDED: { label: 'Non nécessaire', tone: 'neutral' },
 } as const
 
 export function outcomeView(outcome: string) {

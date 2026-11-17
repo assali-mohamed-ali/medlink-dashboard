@@ -12,6 +12,8 @@ test('every action of the API has a French label', () => {
     'LOGIN',
     'PASSWORD_CHANGE_REQUIRED',
     'RECORD_VIEWED',
+    'REPORT_CREATED',
+    'REPORT_VIEWED',
     'ROLE_CHANGED',
     'SLOT_CLOSED',
     'SLOT_OPENED',
@@ -26,14 +28,21 @@ test('the account actions are said in French', () => {
   expect(actionLabel('ACCOUNT_DISABLED')).toBe('Compte désactivé')
 })
 
+test('the consultation report actions are said in French', () => {
+  expect(actionLabel('REPORT_CREATED')).toBe('Compte rendu de consultation créé')
+  expect(actionLabel('REPORT_VIEWED')).toBe('Comptes rendus de consultation consultés')
+})
+
 test('an action the screen does not know yet is shown as the API sends it', () => {
   expect(actionLabel('SOMETHING_NEW')).toBe('SOMETHING_NEW')
 })
 
-test('the three outcomes of the API have a label and a tone', () => {
+test('the outcomes of the API have a label and a tone', () => {
   expect(outcomeView('SUCCESS')).toEqual({ label: 'Réussi', tone: 'success' })
   expect(outcomeView('FAILURE')).toEqual({ label: 'Échec', tone: 'danger' })
   expect(outcomeView('DENIED')).toEqual({ label: 'Refusé', tone: 'danger' })
+  expect(outcomeView('ATTEMPTED')).toEqual({ label: 'Tentative', tone: 'neutral' })
+  expect(outcomeView('NOT_NEEDED')).toEqual({ label: 'Non nécessaire', tone: 'neutral' })
 })
 
 test('an unknown outcome is shown as is, in neutral', () => {
