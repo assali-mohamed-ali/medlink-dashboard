@@ -166,15 +166,23 @@ The audit log is append-only and only the administrative staff can read it (`GET
 API must run with the audit feature (the branches of MLink-115 and MLink-72 or later), and you need `staff.dev`
 with its code set up (section 4). Do part A last, after parts B and C have produced entries to look at.
 
-The API records its actions in several branches that are not merged yet (state read in the code on 15 November
-2026): MLink-114 (login success and failure, forced password change, account update, data read), MLink-70/72/74
-(account created, role changed, account enabled or disabled), `master` (slots opened or closed, patient record
-viewed), and the access-denied handler (MLink-115 stack). A stack that has only some of them shows only some
-entries: say which branches your stack is made of in the MLink-117 comment, and run part B again once they are
-merged.
+The API records its actions in several branches that are not all merged (state read in the code on 15 November
+2026, run on 17 November 2026): MLink-114 (login success and failure, forced password change, account update, data
+read; not in the stack of 17 November), MLink-70/71/72/74 (account created, role changed, account enabled or
+disabled, with the durable audit of MLink-72: see "Tentative" below), `master` (slots opened or closed, patient
+record viewed, consultation reports), and the access-denied handler (MLink-115 stack). A stack that has only some
+of them shows only some entries: say which branches your stack is made of in the MLink-117 comment, and run part B
+again once they are merged.
 
 If the API runs on another port than 8080 (for example 8081 because another program uses 8080), point the proxy of
-your own copy of `vite.config.ts` at it and never commit that change.
+your own copy of `vite.config.ts` at it and never commit that change. Write the address as `http://127.0.0.1:8080`
+(not `localhost`): on some Windows machines `localhost` resolves to IPv6 first and Docker's ports do not answer
+there.
+
+An account operation that reaches Keycloak (role change, enable, disable) writes two entries: **"Tentative"**
+(`ATTEMPTED`, written before anything is touched) and then **"Réussi"** or **"Échec"**. A "Tentative" that is
+never followed by another entry for the same account means the closing entry could not be written (the API
+answered `503 AUDIT_UNAVAILABLE`): it is an operation to check, not a success.
 
 ### Part A. The screen (staff)
 
@@ -182,10 +190,10 @@ your own copy of `vite.config.ts` at it and never commit that change.
   marked as the current page.
 - [ ] Network shows `GET /api/admin/audit-entries` answering `200`: the rows come from the API, not from a mock.
 - [ ] While loading, grey placeholders show; then a table of entries (date, action, outcome, and who/what it
-  concerns). Dates are on one line; actions and outcomes are in French (no raw `ACCOUNT_CREATED` unless the
-  action is unknown to the front).
+  concerns). Dates are on one line; actions and outcomes are in French (no raw `ACCOUNT_CREATED` or `ATTEMPTED`
+  unless the value is unknown to the front).
 - [ ] An outcome that failed or was refused is shown with a "danger" look (icon and text, not colour alone):
-  "Échec" or "Refusé"; a good one is "Réussi".
+  "Échec" or "Refusé"; a good one is "Réussi"; a "Tentative" is neutral.
 - [ ] Filter by action: only those entries remain; the list restarts at page 1.
 - [ ] Filter by dates: an end date before the start date is refused with a message, and **nothing is sent**
   (Network).
@@ -209,18 +217,56 @@ yours.
 | Changement de mot de passe exigé (`PASSWORD_CHANGE_REQUIRED`) | Forced change, section 7c | "Changement de mot de passe exigé" for that account |
 | Accès refusé (`ACCESS_DENIED`) | Part C, step 4 (a patient calls the audit API) | "Accès refusé", "Refusé" |
 | Consultation de données (`DATA_READ`) | Staff lists the users or reads one account (recorded by `UserService`, branch MLink-114; to confirm) | "Consultation de données" |
-| Compte créé (`ACCOUNT_CREATED`) | A patient signs up (section 2) or staff creates an account (to confirm) | "Compte créé" |
+| Compte créé (`ACCOUNT_CREATED`) | Staff creates an account (part B2, step 1); a patient sign-up (section 2) is to confirm | "Compte créé", "Réussi" |
 | Compte modifié (`ACCOUNT_UPDATED`) | The account row is updated at a login (recorded by `UserProvisioningService`, branch MLink-114; no screen; to confirm) | "Compte modifié" |
-| Rôle modifié (`ROLE_CHANGED`) | Staff changes a role (no screen yet: API only, to confirm) | "Rôle modifié" |
-| Compte activé / désactivé (`ACCOUNT_ENABLED`, `ACCOUNT_DISABLED`) | Staff enables or disables an account (no screen yet: API only, to confirm) | "Compte activé" / "Compte désactivé" |
+| Rôle modifié (`ROLE_CHANGED`) | Staff changes a role (no screen yet: part B2, step 2) | "Tentative", then "Réussi" |
+| Compte activé / désactivé (`ACCOUNT_ENABLED`, `ACCOUNT_DISABLED`) | Staff enables or disables an account (no screen yet: part B2, step 2) | "Tentative", then "Réussi" |
 | Créneau ouvert / fermé (`SLOT_OPENED`, `SLOT_CLOSED`) | A practitioner opens or closes a slot (no screen yet) | "Créneau ouvert" / "Créneau fermé" |
 | Dossier patient consulté (`RECORD_VIEWED`) | A practitioner opens a patient record (no screen yet) | "Dossier patient consulté" |
+| Compte rendu de consultation créé / consultés (`REPORT_CREATED`, `REPORT_VIEWED`) | A practitioner writes or reads consultation reports (no screen yet) | "Compte rendu de consultation créé" / "Comptes rendus de consultation consultés" |
 
 - [ ] Every row you can cause today is checked. For the others, write "no screen yet" in the MLink-117 comment
   instead of ticking it.
-- [ ] A refused or failed action leaves an entry too (outcome "Échec" or "Refusé"), not only the successful ones.
+- [ ] A refused or failed action leaves an entry too (outcome "Échec" or "Refusé"), not only the successful ones
+  (part B2, step 3: staff disabling their own account).
 - [ ] Nothing in the log can be edited or deleted from the screen (it has no such button), and the API has no such
   route.
+
+### Part B2. Account operations without a screen (API from the console)
+
+The screen "Gestion des comptes" does not exist yet, so the operations are sent to the API from the browser, as
+staff. In the Console of the `staff.dev` tab, type `allow pasting` once (the browser blocks pasting until you do),
+then paste, one step at a time:
+
+```js
+const xsrf = decodeURIComponent(document.cookie.split('; ').find(c => c.startsWith('XSRF-TOKEN=')).split('=')[1])
+const call = (method, url, body) => fetch(url, { method, headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': xsrf }, body: body ? JSON.stringify(body) : undefined }).then(async r => { const t = await r.text(); console.log(method, url, r.status, t); return t })
+```
+
+1. [ ] Create an account; it answers `201` with the new `id`:
+
+   ```js
+   await call('POST', '/api/admin/users', { email: 'audit.test1@medlink.local', firstName: 'Audit', lastName: 'Test', role: 'ADMINISTRATIVE_STAFF' })
+   ```
+
+   Then set `const uid = '<that id>'` (replace the text with the real id, or the next calls answer `400`).
+2. [ ] Disable, enable, change the role (each answers `204`):
+
+   ```js
+   await call('PATCH', `/api/admin/users/${uid}/status`, { enabled: false })
+   await call('PATCH', `/api/admin/users/${uid}/status`, { enabled: true })
+   await call('PUT', `/api/admin/users/${uid}/role`, { role: 'ADMINISTRATIVE_STAFF' })
+   ```
+
+3. [ ] A refusal: staff disabling their own account answers `409 CANNOT_DISABLE_SELF` and the account stays enabled:
+
+   ```js
+   const me = await (await fetch('/api/auth/me')).json()
+   await call('PATCH', `/api/admin/users/${me.user.id}/status`, { enabled: false })
+   ```
+
+4. [ ] Reload the log: "Compte créé / Réussi"; "Compte désactivé", "Compte activé" and "Rôle modifié" each with a
+   "Tentative" then a "Réussi"; "Compte désactivé / Échec" for the refusal.
 
 ### Part C. Access restriction
 
@@ -239,18 +285,30 @@ yours.
 
 ### Part D. What was checked, and what is still open (to report to Md. Assali, not to fix here)
 
-Each line comes from the code or from a running stack; none is fixed by the front.
+Each line comes from the code or from a running stack; none is fixed by the front, except the labels below.
 
-- **Checked by hand** on a stack made of MLink-74 and MLink-115: staff reads the log; a patient who calls the
-  audit API gets `403`, and the log then holds an "Accès refusé / Refusé" entry with the patient's identifier, the
-  request (`GET /api/admin/audit-entries`) and the IP address.
-- **Seen in the code, not yet seen on a running stack:** the rows that other branches record (login and its
-  failure, forced password change, account update, data read in MLink-114; slots and patient record in `master`).
-  Run part B again on a stack that has them.
+- **Checked by hand on 17 November 2026**, on a stack made of MLink-74 (which holds MLink-70, 71 and 72) and
+  MLink-115, with `staff.dev`:
+  - Access: staff reads the log (`200`); a patient who calls the audit API gets `403`, and an anonymous call gets
+    `401`; the log then holds an "Accès refusé / Refusé" entry with the patient's identifier, the request
+    (`GET /api/admin/audit-entries`) and the IP address; an unknown action filter answers `400`.
+  - Completeness: an account created by staff, disabled, enabled and given a role each leave their entries
+    ("Tentative" then "Réussi"), and staff disabling their own account leaves "Échec" and is refused with
+    `409 CANNOT_DISABLE_SELF`. The identifier shown is the staff member's, never an e-mail address.
+  - Screen: real rows in French, the filter by action, the empty result, an end date before the start date and a
+    non-UUID filter (the last two send nothing).
+- **Found and fixed in the front** (a separate commit): `ATTEMPTED`, `NOT_NEEDED`, `REPORT_CREATED` and
+  `REPORT_VIEWED` had no French label and showed as raw words; they are labelled now and the test lists every
+  action the API can send.
+- **Not seen on this stack:** the rows that MLink-114 records (login and its failure, forced password change,
+  account update, data read), slots and the patient record (no screen: a practitioner session is needed), the
+  practitioner's access (part C, step 3), and the pager above 50 entries. Run part B again on a stack that has them.
 - **Open questions for the API:** a failed login is recorded with the user "UNKNOWN" and no identifier (is that
   wanted when the e-mail exists but the password is wrong?); no recording was seen in the code read so far for the
   account activation by mail link, a user's own password change, the code (MFA) setup, the patient sign-up, or the
-  reading of the audit log itself (to confirm in each branch).
+  reading of the audit log itself (to confirm in each branch). In development the IP address is the loopback of
+  the machine (`127.0.0.1` or `0:0:0:0:0:0:0:1`) because everything goes through Vite's proxy; behind a real reverse
+  proxy it would depend on how the API reads the forwarded address.
 - When you finish parts B and C, add here every row that stayed without an entry.
 
 ## 8. Not testable by hand yet
