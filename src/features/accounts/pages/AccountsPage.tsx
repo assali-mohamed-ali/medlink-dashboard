@@ -126,10 +126,11 @@ export default function AccountsPage() {
           </h2>
           <p className={styles.subtitle}>Praticiens, personnel administratif et patients des trois cliniques</p>
         </div>
-        <Button onClick={() => setOpen({ kind: 'create' })}>
+        {/* The agenda's yellow call to action ("Ouvrir un créneau"), the page's one main action */}
+        <button type="button" className={styles.newAccount} onClick={() => setOpen({ kind: 'create' })}>
           <UserPlus size={18} aria-hidden="true" />
           Nouveau compte
-        </Button>
+        </button>
       </header>
 
       {notice && (
