@@ -5,16 +5,13 @@ import { z } from 'zod'
 import { ApiError } from '@/shared/api/apiClient'
 import { fieldErrors, messageFor } from '@/shared/api/errors'
 import { Alert, Button, PasswordField } from '@/shared/ui'
-import { activateAccount, changePassword } from '../api'
+import { changePassword } from '../api'
 import { PASSWORD_RULES } from '../passwordRules'
 import PasswordRules from './PasswordRules'
 import styles from './PasswordForm.module.css'
 
-/**
- * own: a logged-in person changes their password · forced: the login answered passwordChangeRequired (no session) ·
- * activation: a new staff member chooses their first password with the mailed token (MLink-71, no session)
- */
-export type PasswordMode = 'own' | 'forced' | 'activation'
+/** own: a logged-in person changes their password · forced: the login answered passwordChangeRequired (no session) */
+export type PasswordMode = 'own' | 'forced'
 
 type PasswordFormProps = {
   mode: PasswordMode
@@ -24,20 +21,6 @@ type PasswordFormProps = {
   onChanged: () => void
   /** 401 UNAUTHORIZED: the forced step's 5 minutes are over. */
   onStepExpired?: () => void
-  /** activation: the mailed token, sent with the password. */
-  token?: string
-  /** activation: 400 INVALID_TOKEN or 410 TOKEN_EXPIRED, the link is over (the page offers a new one). */
-  onLinkInvalid?: (error: ApiError) => void
-}
-
-const LABELS: Record<PasswordMode, { password: string; confirm: string; submit: string }> = {
-  own: { password: 'Nouveau mot de passe', confirm: 'Confirmez le nouveau mot de passe', submit: 'Changer le mot de passe' },
-  forced: {
-    password: 'Nouveau mot de passe',
-    confirm: 'Confirmez le nouveau mot de passe',
-    submit: 'Enregistrer le mot de passe',
-  },
-  activation: { password: 'Mot de passe', confirm: 'Confirmez le mot de passe', submit: 'Activer mon compte' },
 }
 
 const RULES_ID = 'password-rules'
@@ -74,7 +57,7 @@ type PasswordValues = { currentPassword?: string; newPassword: string; confirmPa
  * The password change form of endpoint 10 (MLink-89), for both pages: the own change inside a space and the forced
  * step after a login. Each API answer goes under its field or in the form's alert.
  */
-export default function PasswordForm({ mode, email, onChanged, onStepExpired, token, onLinkInvalid }: PasswordFormProps) {
+export default function PasswordForm({ mode, email, onChanged, onStepExpired }: PasswordFormProps) {
   const [formError, setFormError] = useState<string | null>(null)
   const [{ rules, schema }] = useState(() => schemaFor(mode, email))
 
@@ -86,20 +69,15 @@ export default function PasswordForm({ mode, email, onChanged, onStepExpired, to
     formState: { errors, isSubmitting },
   } = useForm<PasswordValues>({ resolver: zodResolver(schema) })
   const newPassword = useWatch({ control, name: 'newPassword' }) ?? ''
-  const labels = LABELS[mode]
 
   async function onSubmit(values: PasswordValues) {
     setFormError(null)
     try {
-      if (mode === 'activation') {
-        await activateAccount(token ?? '', values.newPassword)
-      } else {
-        await changePassword(
-          mode === 'own'
-            ? { currentPassword: values.currentPassword, newPassword: values.newPassword }
-            : { newPassword: values.newPassword },
-        )
-      }
+      await changePassword(
+        mode === 'own'
+          ? { currentPassword: values.currentPassword, newPassword: values.newPassword }
+          : { newPassword: values.newPassword },
+      )
     } catch (error) {
       if (!(error instanceof ApiError)) {
         setFormError(messageFor(error))
@@ -111,14 +89,6 @@ export default function PasswordForm({ mode, email, onChanged, onStepExpired, to
         case 'UNAUTHORIZED':
           if (onStepExpired) {
             onStepExpired()
-            return
-          }
-          setFormError(messageFor(error))
-          return
-        case 'INVALID_TOKEN':
-        case 'TOKEN_EXPIRED':
-          if (onLinkInvalid) {
-            onLinkInvalid(error)
             return
           }
           setFormError(messageFor(error))
@@ -161,7 +131,7 @@ export default function PasswordForm({ mode, email, onChanged, onStepExpired, to
       )}
 
       <PasswordField
-        label={labels.password}
+        label="Nouveau mot de passe"
         autoComplete="new-password"
         aria-describedby={RULES_ID}
         error={errors.newPassword?.message}
@@ -170,14 +140,14 @@ export default function PasswordForm({ mode, email, onChanged, onStepExpired, to
       <PasswordRules id={RULES_ID} rules={rules} password={newPassword} email={email} />
 
       <PasswordField
-        label={labels.confirm}
+        label="Confirmez le nouveau mot de passe"
         autoComplete="new-password"
         error={errors.confirmPassword?.message}
         {...register('confirmPassword')}
       />
 
       <Button type="submit" fullWidth loading={isSubmitting}>
-        {labels.submit}
+        {mode === 'forced' ? 'Enregistrer le mot de passe' : 'Changer le mot de passe'}
       </Button>
     </form>
   )

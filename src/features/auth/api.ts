@@ -43,16 +43,3 @@ export function register(payload: RegisterPayload) {
     body: payload,
   })
 }
-
-/**
- * Endpoint 14 (MLink-71): the first password of a staff account, with the mailed token. 204; 400 INVALID_TOKEN,
- * 410 TOKEN_EXPIRED, 400 PASSWORD_POLICY (Keycloak's rule, in French, under `details.password`).
- */
-export function activateAccount(token: string, password: string) {
-  return apiFetch('/auth/account/activate', { method: 'POST', body: { token, password } })
-}
-
-/** Endpoint 15: a new activation link. 202 with the same neutral message whether or not the account exists. */
-export function resendActivation(email: string) {
-  return apiFetch<{ message?: string }>('/auth/account/activate/resend', { method: 'POST', body: { email } })
-}
