@@ -3,8 +3,9 @@ import type { FormEvent } from 'react'
 import { KeyRound, Search, ShieldCheck, ShieldOff, UserCog, UserPlus, Users } from 'lucide-react'
 import { useAuth } from '@/features/auth'
 import StatusBadge from '@/shared/components/StatusBadge'
+import UserAvatar from '@/shared/components/UserAvatar'
 import { messageFor } from '@/shared/api/errors'
-import { Alert, Button, EmptyState, Skeleton, TextField } from '@/shared/ui'
+import { Alert, Button, EmptyState, Skeleton } from '@/shared/ui'
 import { PAGE_SIZE, fetchAccounts, forcePasswordReset, setAccountEnabled } from '../api'
 import ConfirmDialog from '../components/ConfirmDialog'
 import CreateAccountDialog from '../components/CreateAccountDialog'
@@ -14,6 +15,12 @@ import type { Account, AccountPage } from '../types'
 import styles from '../accounts.module.css'
 
 type Query = { search: string; page: number; attempt: number }
+
+/** How long the typing must pause before the list is asked again: one request per search, not one per letter. */
+const SEARCH_PAUSE_MS = 300
+
+/** The agenda's pastel tones, one per role (tokens --clinic-N-container). */
+const ROLE_TONES = { PRACTITIONER: '1', ADMINISTRATIVE_STAFF: '3', PATIENT: '2' } as const
 type Notice = { tone: 'success' | 'error'; text: string }
 type Open =
   | { kind: 'create' }
@@ -31,7 +38,11 @@ function Status({ account }: { account: Account }) {
 
 function Role({ account }: { account: Account }) {
   if (account.ambiguousRole || !account.role) return <StatusBadge tone="warning">Rôle à corriger</StatusBadge>
-  return <>{ROLE_LABELS[account.role]}</>
+  return (
+    <span className={styles.role} data-tone={ROLE_TONES[account.role]}>
+      {ROLE_LABELS[account.role]}
+    </span>
+  )
 }
 
 /**
@@ -41,6 +52,7 @@ function Role({ account }: { account: Account }) {
  */
 export default function AccountsPage() {
   const titleId = useId()
+  const searchId = useId()
   const { user } = useAuth()
   const [typed, setTyped] = useState('')
   const [query, setQuery] = useState<Query>({ search: '', page: 0, attempt: 0 })
@@ -65,9 +77,25 @@ export default function AccountsPage() {
   /** Reads the current page again (the rows stay on screen meanwhile). */
   const reload = () => setQuery((current) => ({ ...current, attempt: current.attempt + 1 }))
 
+  /** A new search starts from the first page; the same text changes nothing. */
+  function applySearch(text: string) {
+    const search = text.trim()
+    setQuery((current) => (current.search === search ? current : { search, page: 0, attempt: current.attempt + 1 }))
+  }
+
+  // The list follows the field as the person types, once the typing pauses
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const search = typed.trim()
+      setQuery((current) => (current.search === search ? current : { search, page: 0, attempt: current.attempt + 1 }))
+    }, SEARCH_PAUSE_MS)
+    return () => window.clearTimeout(timer)
+  }, [typed])
+
   function search(event: FormEvent<HTMLFormElement>) {
+    // Enter applies the search at once
     event.preventDefault()
-    setQuery((current) => ({ search: typed.trim(), page: 0, attempt: current.attempt + 1 }))
+    applySearch(typed)
   }
 
   /** Runs a row action, closes its dialog, says what happened and, when it worked, reads the page again. */
@@ -89,7 +117,10 @@ export default function AccountsPage() {
     <section aria-labelledby={titleId} className={styles.page} data-width="wide">
       <header className={styles.header}>
         <div>
-          <p className={styles.eyebrow}>Espace administratif</p>
+          <p className={styles.eyebrow}>
+            <span className={styles.liveDot} aria-hidden="true" />
+            Espace administratif
+          </p>
           <h2 id={titleId} className={styles.title}>
             Gestion des comptes
           </h2>
@@ -108,20 +139,30 @@ export default function AccountsPage() {
       )}
 
       <div className={styles.card}>
-        <form role="search" className={styles.search} onSubmit={search}>
-          <TextField
-            label="Rechercher un compte"
-            type="search"
-            placeholder="E-mail, nom ou prénom"
-            value={typed}
-            onChange={(event) => setTyped(event.target.value)}
-            className={styles.searchField}
-          />
-          <Button type="submit" variant="secondary">
-            <Search size={18} aria-hidden="true" />
-            Rechercher
-          </Button>
-        </form>
+        <div className={styles.toolbar}>
+          <form role="search" className={styles.search} onSubmit={search}>
+            <label htmlFor={searchId} className={styles.searchLabel}>
+              Rechercher un compte
+            </label>
+            <div className={styles.searchBox}>
+              <Search size={18} aria-hidden="true" className={styles.searchIcon} />
+              <input
+                id={searchId}
+                type="search"
+                className={styles.searchInput}
+                placeholder="E-mail, nom ou prénom"
+                autoComplete="off"
+                value={typed}
+                onChange={(event) => setTyped(event.target.value)}
+              />
+            </div>
+          </form>
+          {data && (
+            <p className={styles.count} aria-live="polite">
+              {data.total} compte{data.total > 1 ? 's' : ''}
+            </p>
+          )}
+        </div>
 
         {loadError && !data && (
           <div className={styles.failure}>
@@ -156,7 +197,12 @@ export default function AccountsPage() {
                   const name = fullName(account)
                   return (
                     <tr key={account.id}>
-                      <td className={styles.email}>{account.email}</td>
+                      <td>
+                        <span className={styles.who}>
+                          <UserAvatar firstName={account.firstName} lastName={account.lastName} size="sm" />
+                          <span className={styles.email}>{account.email}</span>
+                        </span>
+                      </td>
                       <td>{account.lastName}</td>
                       <td>{account.firstName}</td>
                       <td>
@@ -172,6 +218,8 @@ export default function AccountsPage() {
                               variant="ghost"
                               size="sm"
                               aria-label={`Changer le rôle de ${name}`}
+                              className={styles.action}
+                              data-action="role"
                               onClick={() => setOpen({ kind: 'role', account })}
                             >
                               <UserCog size={16} aria-hidden="true" />
@@ -183,6 +231,8 @@ export default function AccountsPage() {
                               variant="ghost"
                               size="sm"
                               aria-label={`Désactiver le compte de ${name}`}
+                              className={styles.action}
+                              data-action="disable"
                               onClick={() => setOpen({ kind: 'disable', account })}
                             >
                               <ShieldOff size={16} aria-hidden="true" />
@@ -194,6 +244,8 @@ export default function AccountsPage() {
                               variant="ghost"
                               size="sm"
                               aria-label={`Activer le compte de ${name}`}
+                              className={styles.action}
+                              data-action="enable"
                               onClick={() => setOpen({ kind: 'enable', account })}
                             >
                               <ShieldCheck size={16} aria-hidden="true" />
@@ -204,6 +256,8 @@ export default function AccountsPage() {
                             variant="ghost"
                             size="sm"
                             aria-label={`Forcer le changement de mot de passe de ${name}`}
+                              className={styles.action}
+                              data-action="reset"
                             onClick={() => setOpen({ kind: 'reset', account })}
                           >
                             <KeyRound size={16} aria-hidden="true" />
