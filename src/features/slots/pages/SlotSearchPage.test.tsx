@@ -122,6 +122,34 @@ test('loads every page of the week (the API gives 50 slots at most per call)', a
   expect(screen.getAllByRole('button', { name: 'Choisir ce créneau' })).toHaveLength(60)
 })
 
+/** Review on #18: a busy week of more than 500 slots is loaded whole, so the last slot can be booked too. */
+test('a week of more than 500 slots is loaded to its last page, and the count matches the grid', async () => {
+  const all = Array.from({ length: 520 }, (_, i) => slot(`w${i}`, new Date(2026, 10, 9 + (i % 6), 8, i)))
+  searchSlots.mockImplementation(async ({ page = 0, size = 50 }) => ({
+    items: all.slice(page * size, page * size + size),
+    total: all.length,
+  }))
+
+  renderPage()
+
+  expect(await screen.findByText('520 créneaux libres', {}, { timeout: 15_000 })).toBeInTheDocument()
+  expect(searchSlots).toHaveBeenCalledWith({ ...weekOf(MONDAY), page: 10, size: 50 })
+  // By text, not by role: 520 cards make role queries slow in jsdom
+  expect(screen.getAllByText('Choisir ce créneau')).toHaveLength(520)
+}, 30_000)
+
+/** The loop never runs away: a page that comes back empty (the week changed meanwhile) ends the loading. */
+test('an empty page stops the loading, and the count shows what the grid holds', async () => {
+  const first = Array.from({ length: 50 }, (_, i) => slot(`e${i}`, new Date(2026, 10, 10, 8, i)))
+  searchSlots.mockResolvedValueOnce({ items: first, total: 120 }).mockResolvedValue({ items: [], total: 120 })
+
+  renderPage()
+
+  expect(await screen.findByText('50 créneaux libres')).toBeInTheDocument()
+  expect(searchSlots).toHaveBeenCalledTimes(2)
+  expect(screen.getAllByRole('button', { name: 'Choisir ce créneau' })).toHaveLength(50)
+})
+
 test('the arrows, "Aujourd’hui" and the month calendar change the week', async () => {
   const user = userEvent.setup()
   renderPage()
