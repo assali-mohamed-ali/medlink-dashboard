@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { RouterProvider, createMemoryRouter } from 'react-router-dom'
 import { beforeEach, expect, test, vi } from 'vitest'
 import { routes } from '@/app/routes'
+import * as accountsApi from '@/features/accounts/api'
 import * as authApi from '@/features/auth/api'
 import AuthProvider from '@/features/auth/AuthProvider'
 import type { Role } from '@/features/auth/roles'
@@ -16,6 +17,8 @@ vi.mock('@/features/auth/api', () => ({
   resendVerification: vi.fn(),
 }))
 const fetchMe = vi.mocked(authApi.fetchMe)
+// MLink-73: /admin/comptes is now the back-office page, which reads the accounts
+vi.mock('@/features/accounts/api', () => ({ PAGE_SIZE: 20, fetchAccounts: vi.fn() }))
 
 function renderAs(role: Role, path: string) {
   fetchMe.mockResolvedValue({
@@ -32,6 +35,7 @@ function renderAs(role: Role, path: string) {
 
 beforeEach(() => {
   vi.resetAllMocks()
+  vi.mocked(accountsApi.fetchAccounts).mockResolvedValue({ items: [], total: 0 })
 })
 
 test('the first Tab reaches "Aller au contenu", which leads to the page content', async () => {
@@ -77,10 +81,9 @@ test('the focus is left alone on the first page shown', async () => {
   expect(document.body).toHaveFocus()
 })
 
-test('a page still to build says so honestly, with one main region and one page title', async () => {
+test('a page of a space has one main region and one page title (h1), its own title being an h2', async () => {
   renderAs('ADMINISTRATIVE_STAFF', '/admin/comptes')
   expect(await screen.findByRole('heading', { level: 2, name: 'Gestion des comptes' })).toBeInTheDocument()
-  expect(screen.getByText('Bientôt disponible')).toBeInTheDocument()
   expect(screen.getAllByRole('main')).toHaveLength(1)
   expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
 })
