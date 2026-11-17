@@ -8,7 +8,6 @@ import { RequireAuth, authRoutes, ownPasswordRoute, type Role } from '@/features
 import { mfaRoutes } from '@/features/mfa'
 import AccessDeniedPage from '@/pages/AccessDeniedPage'
 import NotFoundPage from '@/pages/NotFoundPage'
-import PlaceholderPage from '@/pages/PlaceholderPage'
 import RouteErrorPage from '@/pages/RouteErrorPage'
 import { paths } from '@/shared/config/paths'
 import { lazyPage } from '@/shared/lib/lazyPage'
@@ -44,8 +43,6 @@ export const routes: RouteObject[] = [
       { path: paths.home, lazy: lazyPage(() => import('@/pages/HomePage')) },
       ...authRoutes,
       ...mfaRoutes,
-      // Pages of flows still to build (MLink-71)
-      { path: paths.activateAccount, element: <PlaceholderPage title="Activation du compte" /> },
       { path: paths.accessDenied, element: <AccessDeniedPage /> },
 
       // Each space has its own password page (MLink-89), so the change happens inside the space

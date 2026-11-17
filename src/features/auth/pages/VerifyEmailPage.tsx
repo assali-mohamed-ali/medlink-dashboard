@@ -1,67 +1,14 @@
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { Mail, MailCheck } from 'lucide-react'
+import { MailCheck } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { messageFor } from '@/shared/api/errors'
 import { paths } from '@/shared/config/paths'
 import PublicHeader from '@/shared/layout/PublicHeader'
 import { useSingleRequest } from '@/shared/lib/useSingleRequest'
 import { useTokenFromUrl } from '@/shared/lib/useTokenFromUrl'
-import { Alert, Button, PageLoader, TextField } from '@/shared/ui'
+import { Alert, PageLoader } from '@/shared/ui'
 import { resendVerification, verifyEmail } from '../api'
+import ResendLinkForm from '../components/ResendLinkForm'
 import styles from './VerifyEmailPage.module.css'
-
-const resendSchema = z.object({
-  email: z.string().trim().email('Saisissez une adresse e-mail valide.'),
-})
-
-type ResendValues = z.infer<typeof resendSchema>
-
-/** "Recevoir un nouveau lien": the API answers the same whether or not the address has an account. */
-function ResendForm() {
-  const [answer, setAnswer] = useState<{ tone: 'info' | 'error'; text: string } | null>(null)
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<ResendValues>({ resolver: zodResolver(resendSchema), defaultValues: { email: '' } })
-
-  async function onSubmit({ email }: ResendValues) {
-    setAnswer(null)
-    try {
-      const response = await resendVerification(email)
-      setAnswer({
-        tone: 'info',
-        text: response?.message ?? 'Si un compte non vérifié existe pour cet e-mail, un nouveau lien a été envoyé.',
-      })
-    } catch (error) {
-      setAnswer({ tone: 'error', text: messageFor(error) })
-    }
-  }
-
-  return (
-    <form className={styles.stack} onSubmit={handleSubmit(onSubmit)} noValidate>
-      <TextField
-        label={
-          <>
-            <Mail size={18} aria-hidden="true" />
-            Adresse e-mail
-          </>
-        }
-        type="email"
-        autoComplete="email"
-        error={errors.email?.message}
-        {...register('email')}
-      />
-      <Button type="submit" variant="secondary" loading={isSubmitting}>
-        Recevoir un nouveau lien
-      </Button>
-      {answer && <Alert tone={answer.tone}>{answer.text}</Alert>}
-    </form>
-  )
-}
 
 /**
  * /verifier-email?token=…: the link the API mails after signup (MLink-80, endpoint 3). Confirms the address
@@ -92,7 +39,10 @@ export default function VerifyEmailPage() {
             : 'Ouvrez le lien reçu par e-mail pour confirmer votre adresse.'}
         </Alert>
         <p className={styles.lead}>Recevez un nouveau lien (valable 24 heures) :</p>
-        <ResendForm />
+        <ResendLinkForm
+          send={resendVerification}
+          fallback="Si un compte non vérifié existe pour cet e-mail, un nouveau lien a été envoyé."
+        />
         <Link className={styles.link} to={paths.login}>
           Se connecter
         </Link>
