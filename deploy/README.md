@@ -98,7 +98,10 @@ and a security review: prefer self-hosting it.
 3. CI creates a CycloneDX SBOM and preserves the exact scanned image as an artifact.
 4. A separate, least-privilege publish job downloads that artifact, pushes it to GHCR, captures the registry digest, and attaches provenance and SBOM attestations.
 5. The publish job attaches provenance and SBOM attestations, then signs the published digest with keyless Cosign.
-6. Staging/production jobs verify the signature against this GitHub Actions workflow identity before deploying the immutable digest with the production Compose file.
+6. Staging verifies the signature, deploys, and runs a public smoke test. The gate then waits for the API's
+   `deploy-staging` and `smoke-staging` jobs at the current staging HEAD.
+7. With `AUTO_DEPLOY_PROD` unset, production verifies the signature and deploys the **same verified staging digest**,
+   then runs a production smoke test. Set the variable to `false` to pause production deployment.
 
 The PR job does not have GHCR write permissions and cannot publish images.
 
@@ -114,10 +117,23 @@ Environment variables:
 - `FRONTEND_HOST_PORT`: optional host port (defaults to 8081), always published on 127.0.0.1: Caddy on the host is the way in.
 
 Environment secrets:
-- `DEPLOY_SSH_KEY`: private deployment key.
-- `DEPLOY_KNOWN_HOSTS`: pre-verified SSH host key lines.
+- `DEPLOY_SSH_KEY`: private deployment key, used only while Vault has no `medlink/<env>/front` bundle.
+- `DEPLOY_KNOWN_HOSTS`: pre-verified SSH host key lines, same fallback.
 
-Production must use required reviewers. Ensure the server has Docker Engine and the Compose plugin installed, can reach GHCR, and allows the configured port from the intended reverse proxy/firewall. Do not generate `known_hosts` with an unauthenticated `ssh-keyscan` inside the workflow.
+The workflow first reads `ssh_private_key_b64`/`known_hosts_b64` from Vault with GitHub OIDC (roles
+`front-staging` and `front-production`, audience `medlink-vault`). Seed it with `vault/seed-front.sh` in
+`api-MedLink`; see `docs/operations/vault.md` there. The fallback keeps deployments working until that path exists.
+
+Set repository secret `CROSS_REPO_TOKEN` (Actions: read on both repositories) so the gate does not rely on the
+unauthenticated GitHub API. Optional repository variables `STAGING_PUBLIC_URL` and `PRODUCTION_PUBLIC_URL` override
+the smoke-test base URLs; the defaults are the two `.sslip.io` edges.
+
+For automatic production deployment, do not configure required reviewers on the `production` environment; add a
+reviewer gate only if production must pause for a human.
+
+Ensure the server has Docker Engine and the Compose plugin installed, can reach GHCR, and allows the configured
+port from the intended reverse proxy/firewall. Do not generate `known_hosts` with an unauthenticated
+`ssh-keyscan` inside the workflow.
 
 The Compose deployment file is intentionally image-only: the remote server pulls an immutable digest; it does not build source code during deployment.
 

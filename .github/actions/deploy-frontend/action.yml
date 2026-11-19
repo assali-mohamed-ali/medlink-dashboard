@@ -1,0 +1,134 @@
+name: Deploy the dashboard over SSH
+description: Copy the frontend Compose definition, pull an immutable image and roll out the dashboard.
+
+inputs:
+  host:
+    description: SSH host of the deployment target
+    required: true
+  user:
+    description: SSH user that can run Docker Compose
+    required: true
+  path:
+    description: Absolute directory that holds the frontend Compose file and environment file
+    required: true
+  health_url:
+    description: URL of the deployed /healthz endpoint
+    required: true
+  ssh_key_path:
+    description: Path to the private SSH key written by load-deploy-secrets
+    required: true
+  known_hosts_path:
+    description: Path to the pinned known_hosts file written by load-deploy-secrets
+    required: true
+  image:
+    description: Immutable image reference (repository@sha256:digest)
+    required: true
+  ghcr_token:
+    description: Token used on the target to pull from GHCR
+    required: true
+  host_port:
+    description: Loopback port that Caddy proxies to
+    required: false
+    default: '8081'
+
+runs:
+  using: composite
+  steps:
+    - name: Validate deployment inputs
+      shell: bash
+      env:
+        DEPLOY_HOST: ${{ inputs.host }}
+        DEPLOY_USER: ${{ inputs.user }}
+        DEPLOY_PATH: ${{ inputs.path }}
+        DEPLOY_HEALTH_URL: ${{ inputs.health_url }}
+        DEPLOY_SSH_KEY_PATH: ${{ inputs.ssh_key_path }}
+        DEPLOY_KNOWN_HOSTS_PATH: ${{ inputs.known_hosts_path }}
+        DEPLOY_IMAGE: ${{ inputs.image }}
+        GHCR_TOKEN: ${{ inputs.ghcr_token }}
+        DEPLOY_PORT: ${{ inputs.host_port }}
+      run: |
+        set -euo pipefail
+        for name in DEPLOY_HOST DEPLOY_USER DEPLOY_PATH DEPLOY_HEALTH_URL \
+          DEPLOY_SSH_KEY_PATH DEPLOY_KNOWN_HOSTS_PATH DEPLOY_IMAGE GHCR_TOKEN DEPLOY_PORT; do
+          [ -n "${!name}" ] || { echo "::error::$name is not set."; exit 1; }
+        done
+        [ -s "$DEPLOY_SSH_KEY_PATH" ] || { echo "::error::The SSH key file is empty."; exit 1; }
+        [ -s "$DEPLOY_KNOWN_HOSTS_PATH" ] || { echo "::error::The known_hosts file is empty."; exit 1; }
+        [[ "$DEPLOY_PATH" =~ ^/[A-Za-z0-9/._-]+$ ]] || {
+          echo "::error::DEPLOY_PATH must be an absolute path with only letters, digits, '/', '.', '_' and '-'."
+          exit 1
+        }
+        [[ "$DEPLOY_PORT" =~ ^[0-9]+$ ]] || { echo "::error::FRONTEND_HOST_PORT must be a port number."; exit 1; }
+
+    - name: Configure SSH with pinned host keys
+      shell: bash
+      env:
+        DEPLOY_SSH_KEY_PATH: ${{ inputs.ssh_key_path }}
+        DEPLOY_KNOWN_HOSTS_PATH: ${{ inputs.known_hosts_path }}
+      run: |
+        set -euo pipefail
+        install -m 700 -d "$HOME/.ssh"
+        install -m 600 "$DEPLOY_SSH_KEY_PATH" "$HOME/.ssh/deploy_key"
+        install -m 644 "$DEPLOY_KNOWN_HOSTS_PATH" "$HOME/.ssh/known_hosts"
+
+    - name: Copy the Compose definition
+      shell: bash
+      env:
+        DEPLOY_HOST: ${{ inputs.host }}
+        DEPLOY_USER: ${{ inputs.user }}
+        DEPLOY_PATH: ${{ inputs.path }}
+      run: |
+        set -euo pipefail
+        SSH_OPTS=(-o BatchMode=yes -o StrictHostKeyChecking=yes -o IdentitiesOnly=yes -i "$HOME/.ssh/deploy_key")
+        REMOTE_DEPLOY_DIR="$(printf '%q' "$DEPLOY_PATH")"
+        ssh "${SSH_OPTS[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "mkdir -p -- $REMOTE_DEPLOY_DIR"
+        scp -q "${SSH_OPTS[@]}" deploy/docker-compose.frontend.yml "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/docker-compose.frontend.yml"
+
+    - name: Deploy the tested image by immutable digest
+      shell: bash
+      env:
+        DEPLOY_HOST: ${{ inputs.host }}
+        DEPLOY_USER: ${{ inputs.user }}
+        DEPLOY_PATH: ${{ inputs.path }}
+        DEPLOY_PORT: ${{ inputs.host_port }}
+        GHCR_USER: ${{ github.actor }}
+        GHCR_TOKEN: ${{ inputs.ghcr_token }}
+        IMAGE: ${{ inputs.image }}
+      run: |
+        set -euo pipefail
+        SSH_OPTS=(-o BatchMode=yes -o StrictHostKeyChecking=yes -o IdentitiesOnly=yes -i "$HOME/.ssh/deploy_key")
+        REMOTE_DEPLOY_DIR="$(printf '%q' "$DEPLOY_PATH")"
+        REMOTE_GHCR_USER="$(printf '%q' "$GHCR_USER")"
+        REMOTE_LOGIN="docker login ghcr.io --username $REMOTE_GHCR_USER --password-stdin"
+        printf '%s' "$GHCR_TOKEN" | ssh "${SSH_OPTS[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "$REMOTE_LOGIN"
+        printf 'FRONTEND_IMAGE=%s\nFRONTEND_HOST_PORT=%s\n' "$IMAGE" "$DEPLOY_PORT" > "$RUNNER_TEMP/frontend.env"
+        scp -q "${SSH_OPTS[@]}" "$RUNNER_TEMP/frontend.env" "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/.frontend.env"
+        ssh "${SSH_OPTS[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "chmod 600 ${REMOTE_DEPLOY_DIR}/.frontend.env"
+        REMOTE_COMMAND="docker compose --env-file ${REMOTE_DEPLOY_DIR}/.frontend.env -f ${REMOTE_DEPLOY_DIR}/docker-compose.frontend.yml pull && docker compose --env-file ${REMOTE_DEPLOY_DIR}/.frontend.env -f ${REMOTE_DEPLOY_DIR}/docker-compose.frontend.yml up -d --remove-orphans"
+        ssh "${SSH_OPTS[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "$REMOTE_COMMAND"
+
+    - name: Verify the deployed health endpoint
+      shell: bash
+      env:
+        HEALTH_URL: ${{ inputs.health_url }}
+      run: |
+        set -euo pipefail
+        for attempt in $(seq 1 24); do
+          if curl --fail --silent --show-error --max-time 10 "$HEALTH_URL"; then
+            exit 0
+          fi
+          echo "Waiting for $HEALTH_URL (attempt $attempt/24)..."
+          sleep 5
+        done
+        echo "::error::Frontend health check failed after deployment."
+        exit 1
+
+    - name: Log out of GHCR on the target
+      if: always()
+      shell: bash
+      env:
+        DEPLOY_HOST: ${{ inputs.host }}
+        DEPLOY_USER: ${{ inputs.user }}
+      run: |
+        SSH_OPTS=(-o BatchMode=yes -o StrictHostKeyChecking=yes -o IdentitiesOnly=yes -i "$HOME/.ssh/deploy_key")
+        ssh "${SSH_OPTS[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "docker logout ghcr.io" || true
