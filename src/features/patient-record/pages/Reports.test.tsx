@@ -35,7 +35,8 @@ async function openEditor() {
   const user = userEvent.setup()
   renderPage()
   const region = await reportsRegion()
-  await user.click(within(region).getByRole('button', { name: 'Nouveau compte-rendu' }))
+  // The yellow action is in the page's header (Stitch design), the editor opens in the reports card
+  await user.click(screen.getByRole('button', { name: 'Nouveau compte-rendu' }))
   return { user, region, editor: within(region).getByRole('form', { name: 'Nouveau compte-rendu' }) }
 }
 
@@ -183,4 +184,93 @@ test('the list that cannot be read says so and offers to try again', async () =>
   expect(await within(region).findByRole('alert')).toHaveTextContent('Connexion impossible.')
   await user.click(within(region).getByRole('button', { name: 'Réessayer' }))
   expect(await within(region).findByText(/Bilan annuel/)).toBeInTheDocument()
+})
+
+// ---- The Stitch "Dossier patient" design: titles, read more, newest, count, filter ----
+
+const LONG = `Bilan annuel\n${'y'.repeat(250)}`
+
+test('a report on several lines: its first line is its title, the rest its text; one line is text only', async () => {
+  fetchReports.mockResolvedValue([
+    { id: 'r5', createdAt: '2026-11-11T09:15:00Z', content: 'Douleur thoracique\nECG normal, contrôle dans un mois.' },
+    OLD,
+  ])
+  renderPage()
+
+  const items = within(await within(await reportsRegion()).findByRole('list', { name: 'Comptes-rendus enregistrés' })).getAllByRole('listitem')
+  expect(within(items[0]).getByRole('heading', { level: 4, name: 'Douleur thoracique' })).toBeInTheDocument()
+  expect(items[0]).toHaveTextContent('ECG normal, contrôle dans un mois.')
+  expect(within(items[1]).queryByRole('heading')).toBeNull()
+  expect(items[1]).toHaveTextContent('Bilan annuel sans particularité.')
+})
+
+test('a long report shows its start; "Lire la suite" opens it whole, "Réduire" folds it again', async () => {
+  const user = userEvent.setup()
+  fetchReports.mockResolvedValue([{ id: 'r6', createdAt: '2026-11-11T09:15:00Z', content: LONG }])
+  renderPage()
+
+  const region = await reportsRegion()
+  const more = await within(region).findByRole('button', { name: 'Lire la suite' })
+  expect(more).toHaveAttribute('aria-expanded', 'false')
+  expect(region).not.toHaveTextContent('y'.repeat(250))
+
+  await user.click(more)
+  expect(region).toHaveTextContent('y'.repeat(250))
+  const less = within(region).getByRole('button', { name: 'Réduire' })
+  expect(less).toHaveAttribute('aria-expanded', 'true')
+
+  await user.click(less)
+  expect(region).not.toHaveTextContent('y'.repeat(250))
+})
+
+test('a short report has no "Lire la suite"', async () => {
+  renderPage()
+
+  const region = await reportsRegion()
+  await within(region).findByText('Bilan annuel sans particularité.')
+  expect(within(region).queryByRole('button', { name: 'Lire la suite' })).toBeNull()
+})
+
+test('the newest report says "Le plus récent", and the card counts the reports', async () => {
+  fetchReports.mockResolvedValue([OLD, NEW])
+  renderPage()
+
+  const region = await reportsRegion()
+  const items = within(await within(region).findByRole('list', { name: 'Comptes-rendus enregistrés' })).getAllByRole('listitem')
+  expect(items[0]).toHaveTextContent('Le plus récent')
+  expect(items[1]).not.toHaveTextContent('Le plus récent')
+  expect(within(region).getByText('2', { selector: '[data-count]' })).toBeInTheDocument()
+})
+
+test('the keyword filter keeps the matching reports, whatever the accents and the case; no match says so', async () => {
+  const user = userEvent.setup()
+  fetchReports.mockResolvedValue([OLD, NEW])
+  renderPage()
+
+  const region = await reportsRegion()
+  await within(region).findByRole('list', { name: 'Comptes-rendus enregistrés' })
+  const filter = within(region).getByRole('searchbox', { name: 'Filtrer les comptes-rendus' })
+
+  await user.type(filter, 'ecg')
+  let items = within(within(region).getByRole('list', { name: 'Comptes-rendus enregistrés' })).getAllByRole('listitem')
+  expect(items).toHaveLength(1)
+  expect(items[0]).toHaveTextContent('ECG normal')
+
+  await user.clear(filter)
+  await user.type(filter, 'PARTICULARITE')
+  items = within(within(region).getByRole('list', { name: 'Comptes-rendus enregistrés' })).getAllByRole('listitem')
+  expect(items).toHaveLength(1)
+  expect(items[0]).toHaveTextContent('Bilan annuel')
+
+  await user.clear(filter)
+  await user.type(filter, 'radiographie')
+  expect(within(region).getByText('Aucun compte-rendu ne contient « radiographie ».')).toBeInTheDocument()
+  expect(fetchReports).toHaveBeenCalledTimes(1)
+})
+
+test('the editor says the text is encrypted when saved and that the first line is the title', async () => {
+  const { editor } = await openEditor()
+
+  expect(editor).toHaveTextContent('Chiffré à l’enregistrement')
+  expect(editor).toHaveTextContent('la première ligne sert de titre')
 })
