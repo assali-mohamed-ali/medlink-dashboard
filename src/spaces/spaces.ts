@@ -1,5 +1,7 @@
 import {
+  CalendarCheck,
   CalendarDays,
+  CalendarPlus,
   FileText,
   House,
   KeyRound,
@@ -51,6 +53,8 @@ export const SPACES: Record<Role, Space> = {
     roleLabel: 'Patient',
     menu: [
       { label: 'Accueil', to: paths.patient.root, icon: House },
+      { label: 'Prendre rendez-vous', to: paths.patient.slots, icon: CalendarPlus },
+      { label: 'Mes rendez-vous', to: paths.patient.appointments, icon: CalendarCheck },
       { label: 'Mot de passe', to: paths.patient.password, icon: KeyRound },
     ],
     home: {

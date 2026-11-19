@@ -15,7 +15,12 @@ export const paths = {
   password: '/mot-de-passe', // the forced change right after a login (no session yet); logged in: the space's page
   activateAccount: '/activer-compte', // mailed by the API
   accessDenied: '/acces-refuse',
-  patient: { root: '/patient', password: '/patient/mot-de-passe' },
+  patient: {
+    root: '/patient',
+    slots: '/patient/creneaux',
+    appointments: '/patient/rendez-vous',
+    password: '/patient/mot-de-passe',
+  },
   // A patient's record: patients/:id (MLink-31)
   practitioner: {
     root: '/praticien',
