@@ -1,6 +1,6 @@
 import { useEffect, useId, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { CalendarCheck, CalendarDays, Check, ChevronLeft, ChevronRight, Clock, Stethoscope } from 'lucide-react'
+import { CalendarCheck, CalendarDays, Check, ChevronLeft, ChevronRight, Clock } from 'lucide-react'
 import { ApiError } from '@/shared/api/apiClient'
 import { fieldErrors, messageFor } from '@/shared/api/errors'
 import { paths } from '@/shared/config/paths'
@@ -600,15 +600,13 @@ function SlotCard({ slot, tint, onChoose }: { slot: Slot; tint: string; onChoose
   const time = `${timeLabel(new Date(slot.startsAt))} – ${timeLabel(new Date(slot.endsAt))}`
   return (
     <article className={`${styles.slot} ${tint}`} aria-label={`Dr ${firstName} ${lastName}, ${time}`}>
-      <div className={styles.slotTop}>
-        <p className={styles.name}>
-          Dr {firstName} {lastName}
-        </p>
-        <Stethoscope size={15} aria-hidden="true" />
-      </div>
-      <span className={styles.pill}>{slot.specialty}</span>
+      <p className={styles.name}>
+        Dr {firstName} {lastName}
+      </p>
       <p className={styles.meta}>
-        <span>{time}</span> · <span>{slot.clinic.name}</span>
+        {/* The row already shows the time to the eye; screen readers read it here */}
+        <span className={styles.srOnly}>{time}</span>{' '}
+        <span className={styles.specialty}>{slot.specialty}</span> · <span>{slot.clinic.name}</span>
       </p>
       <button type="button" className={styles.book} onClick={onChoose}>
         Réserver
