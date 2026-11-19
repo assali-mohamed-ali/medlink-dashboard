@@ -190,11 +190,11 @@ test('says it is loading, then shows the week', async () => {
   expect(await screen.findByRole('table', { name: TITLE })).toBeInTheDocument()
 })
 
-test('the header names the practitioner and their clinics, as in the Stitch design', async () => {
+test('the header names the clinics; the practitioner is named once, in the top bar, not again beside the action', async () => {
   renderPage()
 
   expect(await screen.findByText('Vos cliniques : Sfax • Sousse • Tunis (3 sites)')).toBeInTheDocument()
-  expect(screen.getByText('Mehdi Ben Salem')).toBeInTheDocument()
+  expect(screen.queryByText('Mehdi Ben Salem')).toBeNull()
   expect(screen.getByRole('button', { name: /Ajouter un créneau/ })).toHaveAttribute('aria-expanded', 'false')
 })
 
