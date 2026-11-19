@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { CalendarPlus, ChevronLeft, ChevronRight } from 'lucide-react'
-import { useAuth } from '@/features/auth'
-import UserAvatar from '@/shared/components/UserAvatar'
 import { ApiError } from '@/shared/api/apiClient'
 import { messageFor } from '@/shared/api/errors'
 import { Alert, Button, Skeleton } from '@/shared/ui'
@@ -44,7 +42,6 @@ function changeFailure(error: unknown): { text: string; reload: boolean } {
  */
 export default function AgendaPage() {
   const titleId = useId()
-  const { user } = useAuth()
   // "Today" is read once, when the page opens
   const [now] = useState(() => Date.now())
   const today = tunisDay(new Date(now))
@@ -174,17 +171,6 @@ export default function AgendaPage() {
           <p className={styles.subtitle}>Supervision hebdomadaire de vos consultations réparties sur le réseau MedLink</p>
         </div>
         <div className={styles.headerSide}>
-          {user && (
-            <div className={styles.identity}>
-              <UserAvatar firstName={user.firstName} lastName={user.lastName} />
-              <span>
-                <span className={styles.identityName}>
-                  {user.firstName} {user.lastName}
-                </span>
-                <span className={styles.identityRole}>Praticien</span>
-              </span>
-            </div>
-          )}
           <button
             ref={addButton}
             type="button"
