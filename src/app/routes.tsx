@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 import type { RouteObject } from 'react-router-dom'
+import { staffAccountsPages } from '@/features/accounts'
 import { practitionerAgendaPages } from '@/features/agenda'
 import { practitionerRecordPages } from '@/features/patient-record'
 import { practitionerProfilePages } from '@/features/profile'
@@ -8,12 +9,11 @@ import { mfaRoutes } from '@/features/mfa'
 import { patientSlotPages } from '@/features/slots'
 import AccessDeniedPage from '@/pages/AccessDeniedPage'
 import NotFoundPage from '@/pages/NotFoundPage'
-import PlaceholderPage from '@/pages/PlaceholderPage'
 import RouteErrorPage from '@/pages/RouteErrorPage'
 import { paths } from '@/shared/config/paths'
 import { lazyPage } from '@/shared/lib/lazyPage'
 import { PageLoader } from '@/shared/ui'
-import { SpaceComingSoon, SpaceHome, SpaceLayout } from './spaceChunks'
+import { SpaceHome, SpaceLayout } from './spaceChunks'
 
 /**
  * A role's space: one guard and one layout for the whole branch, so no page of the space can forget the
@@ -44,8 +44,6 @@ export const routes: RouteObject[] = [
       { path: paths.home, lazy: lazyPage(() => import('@/pages/HomePage')) },
       ...authRoutes,
       ...mfaRoutes,
-      // Pages of flows still to build (MLink-71)
-      { path: paths.activateAccount, element: <PlaceholderPage title="Activation du compte" /> },
       { path: paths.accessDenied, element: <AccessDeniedPage /> },
 
       // Each space has its own password page (MLink-89), so the change happens inside the space
@@ -57,8 +55,7 @@ export const routes: RouteObject[] = [
         ownPasswordRoute(paths.practitioner.password),
       ]),
       space('ADMINISTRATIVE_STAFF', paths.staff.root, [
-        // MLink-73 (back-office) replaces this placeholder
-        { path: paths.staff.accounts, element: <SpaceComingSoon title="Gestion des comptes" /> },
+        ...staffAccountsPages,
         ownPasswordRoute(paths.staff.password),
       ]),
 
