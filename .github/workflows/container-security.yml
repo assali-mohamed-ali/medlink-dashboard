@@ -149,7 +149,7 @@ jobs:
           push-to-registry: true
 
       - name: Attest SBOM for the published digest
-        uses: actions/attest-sbom@v3
+        uses: actions/attest-sbom@v4
         with:
           subject-name: ghcr.io/${{ github.repository }}
           subject-digest: ${{ steps.publish.outputs.digest }}
