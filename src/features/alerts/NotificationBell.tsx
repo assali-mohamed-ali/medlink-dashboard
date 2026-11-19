@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { Bell, Check } from 'lucide-react'
+import { announceNewAlerts } from '@/shared/lib/alertEvents'
 import { fetchUnreadAlerts, markAlertRead } from './api'
 import type { Alert } from './types'
 import styles from './alerts.module.css'
@@ -42,6 +43,8 @@ export default function NotificationBell() {
     let current = true
     // The bell appears with the space, right after the login (or a reload): its first answer that arrives holds what came while away
     let first = true
+    // The alerts already known: one new since the last answer is announced to the pages (37.7)
+    const known = new Set<string>()
     // A missed poll keeps what is shown; the next minute tries again (a 401 is handled by apiFetch)
     const poll = () =>
       fetchUnreadAlerts().then(
@@ -49,6 +52,10 @@ export default function NotificationBell() {
           if (!current) return
           setAlerts([...unread].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt)))
           setLoadFailed(false)
+          const arrived = unread.some((alert) => !known.has(alert.id))
+          unread.forEach((alert) => known.add(alert.id))
+          // At the first answer the pages have just read their data themselves
+          if (arrived && !first) announceNewAlerts()
           if (first && unread.length > 0) {
             // 37.6: open the list once, without taking the focus from where the person is
             setOpen(true)

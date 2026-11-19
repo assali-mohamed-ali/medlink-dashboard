@@ -210,3 +210,17 @@
 }
 .openRecord:hover { background: var(--surface-container); }
 .openRecord:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+/* MLink-37 (37.7): an appointment cancelled on a slot nobody holds now, struck through and greyed */
+.cancelled {
+  color: var(--text-muted); font-size: var(--text-xs); line-height: var(--leading-xs); text-decoration: line-through;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+/* The legend's sample of a cancelled appointment: a struck-through bar */
+.swatchCancelled {
+  position: relative; width: 14px; height: 14px; border-radius: var(--radius-pill); background: var(--surface-low);
+  border: 1px solid var(--border-strong);
+}
+.swatchCancelled::after {
+  content: ''; position: absolute; left: 1px; right: 1px; top: 50%; height: 1.5px; background: var(--text-muted);
+}

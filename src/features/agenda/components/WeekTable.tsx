@@ -163,6 +163,10 @@ export default function WeekTable({ title, monday, today, agenda, tones, hidden,
           <span className={styles.swatchClosed} aria-hidden="true" />
           Créneau fermé
         </li>
+        <li className={styles.legendItem}>
+          <span className={styles.swatchCancelled} aria-hidden="true" />
+          Rendez-vous annulé
+        </li>
       </ul>
     </>
   )
@@ -184,10 +188,11 @@ function FreeSlots({ slots, day, action }: { slots: readonly AgendaItem[]; day: 
             <li
               key={item.slotId}
               className={styles.freeTime}
-              aria-label={`${longDayLabel(day)}, ${time}, ${item.clinic.name}, ${STATUS_WORDS.OPEN}`}
+              aria-label={`${longDayLabel(day)}, ${time}, ${item.clinic.name}, ${STATUS_WORDS.OPEN}${cancelledWords(item)}`}
             >
               {timeLabel(item.startsAt)}
               <span className="visually-hidden">Créneau disponible</span>
+              <CancelledName item={item} />
               {actionable(item, action.now) && (
                 <button
                   type="button"
@@ -208,15 +213,38 @@ function FreeSlots({ slots, day, action }: { slots: readonly AgendaItem[]; day: 
   )
 }
 
+/** MLink-37 (37.7): the appointment cancelled on a slot nobody holds now, as the API gives it, or nothing. */
+function cancelledOf(item: AgendaItem) {
+  return item.appointment?.status === 'CANCELLED' ? item.appointment.patient : undefined
+}
+
+/** ", rendez-vous de Amel Ben Salah annulé" for a screen reader, '' when nothing was cancelled. */
+function cancelledWords(item: AgendaItem) {
+  const patient = cancelledOf(item)
+  return patient ? `, rendez-vous de ${patient.firstName} ${patient.lastName} annulé` : ''
+}
+
+/** "Amel B." struck through: the cancelled appointment, read as part of the slot's name. */
+function CancelledName({ item }: { item: AgendaItem }) {
+  const patient = cancelledOf(item)
+  if (!patient) return null
+  return (
+    <s className={styles.cancelled} title={`Rendez-vous annulé : ${patient.firstName} ${patient.lastName}`} aria-hidden="true">
+      {patient.firstName} {patient.lastName.charAt(0)}.
+    </s>
+  )
+}
+
 function SlotCard({ item, day, tone, action }: { item: AgendaItem; day: string; tone: number; action: Action }) {
   const time = `${timeLabel(item.startsAt)} – ${timeLabel(item.endsAt)}`
-  const patient = item.appointment?.patient
+  // Only a booked appointment holds the slot; a cancelled one is shown struck through (37.7)
+  const patient = item.appointment?.status === 'BOOKED' ? item.appointment.patient : undefined
   return (
     <li
       className={styles.slot}
       data-tone={tone}
       data-status={item.status}
-      aria-label={`${longDayLabel(day)}, ${time}, ${item.clinic.name}, ${STATUS_WORDS[item.status]}${patient ? `, ${patient.firstName} ${patient.lastName}` : ''}`}
+      aria-label={`${longDayLabel(day)}, ${time}, ${item.clinic.name}, ${STATUS_WORDS[item.status]}${patient ? `, ${patient.firstName} ${patient.lastName}` : ''}${cancelledWords(item)}`}
     >
       {patient ? (
         <>
@@ -248,6 +276,7 @@ function SlotCard({ item, day, tone, action }: { item: AgendaItem; day: string; 
       ) : (
         <>
           <span className={styles.slotState}>Créneau fermé</span>
+          <CancelledName item={item} />
           <span className={styles.slotTime}>{time}</span>
           {actionable(item, action.now) && (
             <button

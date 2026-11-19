@@ -5,6 +5,7 @@ import UserAvatar from '@/shared/components/UserAvatar'
 import { ApiError } from '@/shared/api/apiClient'
 import { messageFor } from '@/shared/api/errors'
 import { Alert, Button, Skeleton } from '@/shared/ui'
+import { onNewAlerts } from '@/shared/lib/alertEvents'
 import { changeSlotStatus, fetchAgenda } from '../api'
 import { shortName, sortedClinics, toneOf } from '../clinicTones'
 import ClinicFilter from '../components/ClinicFilter'
@@ -68,6 +69,8 @@ export default function AgendaPage() {
   const sameWeek = answer?.key.startsWith(`${monday}#`) && answer.load.status === 'ready'
   const load: Load = answer?.key === key || sameWeek ? answer!.load : { status: 'loading' }
   const reload = useCallback(() => setAttempt((n) => n + 1), [])
+  // MLink-37 (37.7): an alert means an appointment was cancelled: read the week again, the week stays on screen meanwhile
+  useEffect(() => onNewAlerts(reload), [reload])
   const clinics = load.status === 'ready' ? load.agenda.clinics : null
   const tones = useMemo(() => toneOf(clinics ?? []), [clinics])
 
