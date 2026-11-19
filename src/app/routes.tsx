@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import type { RouteObject } from 'react-router-dom'
 import { staffAccountsPages } from '@/features/accounts'
 import { practitionerAgendaPages } from '@/features/agenda'
+import { staffAuditPages } from '@/features/audit'
 import { practitionerRecordPages } from '@/features/patient-record'
 import { practitionerProfilePages } from '@/features/profile'
 import { RequireAuth, authRoutes, ownPasswordRoute, type Role } from '@/features/auth'
@@ -56,6 +57,7 @@ export const routes: RouteObject[] = [
       ]),
       space('ADMINISTRATIVE_STAFF', paths.staff.root, [
         ...staffAccountsPages,
+        ...staffAuditPages,
         ownPasswordRoute(paths.staff.password),
       ]),
 

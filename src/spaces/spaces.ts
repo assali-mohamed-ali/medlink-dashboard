@@ -6,6 +6,7 @@ import {
   House,
   KeyRound,
   MessageSquare,
+  ScrollText,
   Stethoscope,
   UserRound,
   Users,
@@ -95,6 +96,7 @@ export const SPACES: Record<Role, Space> = {
     menu: [
       { label: 'Accueil', to: paths.staff.root, icon: House },
       { label: 'Gestion des comptes', to: paths.staff.accounts, icon: Users },
+      { label: 'Journal d’audit', to: paths.staff.audit, icon: ScrollText },
       { label: 'Mot de passe', to: paths.staff.password, icon: KeyRound },
     ],
     home: {
