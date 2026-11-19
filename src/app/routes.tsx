@@ -2,7 +2,7 @@ import { Suspense } from 'react'
 import type { RouteObject } from 'react-router-dom'
 import { practitionerAgendaPages } from '@/features/agenda'
 import { practitionerRecordPages } from '@/features/patient-record'
-import { practitionerProfilePages } from '@/features/profile'
+import { patientProfilePages, practitionerProfilePages } from '@/features/profile'
 import { RequireAuth, authRoutes, ownPasswordRoute, type Role } from '@/features/auth'
 import { mfaRoutes } from '@/features/mfa'
 import { patientSlotPages } from '@/features/slots'
@@ -49,7 +49,11 @@ export const routes: RouteObject[] = [
       { path: paths.accessDenied, element: <AccessDeniedPage /> },
 
       // Each space has its own password page (MLink-89), so the change happens inside the space
-      space('PATIENT', paths.patient.root, [...patientSlotPages, ownPasswordRoute(paths.patient.password)]),
+      space('PATIENT', paths.patient.root, [
+        ...patientSlotPages,
+        ...patientProfilePages,
+        ownPasswordRoute(paths.patient.password),
+      ]),
       space('PRACTITIONER', paths.practitioner.root, [
         ...practitionerAgendaPages,
         ...practitionerRecordPages,

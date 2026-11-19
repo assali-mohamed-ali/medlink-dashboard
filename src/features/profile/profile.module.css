@@ -31,6 +31,9 @@
 .countIcon { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: var(--radius-control); }
 .blue { background: var(--clinic-1-container); color: var(--on-clinic-1-container); }
 .mint { background: var(--primary-fixed); color: var(--primary); }
+.rose { background: var(--clinic-2-container); color: var(--on-clinic-2-container); }
+.lavender { background: var(--stitch-surface-container); color: var(--on-surface-variant); }
+.countsBlock { display: flex; flex-direction: column; gap: var(--space-2); }
 .cream { background: var(--clinic-3-container); color: var(--on-clinic-3-container); }
 .countText { display: flex; flex-direction: column; min-width: 0; line-height: 1.15; }
 .countText b { font-size: var(--text-xl); color: var(--on-surface); }

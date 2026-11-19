@@ -55,7 +55,8 @@ export const SPACES: Record<Role, Space> = {
       { label: 'Accueil', to: paths.patient.root, icon: House },
       { label: 'Prendre rendez-vous', to: paths.patient.slots, icon: CalendarPlus },
       { label: 'Mes rendez-vous', to: paths.patient.appointments, icon: CalendarCheck },
-      { label: 'Mot de passe', to: paths.patient.password, icon: KeyRound },
+      // The password page opens from the profile ("Modifier le mot de passe"), as for the practitioner
+      { label: 'Profil', to: paths.patient.profile, icon: UserRound, also: [paths.patient.password] },
     ],
     home: {
       intro: 'Vos rendez-vous, vos documents et vos échanges avec vos soignants, au même endroit.',

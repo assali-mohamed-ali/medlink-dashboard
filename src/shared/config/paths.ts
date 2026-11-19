@@ -19,6 +19,7 @@ export const paths = {
     root: '/patient',
     slots: '/patient/creneaux',
     appointments: '/patient/rendez-vous',
+    profile: '/patient/profil',
     password: '/patient/mot-de-passe',
   },
   // A patient's record: patients/:id (MLink-31)
