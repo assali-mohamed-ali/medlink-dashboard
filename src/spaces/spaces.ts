@@ -60,7 +60,12 @@ export const SPACES: Record<Role, Space> = {
     home: {
       intro: 'Vos rendez-vous, vos documents et vos échanges avec vos soignants, au même endroit.',
       parts: [
-        { title: 'Rendez-vous', text: 'Vos prochains rendez-vous et la prise de rendez-vous en ligne.', icon: CalendarDays },
+        {
+          title: 'Rendez-vous',
+          text: 'Vos prochains rendez-vous et la prise de rendez-vous en ligne.',
+          icon: CalendarDays,
+          link: { to: paths.patient.appointments, label: 'Voir mes rendez-vous' },
+        },
         { title: 'Documents', text: 'Vos comptes rendus, ordonnances et résultats.', icon: FileText },
         { title: 'Messages', text: 'Vos échanges avec vos soignants.', icon: MessageSquare },
       ],
