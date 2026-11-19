@@ -111,7 +111,7 @@ Environment variables:
 - `DEPLOY_USER`: SSH account with permission to run Docker Compose.
 - `DEPLOY_PATH`: absolute directory on the host for the Compose file and environment file.
 - `DEPLOY_HEALTH_URL`: reachable URL for the dashboard's `/healthz` endpoint.
-- `FRONTEND_HOST_PORT`: optional host port (defaults to 8081).
+- `FRONTEND_HOST_PORT`: optional host port (defaults to 8081), always published on 127.0.0.1: Caddy on the host is the way in.
 
 Environment secrets:
 - `DEPLOY_SSH_KEY`: private deployment key.
