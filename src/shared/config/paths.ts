@@ -21,6 +21,14 @@ export const paths = {
     appointments: '/patient/rendez-vous',
     password: '/patient/mot-de-passe',
   },
-  practitioner: { root: '/praticien', password: '/praticien/mot-de-passe' },
+  // A patient's record: patients/:id (MLink-31)
+  practitioner: {
+    root: '/praticien',
+    agenda: '/praticien/agenda',
+    patients: '/praticien/patients',
+    profile: '/praticien/profil',
+    password: '/praticien/mot-de-passe',
+  },
   staff: { root: '/admin', accounts: '/admin/comptes', password: '/admin/mot-de-passe' },
+  specimen: '/__specimen', // dev only (npm run dev): the UI refresh specimen, absent from production builds
 } as const
