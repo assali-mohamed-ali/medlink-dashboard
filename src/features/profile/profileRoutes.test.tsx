@@ -45,7 +45,7 @@ test('a practitioner opens "Profil" from the menu, then the password page from t
   const router = renderAt('/praticien')
 
   await user.click(await screen.findByRole('link', { name: 'Profil' }))
-  expect(await screen.findByRole('heading', { name: 'Profil & sécurité', level: 2 })).toBeInTheDocument()
+  expect(await screen.findByRole('region', { name: 'Mon profil' })).toBeInTheDocument()
   expect(router.state.location.pathname).toBe('/praticien/profil')
 
   // The password page is reached from the profile only: no "Mot de passe" entry in the practitioner's menu
