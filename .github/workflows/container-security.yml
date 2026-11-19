@@ -108,13 +108,13 @@ jobs:
       image: ${{ steps.publish.outputs.ref }}
     steps:
       - name: Download the exact scanned image
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: dashboard-image-${{ github.sha }}
           path: bundle
 
       - name: Download the SBOM for the same image
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: dashboard-sbom-${{ github.sha }}
           path: bundle
