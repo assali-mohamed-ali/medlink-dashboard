@@ -1,6 +1,7 @@
 import { ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useAuth, type Role } from '@/features/auth'
+import { PatientHome } from '@/features/slots'
 import StatusBadge from '@/shared/components/StatusBadge'
 import { Card, EmptyState } from '@/shared/ui'
 import { SPACES } from './spaces'
@@ -12,6 +13,8 @@ import styles from './SpaceHome.module.css'
  */
 export default function SpaceHome({ role }: { role: Role }) {
   const { user } = useAuth()
+  // The patient's home shows their own appointments (Stitch design); the other spaces keep their parts
+  if (role === 'PATIENT') return <PatientHome firstName={user?.firstName} />
   const { home } = SPACES[role]
   return (
     <div className={styles.home}>

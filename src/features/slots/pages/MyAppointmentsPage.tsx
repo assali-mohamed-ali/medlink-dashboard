@@ -6,6 +6,7 @@ import { messageFor } from '@/shared/api/errors'
 import { paths } from '@/shared/config/paths'
 import { Alert, Button, Spinner } from '@/shared/ui'
 import { cancelAppointment, fetchMyAppointments } from '../api'
+import { kindOf, toComeOf, whenLabel, type Kind } from '../appointments'
 import { Dialog, DialogActions, FieldError, Summary } from '../components/Dialog'
 import type { Appointment, AppointmentPage } from '../types'
 import { fullDateLabel, timeLabel } from '../week'
@@ -20,25 +21,7 @@ const SHORT_DATE = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'num
 /** The cards to come are tinted by clinic, from the team's clinic tokens. */
 const TINTS = [styles.tintA, styles.tintB, styles.tintC]
 
-type Kind = 'toCome' | 'cancelled' | 'past'
 type History = 'all' | 'cancelled' | 'past'
-
-function kindOf(appointment: Appointment, now: number): Kind {
-  if (appointment.status === 'CANCELLED') return 'cancelled'
-  return Date.parse(appointment.startsAt) <= now ? 'past' : 'toCome'
-}
-
-/** "aujourd’hui", "demain", "dans 2 jours": counted in calendar days, in the patient's time zone. */
-function whenLabel(start: Date, now: number) {
-  const today = new Date(now)
-  const days = Math.round(
-    (new Date(start.getFullYear(), start.getMonth(), start.getDate()).getTime() -
-      new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime()) /
-      86_400_000,
-  )
-  if (days <= 0) return 'aujourd’hui'
-  return days === 1 ? 'demain' : `dans ${days} jours`
-}
 
 /**
  * MLink-109: a patient manages their appointments alone. The page of the API (latest first, cancelled ones included) is
@@ -104,9 +87,7 @@ export default function MyAppointmentsPage() {
 
   const pages = result ? Math.max(1, Math.ceil(result.total / PAGE_SIZE)) : 1
   const items = result?.items ?? []
-  const toCome = items
-    .filter((a) => kindOf(a, now) === 'toCome')
-    .sort((a, b) => a.startsAt.localeCompare(b.startsAt))
+  const toCome = toComeOf(items, now)
   const cancelled = items.filter((a) => kindOf(a, now) === 'cancelled')
   const past = items.filter((a) => kindOf(a, now) === 'past')
   const shownHistory = items.filter((a) => {
