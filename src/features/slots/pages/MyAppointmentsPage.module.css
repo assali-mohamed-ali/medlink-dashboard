@@ -62,7 +62,6 @@
 /* To come: pastel cards by clinic, the next one outlined in yellow */
 .toCome { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
 .upcoming { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-radius: var(--radius-card); }
-.upcoming[data-next] { box-shadow: inset 0 0 0 2px var(--stitch-action-hover); }
 .tintA { background: var(--clinic-1-container); }
 .tintB { background: var(--clinic-3-container); }
 .tintC { background: var(--clinic-2-container); }
