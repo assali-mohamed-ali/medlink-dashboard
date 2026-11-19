@@ -2,6 +2,7 @@ import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { ApiError } from '@/shared/api/apiClient'
+import { onNewAlerts } from '@/shared/lib/alertEvents'
 import * as api from './api'
 import NotificationBell, { POLL_MS } from './NotificationBell'
 import type { Alert } from './types'
@@ -219,4 +220,24 @@ test('37.6: once opened by hand later, the list no longer says "pendant votre ab
 
   const panel = screen.getByRole('region', { name: 'Alertes' })
   expect(within(panel).queryByText('Reçues pendant votre absence')).toBeNull()
+})
+
+test('37.7: an alert new since the last minute is announced to the pages (the agenda reads itself again); the first answer and an unchanged one are not', async () => {
+  const heard = vi.fn()
+  const stop = onNewAlerts(heard)
+  fetchUnreadAlerts.mockResolvedValue([FIRST])
+  render(<NotificationBell />)
+  await screen.findByRole('button', { name: 'Notifications, 1 non lue' })
+
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(POLL_MS)
+  })
+  expect(heard).not.toHaveBeenCalled()
+
+  fetchUnreadAlerts.mockResolvedValue([SECOND, FIRST])
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(POLL_MS)
+  })
+  expect(heard).toHaveBeenCalledTimes(1)
+  stop()
 })

@@ -1,8 +1,9 @@
-import { render, screen, within } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { ApiError } from '@/shared/api/apiClient'
+import { announceNewAlerts } from '@/shared/lib/alertEvents'
 import * as api from '../api'
 import type { Agenda, AgendaItem } from '../types'
 import AgendaPage from './AgendaPage'
@@ -127,6 +128,7 @@ test('the legend names each clinic next to its colour, and the slot states', asy
     'Rendez-vous confirmé',
     'Créneau disponible',
     'Créneau fermé',
+    'Rendez-vous annulé',
   ])
 })
 
@@ -235,4 +237,54 @@ test('an appointment links to its patient’s record (MLink-31); a free or close
   )
   expect(within(screen.getByRole('listitem', { name: /fermé/ })).queryByRole('link')).toBeNull()
   expect(screen.getAllByRole('link', { name: /Ouvrir le dossier/ })).toHaveLength(1)
+})
+
+// ---- MLink-37 (37.7): the agenda shows a cancellation ----
+
+const AMEL = { id: 'p2', firstName: 'Amel', lastName: 'Ben Salah' }
+
+test('37.7: a freed slot is free again and shows its cancelled appointment struck through, with no record link', async () => {
+  const freed: AgendaItem = { ...slot('s4', '2026-11-13T08:00:00Z', SOUSSE), appointment: { id: 'a2', status: 'CANCELLED', patient: AMEL } }
+  fetchAgenda.mockResolvedValue({ ...WEEK, items: [...WEEK.items, freed] })
+  renderPage()
+
+  const item = await screen.findByRole('listitem', {
+    name: 'vendredi 13 novembre, 09:00 – 09:30, Clinique MedLink Sousse, disponible, rendez-vous de Amel Ben Salah annulé',
+  })
+  expect(within(item).getByText('Amel B.').closest('s')).not.toBeNull()
+  expect(within(item).queryByRole('link')).toBeNull()
+  // Still free: it can be closed like any free slot to come
+  expect(within(item).getByRole('button', { name: /^Fermer le créneau/ })).toBeInTheDocument()
+})
+
+test('37.7: a slot closed after a cancellation says closed, with the cancelled appointment, never as booked', async () => {
+  const closed: AgendaItem = {
+    ...slot('s5', '2026-11-13T10:00:00Z', SFAX, 'CLOSED'),
+    appointment: { id: 'a3', status: 'CANCELLED', patient: AMEL },
+  }
+  fetchAgenda.mockResolvedValue({ ...WEEK, items: [...WEEK.items, closed] })
+  renderPage()
+
+  const item = await screen.findByRole('listitem', {
+    name: 'vendredi 13 novembre, 11:00 – 11:30, Clinique MedLink Sfax, fermé, rendez-vous de Amel Ben Salah annulé',
+  })
+  expect(item).toHaveTextContent('Créneau fermé')
+  expect(within(item).getByText('Amel B.').closest('s')).not.toBeNull()
+  expect(within(item).queryByRole('link', { name: /Ouvrir le dossier/ })).toBeNull()
+})
+
+test('37.7: the legend names the cancelled appointments too', async () => {
+  renderPage()
+
+  const legend = await screen.findByRole('list', { name: 'Légende' })
+  expect(within(legend).getByText('Rendez-vous annulé')).toBeInTheDocument()
+})
+
+test('37.7: when an alert arrives, the agenda is read again (it then matches the database)', async () => {
+  renderPage()
+  await waitFor(() => expect(fetchAgenda).toHaveBeenCalledTimes(1))
+
+  act(() => announceNewAlerts())
+
+  await waitFor(() => expect(fetchAgenda).toHaveBeenCalledTimes(2))
 })
