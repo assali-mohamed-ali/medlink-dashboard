@@ -43,12 +43,14 @@ test.each([
   expect(titles).toEqual(parts)
 })
 
-test('what a patient cannot use yet says so, with no link to a page that does not exist', async () => {
+test('the patient home leads to their appointments; what is not built yet says so, with no link', async () => {
   renderHome('PATIENT', '/patient')
   const main = within(await screen.findByRole('main'))
   await main.findByRole('heading', { level: 2, name: 'Bonjour Amel' })
-  expect(main.getAllByText('Bientôt disponible')).toHaveLength(3)
-  expect(main.queryAllByRole('link')).toHaveLength(0)
+  expect(main.getByRole('link', { name: 'Voir mes rendez-vous' })).toHaveAttribute('href', '/patient/rendez-vous')
+  // Documents and Messages: not built yet
+  expect(main.getAllByText('Bientôt disponible')).toHaveLength(2)
+  expect(main.getAllByRole('link')).toHaveLength(1)
 })
 
 test('the staff home leads to account management in one click', async () => {
