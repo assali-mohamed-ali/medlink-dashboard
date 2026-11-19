@@ -1,0 +1,83 @@
+name: Load frontend deployment secrets
+description: Read the SSH deploy bundle from Vault with GitHub OIDC, falling back to GitHub Environment secrets.
+
+inputs:
+  vault_addr:
+    description: Vault base URL; when empty or unreachable, the GitHub Environment secrets are used
+    required: false
+    default: ''
+  environment:
+    description: staging or prod
+    required: true
+  vault_role:
+    description: Vault role for this repository and GitHub environment
+    required: false
+    default: ''
+  fallback_ssh_key:
+    description: DEPLOY_SSH_KEY environment secret used when Vault has no bundle
+    required: false
+    default: ''
+  fallback_known_hosts:
+    description: DEPLOY_KNOWN_HOSTS environment secret used when Vault has no bundle
+    required: false
+    default: ''
+
+outputs:
+  ssh_key_path:
+    description: Path to the private SSH key
+    value: ${{ steps.load.outputs.ssh_key_path }}
+  known_hosts_path:
+    description: Path to the pinned known_hosts file
+    value: ${{ steps.load.outputs.known_hosts_path }}
+
+runs:
+  using: composite
+  steps:
+    - name: Load the SSH bundle
+      id: load
+      shell: bash
+      env:
+        VAULT_ADDR: ${{ inputs.vault_addr }}
+        ENVIRONMENT: ${{ inputs.environment }}
+        VAULT_ROLE: ${{ inputs.vault_role }}
+        FALLBACK_SSH_KEY: ${{ inputs.fallback_ssh_key }}
+        FALLBACK_KNOWN_HOSTS: ${{ inputs.fallback_known_hosts }}
+      run: |
+        set -euo pipefail
+        umask 077
+        dir="$RUNNER_TEMP/medlink-front-deploy-secrets"
+        rm -rf "$dir"
+        mkdir -p "$dir"
+        chmod 700 "$dir"
+
+        vault_ok=0
+        if [ -n "${VAULT_ADDR:-}" ]; then
+          if "$GITHUB_WORKSPACE/.github/scripts/fetch-vault-deploy-secrets.sh" \
+            --environment "$ENVIRONMENT" --output-dir "$dir"; then
+            vault_ok=1
+          else
+            echo "::warning::Vault deployment secrets are unavailable; falling back to GitHub Environment secrets."
+            rm -rf "$dir"
+            mkdir -p "$dir"
+            chmod 700 "$dir"
+          fi
+        fi
+
+        if [ "$vault_ok" -ne 1 ]; then
+          [ -n "$FALLBACK_SSH_KEY" ] && [ -n "$FALLBACK_KNOWN_HOSTS" ] || {
+            echo "::error::No Vault bundle and no DEPLOY_SSH_KEY/DEPLOY_KNOWN_HOSTS fallback."
+            exit 1
+          }
+          printf '%s\n' "$FALLBACK_SSH_KEY" > "$dir/ssh_private_key"
+          printf '%s\n' "$FALLBACK_KNOWN_HOSTS" > "$dir/known_hosts"
+          chmod 600 "$dir/ssh_private_key" "$dir/known_hosts"
+        fi
+
+        test -s "$dir/ssh_private_key" || { echo "::error::The deployment SSH key is empty."; exit 1; }
+        test -s "$dir/known_hosts" || { echo "::error::The deployment known_hosts is empty."; exit 1; }
+        grep -q 'BEGIN .*PRIVATE KEY' "$dir/ssh_private_key" || {
+          echo "::error::The deployment SSH key is not a private key."
+          exit 1
+        }
+        echo "ssh_key_path=$dir/ssh_private_key" >> "$GITHUB_OUTPUT"
+        echo "known_hosts_path=$dir/known_hosts" >> "$GITHUB_OUTPUT"
