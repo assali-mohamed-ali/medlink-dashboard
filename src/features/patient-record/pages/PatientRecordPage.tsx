@@ -1,5 +1,6 @@
-import { useEffect, useId, useState } from 'react'
-import { ArrowLeft, IdCard } from 'lucide-react'
+import { useEffect, useId, useRef, useState } from 'react'
+import type { LucideIcon } from 'lucide-react'
+import { ArrowLeft, Cake, IdCard, Clock, FileText, Lock, Plus, ShieldCheck } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 import StatusPage from '@/shared/components/StatusPage'
 import UserAvatar from '@/shared/components/UserAvatar'
@@ -9,7 +10,8 @@ import { paths } from '@/shared/config/paths'
 import { Alert, Button, Skeleton } from '@/shared/ui'
 import { fetchPatientRecord } from '../api'
 import ReportsPanel from '../components/ReportsPanel'
-import type { PatientRecord } from '../types'
+import { useReports, when } from '../components/useReports'
+import type { PatientIdentity, PatientRecord } from '../types'
 import styles from '../record.module.css'
 
 type Load =
@@ -21,9 +23,8 @@ type Load =
 /** What the last answer was for (a patient and an attempt); another key means it is not the current one. */
 type Answer = { key: string; load: Load }
 
-
-/** "12 mars 1985 (41 ans)": the date as written, the age on today's date. */
-function birthLabel(birthDate: string, today: Date) {
+/** { date: "12 mars 1985", age: "41 ans" }: the date as written, the age on today's date. */
+function birth(birthDate: string, today: Date) {
   const [year, month, day] = birthDate.split('-').map(Number)
   const date = new Date(Date.UTC(year, month - 1, day)).toLocaleDateString('fr-FR', {
     day: 'numeric',
@@ -33,8 +34,8 @@ function birthLabel(birthDate: string, today: Date) {
   })
   const beforeBirthday =
     today.getUTCMonth() + 1 < month || (today.getUTCMonth() + 1 === month && today.getUTCDate() < day)
-  const age = today.getUTCFullYear() - year - (beforeBirthday ? 1 : 0)
-  return `${date} (${age} an${age > 1 ? 's' : ''})`
+  const years = today.getUTCFullYear() - year - (beforeBirthday ? 1 : 0)
+  return { date, age: `${years} an${years > 1 ? 's' : ''}` }
 }
 
 /**
@@ -44,8 +45,6 @@ function birthLabel(birthDate: string, today: Date) {
 export default function PatientRecordPage() {
   const { patientId = '' } = useParams()
   const titleId = useId()
-  const identityId = useId()
-  const [today] = useState(() => new Date())
   const [attempt, setAttempt] = useState(0)
   const [answer, setAnswer] = useState<Answer | null>(null)
 
@@ -68,8 +67,6 @@ export default function PatientRecordPage() {
     }
   }, [patientId, key])
 
-  const patient = load.status === 'ready' ? load.record.patient : null
-
   // MLink-31 (31.5): the "Accès refusé" screen of 16.5, inside the space, with no data of any patient
   if (load.status === 'refused') {
     return (
@@ -84,57 +81,171 @@ export default function PatientRecordPage() {
 
   return (
     <section aria-labelledby={titleId} className={styles.page} data-width="wide">
-      <Link to={paths.practitioner.agenda} className={styles.back}>
-        <ArrowLeft size={16} aria-hidden="true" />
-        Retour à l’agenda
-      </Link>
+      <nav aria-label="Fil d’Ariane" className={styles.crumbs}>
+        <Link to={paths.practitioner.agenda} className={styles.back}>
+          <ArrowLeft size={16} aria-hidden="true" />
+          Retour à l’agenda
+        </Link>
+        <span aria-hidden="true">/</span>
+        <span>Espace praticien</span>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page" className={styles.crumbHere}>
+          Dossier patient
+        </span>
+      </nav>
 
-      <header>
-        <p className={styles.eyebrow}>Dossier patient</p>
-        <h2 id={titleId} className={styles.title}>
-          {patient ? `${patient.firstName} ${patient.lastName}` : 'Dossier patient'}
-        </h2>
-      </header>
-
-      {load.status === 'loading' && <Skeleton lines={5} label="Chargement du dossier…" />}
-
-      {load.status === 'error' && (
-        <div className={styles.error}>
-          <Alert tone="error">{load.message}</Alert>
-          <Button variant="secondary" onClick={() => setAttempt((n) => n + 1)}>
-            Réessayer
-          </Button>
-        </div>
-      )}
-
-      {load.status === 'ready' && patient && (
-        <div className={styles.layout}>
-          <section aria-labelledby={identityId} className={styles.card}>
-            <h3 id={identityId} className={styles.cardTitle}>
-              <IdCard size={16} aria-hidden="true" />
-              Identité du patient
-            </h3>
-            <div className={styles.who}>
-              <UserAvatar firstName={patient.firstName} lastName={patient.lastName} size="lg" />
-              <span className={styles.name}>
-                {patient.firstName} {patient.lastName}
-              </span>
+      {load.status === 'ready' ? (
+        <Record key={patientId} titleId={titleId} patientId={patientId} patient={load.record.patient} />
+      ) : (
+        <>
+          <h2 id={titleId} className={styles.title}>
+            Dossier patient
+          </h2>
+          {load.status === 'loading' && <Skeleton lines={5} label="Chargement du dossier…" />}
+          {load.status === 'error' && (
+            <div className={styles.error}>
+              <Alert tone="error">{load.message}</Alert>
+              <Button variant="secondary" onClick={() => setAttempt((n) => n + 1)}>
+                Réessayer
+              </Button>
             </div>
-            <dl className={styles.facts}>
-              <div className={styles.fact}>
-                <dt>Date de naissance</dt>
-                <dd>{birthLabel(patient.birthDate, today)}</dd>
-              </div>
-              <div className={styles.fact}>
-                <dt>Téléphone</dt>
-                <dd>{patient.phone || 'Non renseigné'}</dd>
-              </div>
-            </dl>
-          </section>
-
-          <ReportsPanel patientId={patientId} />
-        </div>
+          )}
+        </>
       )}
     </section>
+  )
+}
+
+type RecordProps = { titleId: string; patientId: string; patient: PatientIdentity }
+
+/** The record once read: the header with the yellow action, the four facts, the identity and the reports. */
+function Record({ titleId, patientId, patient }: RecordProps) {
+  const identityId = useId()
+  const [today] = useState(() => new Date())
+  const reports = useReports(patientId)
+  const [writing, setWriting] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const newButton = useRef<HTMLButtonElement>(null)
+  const { date, age } = birth(patient.birthDate, today)
+  const name = `${patient.firstName} ${patient.lastName}`
+
+  function closeEditor() {
+    setWriting(false)
+    newButton.current?.focus()
+  }
+
+  const list = reports.load.status === 'ready' ? reports.load.reports : null
+  const pending = reports.load.status === 'loading' ? '…' : '—'
+
+  return (
+    <>
+      <header className={styles.head}>
+        <div className={styles.headText}>
+          <div className={styles.titleRow}>
+            <h2 id={titleId} className={styles.title}>
+              {name}
+            </h2>
+            <span className={styles.attached}>
+              <span className={styles.attachedDot} aria-hidden="true" />
+              Rattaché à votre agenda</span>
+          </div>
+          <p className={styles.subtitle}>{`${age} · né(e) le ${date}`}</p>
+        </div>
+        <button
+          ref={newButton}
+          type="button"
+          className={styles.newReport}
+          aria-expanded={writing}
+          onClick={() => {
+            setSaved(false)
+            setWriting(true)
+          }}
+        >
+          <Plus size={18} aria-hidden="true" />
+          Nouveau compte-rendu
+        </button>
+      </header>
+
+      <ul aria-label="En bref" className={styles.glance}>
+        <Fact icon={Cake} tone={1} label="Âge" value={age} note={date} />
+        <Fact icon={FileText} tone={2} label="Comptes-rendus" value={list ? String(list.length) : pending} note="enregistrés" />
+        <Fact
+          icon={Clock}
+          tone={3}
+          label="Dernier compte-rendu"
+          compact
+          value={list ? (list[0] ? when(list[0].createdAt) : 'Aucun') : pending}
+        />
+        <Fact icon={Lock} tone={4} label="Confidentialité" value="Chiffré" note="AES-256" />
+      </ul>
+
+      <div className={styles.layout}>
+        <section aria-labelledby={identityId} className={styles.card}>
+          <h3 id={identityId} className={styles.sectionTitle}>
+            <span className={styles.titleIcon}>
+              <IdCard size={18} aria-hidden="true" />
+            </span>
+            Identité du patient
+          </h3>
+          <div className={styles.who}>
+            <UserAvatar firstName={patient.firstName} lastName={patient.lastName} size="lg" />
+            <div className={styles.whoText}>
+              <span className={styles.name}>{name}</span>
+              <span className={styles.whoNote}>Dossier consulté par vous, tracé dans le journal d’audit</span>
+            </div>
+          </div>
+          <dl className={styles.facts}>
+            <div className={styles.fact}>
+              <dt>Date de naissance</dt>
+              <dd>
+                <span>{date}</span>
+                <span className={styles.age}>{age}</span>
+              </dd>
+            </div>
+            <div className={styles.fact}>
+              <dt>Téléphone</dt>
+              <dd>{patient.phone || 'Non renseigné'}</dd>
+            </div>
+          </dl>
+          <p className={styles.shield}>
+            <ShieldCheck size={18} aria-hidden="true" />
+            Seuls les praticiens qui ont un rendez-vous avec ce patient voient ce dossier. Chaque lecture est journalisée.
+          </p>
+        </section>
+
+        <ReportsPanel
+          patientId={patientId}
+          load={reports.load}
+          onRetry={reports.reload}
+          writing={writing}
+          onCloseEditor={closeEditor}
+          onSaved={() => {
+            setSaved(true)
+            closeEditor()
+            reports.reload()
+          }}
+          saved={saved}
+        />
+      </div>
+    </>
+  )
+}
+
+type FactProps = { icon: LucideIcon; tone: 1 | 2 | 3 | 4; label: string; value: string; note?: string; compact?: boolean }
+
+function Fact({ icon: Icon, tone, label, value, note, compact = false }: FactProps) {
+  return (
+    <li className={styles.glanceItem}>
+      <span className={styles.glanceIcon} data-tone={tone}>
+        <Icon size={20} aria-hidden="true" />
+      </span>
+      <span className={styles.glanceText}>
+        <span className={styles.glanceLabel}>{label}</span>
+        <span className={styles.glanceValue} data-compact={compact || undefined}>
+          {value}
+        </span>
+        {note && <span className={styles.glanceNote}>{note}</span>}
+      </span>
+    </li>
   )
 }

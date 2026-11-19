@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
+import { Lock, NotebookPen } from 'lucide-react'
 import { ApiError } from '@/shared/api/apiClient'
 import { fieldErrors, messageFor } from '@/shared/api/errors'
 import { Alert, Button } from '@/shared/ui'
@@ -66,6 +67,16 @@ export default function ReportEditor({ patientId, onSaved, onCancel }: Props) {
 
   return (
     <form aria-label="Nouveau compte-rendu" className={styles.editor} noValidate onSubmit={submit}>
+      <div className={styles.editorHead}>
+        <span className={styles.editorTitle}>
+          <NotebookPen size={18} aria-hidden="true" />
+          Nouveau compte-rendu
+        </span>
+        <span className={styles.encrypted}>
+          <Lock size={14} aria-hidden="true" />
+          Chiffré à l’enregistrement
+        </span>
+      </div>
       {failure && (
         <div className={styles.failure}>
           <Alert tone="error" title="Enregistrement impossible, votre brouillon est conservé.">
@@ -90,21 +101,23 @@ export default function ReportEditor({ patientId, onSaved, onCancel }: Props) {
         aria-describedby={[hintId, fieldError ? errorId : null].filter(Boolean).join(' ')}
         onChange={(event) => setContent(event.target.value)}
       />
-      <p id={hintId} className={styles.count}>
-        {content.length} / {REPORT_MAX_LENGTH} caractères
-      </p>
       {fieldError && (
         <p id={errorId} className={styles.fieldError} role="alert">
           {fieldError}
         </p>
       )}
-      <div className={styles.editorActions}>
-        <Button variant="ghost" size="sm" onClick={onCancel}>
-          Annuler
-        </Button>
-        <Button type="submit" size="sm" loading={saving}>
-          Enregistrer
-        </Button>
+      <div className={styles.editorFoot}>
+        <p id={hintId} className={styles.count}>
+          {content.length} / {REPORT_MAX_LENGTH} caractères · la première ligne sert de titre
+        </p>
+        <div className={styles.editorActions}>
+          <Button variant="secondary" size="sm" onClick={onCancel}>
+            Annuler
+          </Button>
+          <Button type="submit" size="sm" loading={saving}>
+            Enregistrer
+          </Button>
+        </div>
       </div>
     </form>
   )
