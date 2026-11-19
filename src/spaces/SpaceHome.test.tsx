@@ -3,6 +3,7 @@ import { RouterProvider, createMemoryRouter } from 'react-router-dom'
 import { beforeEach, expect, test, vi } from 'vitest'
 import { routes } from '@/app/routes'
 import * as authApi from '@/features/auth/api'
+import * as slotsApi from '@/features/slots/api'
 import AuthProvider from '@/features/auth/AuthProvider'
 import type { Role } from '@/features/auth/roles'
 
@@ -16,6 +17,8 @@ vi.mock('@/features/auth/api', () => ({
   resendVerification: vi.fn(),
 }))
 const fetchMe = vi.mocked(authApi.fetchMe)
+// The patient's home reads their appointments
+vi.mock('@/features/slots/api', () => ({ fetchMyAppointments: vi.fn(), cancelAppointment: vi.fn() }))
 
 function renderHome(role: Role, path: string) {
   fetchMe.mockResolvedValue({
@@ -30,10 +33,10 @@ function renderHome(role: Role, path: string) {
 
 beforeEach(() => {
   vi.resetAllMocks()
+  vi.mocked(slotsApi.fetchMyAppointments).mockResolvedValue({ items: [], total: 0 })
 })
 
 test.each([
-  ['PATIENT', '/patient', ['Rendez-vous', 'Documents', 'Messages']],
   ['PRACTITIONER', '/praticien', ['Agenda', 'Patients', 'Messages']],
   ['ADMINISTRATIVE_STAFF', '/admin', ['Gestion des comptes', 'Rendez-vous des cliniques']],
 ] as const)('a %s is greeted by name and sees the parts of their space', async (role, path, parts) => {
@@ -43,14 +46,13 @@ test.each([
   expect(titles).toEqual(parts)
 })
 
-test('the patient home leads to their appointments; what is not built yet says so, with no link', async () => {
+test('the patient has their own home: the greeting, then booking and their appointments in one click', async () => {
   renderHome('PATIENT', '/patient')
   const main = within(await screen.findByRole('main'))
   await main.findByRole('heading', { level: 2, name: 'Bonjour Amel' })
-  expect(main.getByRole('link', { name: 'Voir mes rendez-vous' })).toHaveAttribute('href', '/patient/rendez-vous')
-  // Documents and Messages: not built yet
-  expect(main.getAllByText('Bientôt disponible')).toHaveLength(2)
-  expect(main.getAllByRole('link')).toHaveLength(1)
+  expect(main.getByRole('link', { name: 'Prendre rendez-vous' })).toHaveAttribute('href', '/patient/creneaux')
+  expect(main.getByRole('link', { name: /^Mes rendez-vous/ })).toHaveAttribute('href', '/patient/rendez-vous')
+  expect(await main.findByRole('region', { name: 'Prochain rendez-vous' })).toBeInTheDocument()
 })
 
 test('the staff home leads to account management in one click', async () => {
