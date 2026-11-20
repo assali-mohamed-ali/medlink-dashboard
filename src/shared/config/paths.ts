@@ -21,6 +21,7 @@ export const paths = {
     root: '/admin',
     accounts: '/admin/comptes',
     audit: '/admin/journal-audit',
+    stats: '/admin/statistiques',
     password: '/admin/mot-de-passe',
   },
   specimen: '/__specimen', // dev only (npm run dev): the UI refresh specimen, absent from production builds

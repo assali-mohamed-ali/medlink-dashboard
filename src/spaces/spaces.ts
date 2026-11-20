@@ -1,5 +1,6 @@
 import {
   CalendarDays,
+  ChartColumn,
   FileText,
   House,
   KeyRound,
@@ -83,6 +84,7 @@ export const SPACES: Record<Role, Space> = {
       { label: 'Accueil', to: paths.staff.root, icon: House },
       { label: 'Gestion des comptes', to: paths.staff.accounts, icon: Users },
       { label: 'Journal d’audit', to: paths.staff.audit, icon: ScrollText },
+      { label: 'Statistiques', to: paths.staff.stats, icon: ChartColumn },
       { label: 'Mot de passe', to: paths.staff.password, icon: KeyRound },
     ],
     home: {
@@ -93,6 +95,12 @@ export const SPACES: Record<Role, Space> = {
           text: 'Créer, activer et désactiver les comptes du personnel.',
           icon: Users,
           link: { to: paths.staff.accounts, label: 'Ouvrir la gestion des comptes' },
+        },
+        {
+          title: 'Statistiques',
+          text: 'Des chiffres anonymisés sur les rendez-vous, à lire ou à télécharger.',
+          icon: ChartColumn,
+          link: { to: paths.staff.stats, label: 'Ouvrir les statistiques' },
         },
         { title: 'Rendez-vous des cliniques', text: 'Les plannings des trois cliniques.', icon: CalendarDays },
       ],

@@ -35,7 +35,7 @@ beforeEach(() => {
 test.each([
   ['PATIENT', '/patient', ['Rendez-vous', 'Documents', 'Messages']],
   ['PRACTITIONER', '/praticien', ['Agenda', 'Patients', 'Messages']],
-  ['ADMINISTRATIVE_STAFF', '/admin', ['Gestion des comptes', 'Rendez-vous des cliniques']],
+  ['ADMINISTRATIVE_STAFF', '/admin', ['Gestion des comptes', 'Statistiques', 'Rendez-vous des cliniques']],
 ] as const)('a %s is greeted by name and sees the parts of their space', async (role, path, parts) => {
   renderHome(role, path)
   expect(await screen.findByRole('heading', { level: 2, name: 'Bonjour Amel' })).toBeInTheDocument()
@@ -51,10 +51,11 @@ test('what a patient cannot use yet says so, with no link to a page that does no
   expect(main.queryAllByRole('link')).toHaveLength(0)
 })
 
-test('the staff home leads to account management in one click', async () => {
+test('the staff home leads to account management and to the statistics in one click', async () => {
   renderHome('ADMINISTRATIVE_STAFF', '/admin')
   const main = within(await screen.findByRole('main'))
   await main.findByRole('heading', { level: 2, name: 'Bonjour Amel' })
   expect(main.getByRole('link', { name: 'Ouvrir la gestion des comptes' })).toHaveAttribute('href', '/admin/comptes')
+  expect(main.getByRole('link', { name: 'Ouvrir les statistiques' })).toHaveAttribute('href', '/admin/statistiques')
   expect(main.getAllByText('Bientôt disponible')).toHaveLength(1)
 })
