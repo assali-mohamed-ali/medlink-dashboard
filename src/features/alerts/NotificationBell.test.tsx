@@ -13,8 +13,8 @@ vi.mock('./api', () => ({ fetchUnreadAlerts: vi.fn(), markAlertRead: vi.fn() }))
 const fetchUnreadAlerts = vi.mocked(api.fetchUnreadAlerts)
 const markAlertRead = vi.mocked(api.markAlertRead)
 
-function alert(id: string, message: string, createdAt: string): Alert {
-  return { id, type: 'APPOINTMENT_CANCELLED', message, appointmentId: `a-${id}`, createdAt }
+function alert(id: string, message: string, createdAt: string, type: Alert['type'] = 'APPOINTMENT_CANCELLED'): Alert {
+  return { id, type, message, appointmentId: `a-${id}`, createdAt }
 }
 const FIRST = alert('al1', 'Rendez-vous annulé : Ahmed Kacem, jeudi 12 novembre à 09:00, Clinique MedLink Sousse.', '2026-11-11T08:00:00Z')
 const SECOND = alert('al2', 'Rendez-vous annulé : Sana Trabelsi, vendredi 13 novembre à 14:00, Clinique MedLink Tunis.', '2026-11-11T09:30:00Z')
@@ -240,4 +240,24 @@ test('37.7: an alert new since the last minute is announced to the pages (the ag
   })
   expect(heard).toHaveBeenCalledTimes(1)
   stop()
+})
+
+// A move is told apart from a cancellation by the API (V20): "reporté", with the new date, shown as the API writes it
+test('a move is listed as the API says it: "Rendez-vous reporté", from the old date to the new one', async () => {
+  const moved = alert(
+    'al3',
+    'Rendez-vous reporté : Ahmed Kacem, du jeudi 12 novembre à 09:00 (Clinique MedLink Sousse) au vendredi 13 novembre à 10:00.',
+    '2026-11-11T10:00:00Z',
+    'APPOINTMENT_MOVED',
+  )
+  fetchUnreadAlerts.mockResolvedValue([moved, FIRST])
+  const user = setup()
+  await screen.findByRole('button', { name: 'Notifications, 2 non lues' })
+
+  await openList(user)
+
+  const items = within(screen.getByRole('region', { name: 'Alertes' })).getAllByRole('listitem')
+  expect(items[0]).toHaveTextContent('Rendez-vous reporté : Ahmed Kacem, du jeudi 12 novembre à 09:00')
+  expect(items[0]).toHaveTextContent('au vendredi 13 novembre à 10:00')
+  expect(items[1]).toHaveTextContent('Rendez-vous annulé : Ahmed Kacem')
 })
