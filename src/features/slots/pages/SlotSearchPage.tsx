@@ -476,7 +476,7 @@ export default function SlotSearchPage() {
                                     key={s.slotId}
                                     slot={s}
                                     tint={tintOf(s.specialty)}
-                                    busy={busy.some((a) => overlaps(s, a))}
+                                    busyWith={busy.find((a) => overlaps(s, a))}
                                     onChoose={() => choose(s)}
                                   />
                                 ))
@@ -621,13 +621,22 @@ function overlaps(slot: Slot, appointment: Appointment) {
   return Date.parse(slot.startsAt) < Date.parse(appointment.endsAt) && Date.parse(appointment.startsAt) < Date.parse(slot.endsAt)
 }
 
-type SlotCardProps = { slot: Slot; tint: string; busy: boolean; onChoose: () => void }
+/** "Clinique MedLink Sfax" → "Sfax": the clinic said short, in a sentence. */
+const shortClinic = (name: string) => name.replace(/^Clinique\s+(MedLink\s+)?/i, '').trim() || name
 
-function SlotCard({ slot, tint, busy, onChoose }: SlotCardProps) {
+type SlotCardProps = {
+  slot: Slot
+  tint: string
+  /** The patient's appointment at that time, if any: the slot cannot be booked, and the card says which one. */
+  busyWith?: Appointment
+  onChoose: () => void
+}
+
+function SlotCard({ slot, tint, busyWith, onChoose }: SlotCardProps) {
   const { firstName, lastName } = slot.practitioner
   const time = `${timeLabel(new Date(slot.startsAt))} – ${timeLabel(new Date(slot.endsAt))}`
   return (
-    <article className={`${styles.slot} ${tint}`} aria-label={`Dr ${firstName} ${lastName}, ${time}`} data-busy={busy || undefined}>
+    <article className={`${styles.slot} ${tint}`} aria-label={`Dr ${firstName} ${lastName}, ${time}`} data-busy={busyWith ? true : undefined}>
       <p className={styles.name}>
         Dr {firstName} {lastName}
       </p>
@@ -636,10 +645,12 @@ function SlotCard({ slot, tint, busy, onChoose }: SlotCardProps) {
         <span className={styles.srOnly}>{time}</span>{' '}
         <span className={styles.specialty}>{slot.specialty}</span> · <span>{slot.clinic.name}</span>
       </p>
-      {busy ? (
+      {busyWith ? (
         <p className={styles.busy}>
           <CalendarX size={12} aria-hidden="true" />
-          Vous avez déjà un rendez-vous à cette heure
+          <span>
+            {`Déjà un rendez-vous à ${timeLabel(new Date(busyWith.startsAt))} avec Dr ${busyWith.practitioner.firstName} ${busyWith.practitioner.lastName} (${shortClinic(busyWith.clinic.name)})`}
+          </span>
         </p>
       ) : (
         <button type="button" className={styles.book} onClick={onChoose}>
