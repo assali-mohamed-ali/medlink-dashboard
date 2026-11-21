@@ -35,6 +35,10 @@ jobs:
         run: python -m pip install --disable-pip-version-check pre-commit==4.7.0
       - name: Run repository pre-commit hooks
         run: pre-commit run --all-files --show-diff-on-failure --verbose
+      - name: Check the server deploy configuration
+        run: bash scripts/ci/check-deploy-config.test.sh
+      - name: Test the cross-repository staging gate
+        run: bash .github/scripts/test/wait-for-staging.test.sh
       - name: Lint
         run: npm run lint
       - name: Unit and component tests

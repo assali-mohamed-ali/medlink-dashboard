@@ -20,7 +20,7 @@ permissions:
 
 concurrency:
   group: frontend-container-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build-and-scan:
@@ -173,6 +173,7 @@ jobs:
     permissions:
       contents: read
       packages: read
+      id-token: write
     steps:
       - uses: actions/checkout@v7
 
@@ -193,71 +194,136 @@ jobs:
           test -n "$IMAGE"
           cosign verify --certificate-identity-regexp '^https://github.com/assali-mohamed-ali/medlink-dashboard/.github/workflows/container-security.yml@refs/(heads/(master|main|staging|prod)|tags/v.*)$' --certificate-oidc-issuer https://token.actions.githubusercontent.com "$IMAGE"
 
-      - name: Configure SSH with pinned host keys
-        env:
-          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
-        run: |
-          test -n "$DEPLOY_SSH_KEY" && test -n "$DEPLOY_KNOWN_HOSTS"
-          install -m 700 -d "$HOME/.ssh"
-          printf '%s\n' "$DEPLOY_SSH_KEY" > "$HOME/.ssh/deploy_key"
-          chmod 600 "$HOME/.ssh/deploy_key"
-          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
-          chmod 644 "$HOME/.ssh/known_hosts"
-
-      - name: Copy Compose definition
-        env:
-          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
-          DEPLOY_USER: ${{ vars.DEPLOY_USER }}
-          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
-        run: |
-          set -euo pipefail
-          test -n "$DEPLOY_HOST" && test -n "$DEPLOY_USER" && test -n "$DEPLOY_PATH"
-          [[ "$DEPLOY_PATH" != *[[:space:]]* ]] || { echo "::error::DEPLOY_PATH must not contain spaces"; exit 1; }
-          SSH_OPTS=(-o BatchMode=yes -o StrictHostKeyChecking=yes -o IdentitiesOnly=yes -i "$HOME/.ssh/deploy_key")
-          REMOTE_DEPLOY_DIR="$(printf '%q' "$DEPLOY_PATH")"
-          REMOTE_COMMAND="mkdir -p -- $REMOTE_DEPLOY_DIR"
-          # shellcheck disable=SC2029
-          ssh "${SSH_OPTS[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "$REMOTE_COMMAND"
-          scp "${SSH_OPTS[@]}" deploy/docker-compose.frontend.yml "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/docker-compose.frontend.yml"
+      - name: Load deployment secrets
+        id: deploy_secrets
+        uses: ./.github/actions/load-deploy-secrets
+        with:
+          vault_addr: ${{ vars.VAULT_ADDR || 'https://56.228.74.131.sslip.io' }}
+          environment: staging
+          vault_role: front-staging
+          fallback_ssh_key: ${{ secrets.DEPLOY_SSH_KEY }}
+          fallback_known_hosts: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
 
       - name: Deploy the tested image by immutable digest
+        uses: ./.github/actions/deploy-frontend
+        with:
+          host: ${{ vars.DEPLOY_HOST || '13.51.30.39' }}
+          user: ${{ vars.DEPLOY_USER || 'deploy' }}
+          path: ${{ vars.DEPLOY_PATH || '/opt/medlink/front' }}
+          health_url: ${{ vars.DEPLOY_HEALTH_URL || 'https://13.51.30.39.sslip.io/healthz' }}
+          ssh_key_path: ${{ steps.deploy_secrets.outputs.ssh_key_path }}
+          known_hosts_path: ${{ steps.deploy_secrets.outputs.known_hosts_path }}
+          image: ${{ needs.publish-and-attest.outputs.image }}
+          ghcr_token: ${{ secrets.GITHUB_TOKEN }}
+          host_port: ${{ vars.FRONTEND_HOST_PORT || '8081' }}
+
+  smoke-staging:
+    needs: deploy-staging
+    if: success() && ((github.event_name == 'push' && github.ref == 'refs/heads/staging') || (github.event_name == 'workflow_dispatch' && inputs.target == 'staging' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging')))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check the dashboard through the staging edge
         env:
-          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
-          DEPLOY_USER: ${{ vars.DEPLOY_USER }}
-          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
-          DEPLOY_PORT: ${{ vars.FRONTEND_HOST_PORT }}
-          GHCR_USER: ${{ github.actor }}
-          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          IMAGE: ${{ needs.publish-and-attest.outputs.image }}
+          BASE_URL: ${{ vars.STAGING_PUBLIC_URL || 'https://13.51.30.39.sslip.io' }}
         run: |
           set -euo pipefail
-          test -n "$IMAGE" && test -n "$DEPLOY_HOST" && test -n "$DEPLOY_USER" && test -n "$DEPLOY_PATH"
-          [[ "$DEPLOY_PATH" != *[[:space:]]* ]] || { echo "::error::DEPLOY_PATH must not contain spaces"; exit 1; }
-          SSH_OPTS=(-o BatchMode=yes -o StrictHostKeyChecking=yes -o IdentitiesOnly=yes -i "$HOME/.ssh/deploy_key")
-          REMOTE_DEPLOY_DIR="$(printf '%q' "$DEPLOY_PATH")"
-          REMOTE_GHCR_USER="$(printf '%q' "$GHCR_USER")"
-          REMOTE_LOGIN="docker login ghcr.io --username $REMOTE_GHCR_USER --password-stdin"
-          # shellcheck disable=SC2029
-          printf '%s' "$GHCR_TOKEN" | ssh "${SSH_OPTS[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "$REMOTE_LOGIN"
-          printf 'FRONTEND_IMAGE=%s\nFRONTEND_HOST_PORT=%s\n' "$IMAGE" "${DEPLOY_PORT:-8081}" > "$RUNNER_TEMP/frontend.env"
-          scp "${SSH_OPTS[@]}" "$RUNNER_TEMP/frontend.env" "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/.frontend.env"
-          REMOTE_COMMAND="docker compose --env-file ${REMOTE_DEPLOY_DIR}/.frontend.env -f ${REMOTE_DEPLOY_DIR}/docker-compose.frontend.yml pull && docker compose --env-file ${REMOTE_DEPLOY_DIR}/.frontend.env -f ${REMOTE_DEPLOY_DIR}/docker-compose.frontend.yml up -d --remove-orphans"
-          # shellcheck disable=SC2029
-          ssh "${SSH_OPTS[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "$REMOTE_COMMAND"
+          test -n "$BASE_URL"
+          curl --fail --silent --show-error --retry 5 --retry-all-errors --retry-delay 2 \
+            --output /dev/null "$BASE_URL/healthz"
+          curl --fail --silent --show-error --retry 5 --retry-all-errors --retry-delay 2 \
+            --output /dev/null "$BASE_URL/"
 
-      - name: Verify deployed health endpoint
+  wait-for-api-staging:
+    needs: smoke-staging
+    if: success() && ((github.event_name == 'push' && github.ref == 'refs/heads/staging') || (github.event_name == 'workflow_dispatch' && inputs.target == 'staging' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging')))
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Wait for the API staging deploy and smoke test
         env:
-          HEALTH_URL: ${{ vars.DEPLOY_HEALTH_URL }}
+          CROSS_REPO_TOKEN: ${{ secrets.CROSS_REPO_TOKEN }}
         run: |
-          test -n "$HEALTH_URL"
-          for attempt in $(seq 1 24); do
-            echo "Health check attempt $attempt/24"
-            if curl --fail --silent --show-error "$HEALTH_URL"; then exit 0; fi
-            sleep 5
-          done
-          echo "::error::Frontend health check failed after deployment."
-          exit 1
+          bash .github/scripts/wait-for-staging.sh \
+            --repository assali-mohamed-ali/api-MedLink \
+            --workflow cd.yml \
+            --job deploy-staging \
+            --job smoke-staging \
+            --timeout 1800 \
+            --interval 30 \
+            --token "$CROSS_REPO_TOKEN"
+
+  deploy-prod-from-staging:
+    needs: [publish-and-attest, wait-for-api-staging]
+    if: success() && vars.AUTO_DEPLOY_PROD != 'false' && ((github.event_name == 'push' && github.ref == 'refs/heads/staging') || (github.event_name == 'workflow_dispatch' && inputs.target == 'staging' && github.ref == 'refs/heads/staging'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    permissions:
+      contents: read
+      packages: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Log in to GHCR for signature verification
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3.10.0
+
+      - name: Verify image signature before deployment
+        env:
+          IMAGE: ${{ needs.publish-and-attest.outputs.image }}
+        run: |
+          test -n "$IMAGE"
+          cosign verify --certificate-identity-regexp '^https://github.com/assali-mohamed-ali/medlink-dashboard/.github/workflows/container-security.yml@refs/(heads/(master|main|staging|prod)|tags/v.*)$' --certificate-oidc-issuer https://token.actions.githubusercontent.com "$IMAGE"
+
+      - name: Load deployment secrets
+        id: deploy_secrets
+        uses: ./.github/actions/load-deploy-secrets
+        with:
+          vault_addr: ${{ vars.VAULT_ADDR || 'https://56.228.74.131.sslip.io' }}
+          environment: prod
+          vault_role: front-production
+          fallback_ssh_key: ${{ secrets.DEPLOY_SSH_KEY }}
+          fallback_known_hosts: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+
+      - name: Deploy the tested image by immutable digest
+        uses: ./.github/actions/deploy-frontend
+        with:
+          host: ${{ vars.DEPLOY_HOST || '56.228.94.12' }}
+          user: ${{ vars.DEPLOY_USER || 'deploy' }}
+          path: ${{ vars.DEPLOY_PATH || '/opt/medlink/front' }}
+          health_url: ${{ vars.DEPLOY_HEALTH_URL || 'https://56.228.94.12.sslip.io/healthz' }}
+          ssh_key_path: ${{ steps.deploy_secrets.outputs.ssh_key_path }}
+          known_hosts_path: ${{ steps.deploy_secrets.outputs.known_hosts_path }}
+          image: ${{ needs.publish-and-attest.outputs.image }}
+          ghcr_token: ${{ secrets.GITHUB_TOKEN }}
+          host_port: ${{ vars.FRONTEND_HOST_PORT || '8081' }}
+
+  smoke-prod-from-staging:
+    needs: deploy-prod-from-staging
+    if: success()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check the dashboard through the production edge
+        env:
+          BASE_URL: ${{ vars.PRODUCTION_PUBLIC_URL || 'https://56.228.94.12.sslip.io' }}
+        run: |
+          set -euo pipefail
+          test -n "$BASE_URL"
+          curl --fail --silent --show-error --retry 5 --retry-all-errors --retry-delay 2 \
+            --output /dev/null "$BASE_URL/healthz"
+          curl --fail --silent --show-error --retry 5 --retry-all-errors --retry-delay 2 \
+            --output /dev/null "$BASE_URL/"
 
   deploy-prod:
     needs: publish-and-attest
@@ -268,6 +334,7 @@ jobs:
     permissions:
       contents: read
       packages: read
+      id-token: write
     steps:
       - uses: actions/checkout@v7
 
@@ -288,68 +355,25 @@ jobs:
           test -n "$IMAGE"
           cosign verify --certificate-identity-regexp '^https://github.com/assali-mohamed-ali/medlink-dashboard/.github/workflows/container-security.yml@refs/(heads/(master|main|staging|prod)|tags/v.*)$' --certificate-oidc-issuer https://token.actions.githubusercontent.com "$IMAGE"
 
-      - name: Configure SSH with pinned host keys
-        env:
-          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
-        run: |
-          test -n "$DEPLOY_SSH_KEY" && test -n "$DEPLOY_KNOWN_HOSTS"
-          install -m 700 -d "$HOME/.ssh"
-          printf '%s\n' "$DEPLOY_SSH_KEY" > "$HOME/.ssh/deploy_key"
-          chmod 600 "$HOME/.ssh/deploy_key"
-          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
-          chmod 644 "$HOME/.ssh/known_hosts"
-
-      - name: Copy Compose definition
-        env:
-          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
-          DEPLOY_USER: ${{ vars.DEPLOY_USER }}
-          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
-        run: |
-          set -euo pipefail
-          test -n "$DEPLOY_HOST" && test -n "$DEPLOY_USER" && test -n "$DEPLOY_PATH"
-          [[ "$DEPLOY_PATH" != *[[:space:]]* ]] || { echo "::error::DEPLOY_PATH must not contain spaces"; exit 1; }
-          SSH_OPTS=(-o BatchMode=yes -o StrictHostKeyChecking=yes -o IdentitiesOnly=yes -i "$HOME/.ssh/deploy_key")
-          REMOTE_DEPLOY_DIR="$(printf '%q' "$DEPLOY_PATH")"
-          REMOTE_COMMAND="mkdir -p -- $REMOTE_DEPLOY_DIR"
-          # shellcheck disable=SC2029
-          ssh "${SSH_OPTS[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "$REMOTE_COMMAND"
-          scp "${SSH_OPTS[@]}" deploy/docker-compose.frontend.yml "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/docker-compose.frontend.yml"
+      - name: Load deployment secrets
+        id: deploy_secrets
+        uses: ./.github/actions/load-deploy-secrets
+        with:
+          vault_addr: ${{ vars.VAULT_ADDR || 'https://56.228.74.131.sslip.io' }}
+          environment: prod
+          vault_role: front-production
+          fallback_ssh_key: ${{ secrets.DEPLOY_SSH_KEY }}
+          fallback_known_hosts: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
 
       - name: Deploy the tested image by immutable digest
-        env:
-          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
-          DEPLOY_USER: ${{ vars.DEPLOY_USER }}
-          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
-          DEPLOY_PORT: ${{ vars.FRONTEND_HOST_PORT }}
-          GHCR_USER: ${{ github.actor }}
-          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          IMAGE: ${{ needs.publish-and-attest.outputs.image }}
-        run: |
-          set -euo pipefail
-          test -n "$IMAGE" && test -n "$DEPLOY_HOST" && test -n "$DEPLOY_USER" && test -n "$DEPLOY_PATH"
-          [[ "$DEPLOY_PATH" != *[[:space:]]* ]] || { echo "::error::DEPLOY_PATH must not contain spaces"; exit 1; }
-          SSH_OPTS=(-o BatchMode=yes -o StrictHostKeyChecking=yes -o IdentitiesOnly=yes -i "$HOME/.ssh/deploy_key")
-          REMOTE_DEPLOY_DIR="$(printf '%q' "$DEPLOY_PATH")"
-          REMOTE_GHCR_USER="$(printf '%q' "$GHCR_USER")"
-          REMOTE_LOGIN="docker login ghcr.io --username $REMOTE_GHCR_USER --password-stdin"
-          # shellcheck disable=SC2029
-          printf '%s' "$GHCR_TOKEN" | ssh "${SSH_OPTS[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "$REMOTE_LOGIN"
-          printf 'FRONTEND_IMAGE=%s\nFRONTEND_HOST_PORT=%s\n' "$IMAGE" "${DEPLOY_PORT:-8081}" > "$RUNNER_TEMP/frontend.env"
-          scp "${SSH_OPTS[@]}" "$RUNNER_TEMP/frontend.env" "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/.frontend.env"
-          REMOTE_COMMAND="docker compose --env-file ${REMOTE_DEPLOY_DIR}/.frontend.env -f ${REMOTE_DEPLOY_DIR}/docker-compose.frontend.yml pull && docker compose --env-file ${REMOTE_DEPLOY_DIR}/.frontend.env -f ${REMOTE_DEPLOY_DIR}/docker-compose.frontend.yml up -d --remove-orphans"
-          # shellcheck disable=SC2029
-          ssh "${SSH_OPTS[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "$REMOTE_COMMAND"
-
-      - name: Verify deployed health endpoint
-        env:
-          HEALTH_URL: ${{ vars.DEPLOY_HEALTH_URL }}
-        run: |
-          test -n "$HEALTH_URL"
-          for attempt in $(seq 1 24); do
-            echo "Health check attempt $attempt/24"
-            if curl --fail --silent --show-error "$HEALTH_URL"; then exit 0; fi
-            sleep 5
-          done
-          echo "::error::Frontend health check failed after deployment."
-          exit 1
+        uses: ./.github/actions/deploy-frontend
+        with:
+          host: ${{ vars.DEPLOY_HOST || '56.228.94.12' }}
+          user: ${{ vars.DEPLOY_USER || 'deploy' }}
+          path: ${{ vars.DEPLOY_PATH || '/opt/medlink/front' }}
+          health_url: ${{ vars.DEPLOY_HEALTH_URL || 'https://56.228.94.12.sslip.io/healthz' }}
+          ssh_key_path: ${{ steps.deploy_secrets.outputs.ssh_key_path }}
+          known_hosts_path: ${{ steps.deploy_secrets.outputs.known_hosts_path }}
+          image: ${{ needs.publish-and-attest.outputs.image }}
+          ghcr_token: ${{ secrets.GITHUB_TOKEN }}
+          host_port: ${{ vars.FRONTEND_HOST_PORT || '8081' }}
