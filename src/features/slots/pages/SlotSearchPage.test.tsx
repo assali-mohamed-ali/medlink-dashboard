@@ -509,14 +509,15 @@ function mine(id: string, start: Date, status = 'BOOKED'): Appointment {
   return { ...BOOKED, id, status, startsAt: start.toISOString(), endsAt: new Date(start.getTime() + 30 * 60_000).toISOString() }
 }
 
-test('a slot at the time of one of the patient’s appointments says so, and cannot be booked', async () => {
+test('a slot at the time of one of the patient’s appointments says which one, and cannot be booked', async () => {
   // Already booked on Tuesday 10, 09:00 – 09:30, elsewhere: the same time as the slot s1
   fetchMyAppointments.mockResolvedValue({ items: [mine('a7', new Date(2026, 10, 10, 9, 0))], total: 1 })
   renderPage()
 
   const tuesday = await screen.findByRole('region', { name: 'mardi 10 novembre' })
   const busy = within(tuesday).getByRole('article', { name: 'Dr Rim Jaziri, 09:00 – 09:30' })
-  expect(await within(busy).findByText('Vous avez déjà un rendez-vous à cette heure')).toBeInTheDocument()
+  // It says which appointment: its time, its practitioner, its clinic (from "Mes rendez-vous")
+  expect(await within(busy).findByText('Déjà un rendez-vous à 09:00 avec Dr Rim Jaziri (Sfax)')).toBeInTheDocument()
   expect(within(busy).queryByRole('button', { name: 'Réserver' })).toBeNull()
   // Another time stays bookable
   const thursday = screen.getByRole('region', { name: 'jeudi 12 novembre' })
