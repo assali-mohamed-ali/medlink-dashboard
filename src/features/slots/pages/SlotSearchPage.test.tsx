@@ -14,11 +14,13 @@ vi.mock('../api', () => ({
   searchSlots: vi.fn(),
   bookSlot: vi.fn(),
   rescheduleAppointment: vi.fn(),
+  fetchMyAppointments: vi.fn(),
 }))
 const bookSlot = vi.mocked(api.bookSlot)
 const rescheduleAppointment = vi.mocked(api.rescheduleAppointment)
 const fetchSlotFilters = vi.mocked(api.fetchSlotFilters)
 const searchSlots = vi.mocked(api.searchSlots)
+const fetchMyAppointments = vi.mocked(api.fetchMyAppointments)
 
 const SOUSSE = 'c1000000-0000-4000-8000-000000000001'
 const SFAX = 'c1000000-0000-4000-8000-000000000002'
@@ -83,6 +85,8 @@ beforeEach(() => {
     items: [slot('s1', new Date(2026, 10, 10, 9, 0)), slot('s2', new Date(2026, 10, 12, 14, 0))],
     total: 2,
   })
+  // The patient's own appointments: none by default
+  fetchMyAppointments.mockResolvedValue({ items: [], total: 0 })
 })
 
 afterEach(() => {
@@ -482,12 +486,13 @@ test('the days before today are marked as past', async () => {
   expect(screen.getByRole('region', { name: 'mercredi 11 novembre' })).not.toHaveAttribute('data-past')
 })
 
-test('the legend gives each specialty its colour and its number of free slots', async () => {
+test('the legend gives each specialty of the week its colour and its number of free slots', async () => {
   renderPage()
   await screen.findByText('2 créneaux libres')
 
   const legend = screen.getByRole('list', { name: 'Légende des spécialités' })
-  expect(within(legend).getAllByRole('listitem').map((i) => i.textContent)).toEqual(['Cardiologie (2)', 'Pédiatrie (0)'])
+  // Only the specialties that have a slot this week: the API knows many more (MLink-174)
+  expect(within(legend).getAllByRole('listitem').map((i) => i.textContent)).toEqual(['Cardiologie (2)'])
 })
 
 test('"Mes rendez-vous" leads to the patient’s appointments', async () => {
@@ -495,4 +500,68 @@ test('"Mes rendez-vous" leads to the patient’s appointments', async () => {
   await screen.findByText('2 créneaux libres')
 
   expect(screen.getByRole('link', { name: 'Mes rendez-vous' })).toHaveAttribute('href', '/patient/rendez-vous')
+})
+
+// ---- MLink-167: one place at a time. The API refuses a slot that overlaps one of the patient's appointments
+// (409 PATIENT_BUSY); the week says so before the patient tries ------------------------------------------------
+
+function mine(id: string, start: Date, status = 'BOOKED'): Appointment {
+  return { ...BOOKED, id, status, startsAt: start.toISOString(), endsAt: new Date(start.getTime() + 30 * 60_000).toISOString() }
+}
+
+test('a slot at the time of one of the patient’s appointments says so, and cannot be booked', async () => {
+  // Already booked on Tuesday 10, 09:00 – 09:30, elsewhere: the same time as the slot s1
+  fetchMyAppointments.mockResolvedValue({ items: [mine('a7', new Date(2026, 10, 10, 9, 0))], total: 1 })
+  renderPage()
+
+  const tuesday = await screen.findByRole('region', { name: 'mardi 10 novembre' })
+  const busy = within(tuesday).getByRole('article', { name: 'Dr Rim Jaziri, 09:00 – 09:30' })
+  expect(await within(busy).findByText('Vous avez déjà un rendez-vous à cette heure')).toBeInTheDocument()
+  expect(within(busy).queryByRole('button', { name: 'Réserver' })).toBeNull()
+  // Another time stays bookable
+  const thursday = screen.getByRole('region', { name: 'jeudi 12 novembre' })
+  expect(within(thursday).getByRole('button', { name: 'Réserver' })).toBeInTheDocument()
+  expect(fetchMyAppointments).toHaveBeenCalledWith(0, 50)
+})
+
+test('a cancelled appointment at that time does not make the patient busy', async () => {
+  fetchMyAppointments.mockResolvedValue({ items: [mine('a7', new Date(2026, 10, 10, 9, 0), 'CANCELLED')], total: 1 })
+  renderPage()
+
+  const tuesday = await screen.findByRole('region', { name: 'mardi 10 novembre' })
+  expect(within(tuesday).getByRole('button', { name: 'Réserver' })).toBeInTheDocument()
+})
+
+test('move mode: the appointment being moved does not block the slots at its own time', async () => {
+  fetchMyAppointments.mockResolvedValue({ items: [mine('a9', new Date(2026, 10, 10, 9, 0))], total: 1 })
+  renderMove()
+
+  const tuesday = await screen.findByRole('region', { name: 'mardi 10 novembre' })
+  expect(within(tuesday).getByRole('button', { name: 'Réserver' })).toBeInTheDocument()
+})
+
+test('the patient’s appointments that cannot be read leave every slot bookable (the API still checks)', async () => {
+  fetchMyAppointments.mockRejectedValue(new ApiError(0, 'NETWORK_ERROR', 'Connexion impossible.'))
+  renderPage()
+
+  const tuesday = await screen.findByRole('region', { name: 'mardi 10 novembre' })
+  expect(within(tuesday).getByRole('button', { name: 'Réserver' })).toBeInTheDocument()
+})
+
+test('409 PATIENT_BUSY: the API message stays in the confirmation, nothing is booked', async () => {
+  const user = userEvent.setup()
+  bookSlot.mockRejectedValue(new ApiError(409, 'PATIENT_BUSY', 'Vous avez déjà un rendez-vous à ce moment-là.'))
+  renderPage()
+  const dialog = await chooseFirstSlot(user)
+
+  await user.click(within(dialog).getByRole('button', { name: 'Confirmer' }))
+
+  expect(await within(dialog).findByText('Vous avez déjà un rendez-vous à ce moment-là.')).toHaveAttribute('role', 'alert')
+})
+
+test('no promise the page cannot keep: no "Réservation en deux clics" line', async () => {
+  renderPage()
+  await screen.findByText('2 créneaux libres')
+
+  expect(screen.queryByText(/Réservation en deux clics/)).toBeNull()
 })
