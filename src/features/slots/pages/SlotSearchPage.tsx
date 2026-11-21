@@ -1,11 +1,11 @@
 import { useEffect, useId, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { CalendarCheck, CalendarDays, Check, ChevronLeft, ChevronRight, Clock } from 'lucide-react'
+import { CalendarCheck, CalendarDays, CalendarX, ChevronLeft, ChevronRight, Clock } from 'lucide-react'
 import { ApiError } from '@/shared/api/apiClient'
 import { fieldErrors, messageFor } from '@/shared/api/errors'
 import { paths } from '@/shared/config/paths'
 import { Alert, Button, Spinner } from '@/shared/ui'
-import { bookSlot, fetchSlotFilters, rescheduleAppointment, searchSlots } from '../api'
+import { bookSlot, fetchMyAppointments, fetchSlotFilters, rescheduleAppointment, searchSlots } from '../api'
 import { Dialog, DialogActions, DoneLine, FieldError, Summary } from '../components/Dialog'
 import type { Appointment, Slot, SlotFilters } from '../types'
 import {
@@ -97,6 +97,23 @@ export default function SlotSearchPage() {
       .then(setFilters)
       .catch((e: unknown) => setError(messageFor(e)))
   }, [])
+
+  /**
+   * MLink-167: the patient's booked appointments (the API's largest page), so the week can say which slots fall at the
+   * time of one of them. The API still refuses such a booking (409 PATIENT_BUSY): this only spares a useless try. Read
+   * again with the week (after a booking). Unreadable: nothing is marked, the API keeps the rule.
+   */
+  const [busy, setBusy] = useState<readonly Appointment[]>([])
+  useEffect(() => {
+    let current = true
+    fetchMyAppointments(0, 50).then(
+      (page) => current && setBusy(page.items.filter((a) => a.status === 'BOOKED' && a.id !== moving)),
+      () => current && setBusy([]),
+    )
+    return () => {
+      current = false
+    }
+  }, [reload, moving])
 
   useEffect(() => {
     let current = true
@@ -455,7 +472,13 @@ export default function SlotSearchPage() {
                                 </span>
                               ) : (
                                 here.map((s) => (
-                                  <SlotCard key={s.slotId} slot={s} tint={tintOf(s.specialty)} onChoose={() => choose(s)} />
+                                  <SlotCard
+                                    key={s.slotId}
+                                    slot={s}
+                                    tint={tintOf(s.specialty)}
+                                    busy={busy.some((a) => overlaps(s, a))}
+                                    onChoose={() => choose(s)}
+                                  />
                                 ))
                               )}
                             </div>
@@ -469,8 +492,9 @@ export default function SlotSearchPage() {
 
               <div className={styles.legendBar}>
                 <ul className={styles.legend} aria-label="Légende des spécialités">
+                  {/* Only the specialties with a slot this week: the API knows many more (MLink-174) */}
                   {filters.specialties
-                    .filter((s) => !specialtyId || s.id === specialtyId)
+                    .filter((s) => (!specialtyId || s.id === specialtyId) && (bySpecialty.get(s.name) ?? 0) > 0)
                     .map((s) => (
                       <li key={s.id}>
                         <span className={`${styles.dot} ${tintOf(s.name)}`} aria-hidden="true" />
@@ -478,9 +502,6 @@ export default function SlotSearchPage() {
                       </li>
                     ))}
                 </ul>
-                <p className={styles.hint}>
-                  <Check size={16} aria-hidden="true" /> Réservation en deux clics, confirmée tout de suite
-                </p>
               </div>
             </>
           )}
@@ -595,11 +616,18 @@ function Choice({ group, label, detail, count, tint, initials, checked, onChange
   )
 }
 
-function SlotCard({ slot, tint, onChoose }: { slot: Slot; tint: string; onChoose: () => void }) {
+/** Whether a slot falls, even partly, at the time of an appointment: [start, end) against [start, end). */
+function overlaps(slot: Slot, appointment: Appointment) {
+  return Date.parse(slot.startsAt) < Date.parse(appointment.endsAt) && Date.parse(appointment.startsAt) < Date.parse(slot.endsAt)
+}
+
+type SlotCardProps = { slot: Slot; tint: string; busy: boolean; onChoose: () => void }
+
+function SlotCard({ slot, tint, busy, onChoose }: SlotCardProps) {
   const { firstName, lastName } = slot.practitioner
   const time = `${timeLabel(new Date(slot.startsAt))} – ${timeLabel(new Date(slot.endsAt))}`
   return (
-    <article className={`${styles.slot} ${tint}`} aria-label={`Dr ${firstName} ${lastName}, ${time}`}>
+    <article className={`${styles.slot} ${tint}`} aria-label={`Dr ${firstName} ${lastName}, ${time}`} data-busy={busy || undefined}>
       <p className={styles.name}>
         Dr {firstName} {lastName}
       </p>
@@ -608,9 +636,16 @@ function SlotCard({ slot, tint, onChoose }: { slot: Slot; tint: string; onChoose
         <span className={styles.srOnly}>{time}</span>{' '}
         <span className={styles.specialty}>{slot.specialty}</span> · <span>{slot.clinic.name}</span>
       </p>
-      <button type="button" className={styles.book} onClick={onChoose}>
-        Réserver
-      </button>
+      {busy ? (
+        <p className={styles.busy}>
+          <CalendarX size={12} aria-hidden="true" />
+          Vous avez déjà un rendez-vous à cette heure
+        </p>
+      ) : (
+        <button type="button" className={styles.book} onClick={onChoose}>
+          Réserver
+        </button>
+      )}
     </article>
   )
 }
