@@ -17,6 +17,7 @@ test('every action of the API has a French label', () => {
     'ROLE_CHANGED',
     'SLOT_CLOSED',
     'SLOT_OPENED',
+    'STATS_EXPORTED',
   ]
   expect(Object.keys(ACTION_LABELS).sort()).toEqual(known)
 })
@@ -31,6 +32,10 @@ test('the account actions are said in French', () => {
 test('the consultation report actions are said in French', () => {
   expect(actionLabel('REPORT_CREATED')).toBe('Compte rendu de consultation créé')
   expect(actionLabel('REPORT_VIEWED')).toBe('Comptes rendus de consultation consultés')
+})
+
+test('the statistics export is said in French', () => {
+  expect(actionLabel('STATS_EXPORTED')).toBe('Statistiques anonymisées exportées')
 })
 
 test('an action the screen does not know yet is shown as the API sends it', () => {

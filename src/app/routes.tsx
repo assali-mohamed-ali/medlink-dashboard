@@ -5,6 +5,7 @@ import { practitionerAgendaPages } from '@/features/agenda'
 import { staffAuditPages } from '@/features/audit'
 import { practitionerRecordPages } from '@/features/patient-record'
 import { patientProfilePages, practitionerProfilePages } from '@/features/profile'
+import { staffStatsPages } from '@/features/stats'
 import { RequireAuth, authRoutes, ownPasswordRoute, type Role } from '@/features/auth'
 import { mfaRoutes } from '@/features/mfa'
 import { patientSlotPages } from '@/features/slots'
@@ -62,6 +63,7 @@ export const routes: RouteObject[] = [
       space('ADMINISTRATIVE_STAFF', paths.staff.root, [
         ...staffAccountsPages,
         ...staffAuditPages,
+        ...staffStatsPages,
         ownPasswordRoute(paths.staff.password),
       ]),
 

@@ -41,7 +41,7 @@ beforeEach(() => {
 })
 
 test.each([
-  ['ADMINISTRATIVE_STAFF', '/admin', ['Gestion des comptes', 'Rendez-vous des cliniques']],
+  ['ADMINISTRATIVE_STAFF', '/admin', ['Gestion des comptes', 'Statistiques', 'Rendez-vous des cliniques']],
 ] as const)('a %s is greeted by name and sees the parts of their space', async (role, path, parts) => {
   renderHome(role, path)
   expect(await screen.findByRole('heading', { level: 2, name: 'Bonjour Amel' })).toBeInTheDocument()
@@ -66,10 +66,11 @@ test('the practitioner has their own home: the greeting, then the day and the ag
   expect(await main.findByRole('region', { name: 'Aujourd’hui' })).toBeInTheDocument()
 })
 
-test('the staff home leads to account management in one click', async () => {
+test('the staff home leads to account management and to the statistics in one click', async () => {
   renderHome('ADMINISTRATIVE_STAFF', '/admin')
   const main = within(await screen.findByRole('main'))
   await main.findByRole('heading', { level: 2, name: 'Bonjour Amel' })
   expect(main.getByRole('link', { name: 'Ouvrir la gestion des comptes' })).toHaveAttribute('href', '/admin/comptes')
+  expect(main.getByRole('link', { name: 'Ouvrir les statistiques' })).toHaveAttribute('href', '/admin/statistiques')
   expect(main.getAllByText('Bientôt disponible')).toHaveLength(1)
 })
