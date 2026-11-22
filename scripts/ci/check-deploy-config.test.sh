@@ -31,4 +31,10 @@ grep -Fq 'fetch-vault-deploy-secrets.sh' .github/actions/load-deploy-secrets/act
   echo "FAIL: the loader action must call the Vault helper" >&2
   exit 1
 }
+# The attest actions store the attestation's metadata: without this permission they fail with
+# "error fetching tlog entry - (404)" after publishing (staging run of 2026-11-22; the API fixed the same in its #138)
+awk '/^  publish-and-attest:/ { f = 1; next } f && /^  [a-z-]+:$/ { exit } f' "$workflow" | grep -Fq 'artifact-metadata: write' || {
+  echo "FAIL: the publish job must request artifact-metadata: write" >&2
+  exit 1
+}
 echo "deploy config: staging gate, Vault fallback and automatic production deployment are wired"
