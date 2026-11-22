@@ -136,3 +136,85 @@ test('no appointment yet: says so and offers to book one', async () => {
   expect(await screen.findByText('Vous n’avez pas encore de rendez-vous.')).toBeInTheDocument()
   expect(screen.getByRole('link', { name: 'Prendre rendez-vous' })).toHaveAttribute('href', '/patient/creneaux')
 })
+
+// ---- The Stitch design: "À venir" first (the next one marked), then the history, with the counts of the page --------
+
+test('the yellow "Nouveau rendez-vous" leads to the slot search', async () => {
+  renderPage()
+  await screen.findByRole('listitem', { name: 'Rendez-vous du vendredi 13 novembre 2026' })
+
+  expect(screen.getByRole('link', { name: 'Nouveau rendez-vous' })).toHaveAttribute('href', '/patient/creneaux')
+})
+
+test('the counts at a glance: to come, cancelled, past', async () => {
+  renderPage()
+
+  const glance = await screen.findByRole('list', { name: 'En bref' })
+  expect(within(glance).getAllByRole('listitem').map((i) => i.textContent)).toEqual(['1À venir', '1Annulé', '1Passé'])
+})
+
+test('the appointments to come are apart from the history', async () => {
+  renderPage()
+
+  const toCome = await screen.findByRole('region', { name: 'À venir' })
+  expect(within(toCome).getByRole('listitem', { name: 'Rendez-vous du vendredi 13 novembre 2026' })).toBeInTheDocument()
+  const history = screen.getByRole('region', { name: 'Historique' })
+  expect(within(history).getByRole('listitem', { name: 'Rendez-vous du jeudi 12 novembre 2026' })).toBeInTheDocument()
+  expect(within(history).getByRole('listitem', { name: 'Rendez-vous du lundi 2 novembre 2026' })).toBeInTheDocument()
+  expect(within(history).queryByRole('listitem', { name: 'Rendez-vous du vendredi 13 novembre 2026' })).toBeNull()
+})
+
+test('the soonest appointment to come comes first and says when: "Prochain · dans 2 jours"', async () => {
+  const later = appointment('a4', new Date(2026, 10, 14, 11, 0))
+  fetchMyAppointments.mockResolvedValue({ items: [later, UPCOMING, CANCELLED, PAST], total: 4 })
+  renderPage()
+
+  const toCome = await screen.findByRole('region', { name: 'À venir' })
+  const items = within(toCome).getAllByRole('listitem')
+  expect(items[0]).toHaveAccessibleName('Rendez-vous du vendredi 13 novembre 2026')
+  expect(items[0]).toHaveTextContent('Prochain · dans 2 jours')
+  expect(items[1]).not.toHaveTextContent('Prochain')
+})
+
+test('the next one tomorrow says "demain"', async () => {
+  fetchMyAppointments.mockResolvedValue({ items: [appointment('a5', new Date(2026, 10, 12, 8, 0))], total: 1 })
+  renderPage()
+
+  const toCome = await screen.findByRole('region', { name: 'À venir' })
+  expect(within(toCome).getByRole('listitem')).toHaveTextContent('Prochain · demain')
+})
+
+test('no appointment to come: the section says so', async () => {
+  fetchMyAppointments.mockResolvedValue({ items: [CANCELLED, PAST], total: 2 })
+  renderPage()
+
+  const toCome = await screen.findByRole('region', { name: 'À venir' })
+  expect(within(toCome).getByText('Aucun rendez-vous à venir.')).toBeInTheDocument()
+})
+
+test('the history can show only the cancelled or only the past appointments', async () => {
+  const user = userEvent.setup()
+  renderPage()
+  const history = await screen.findByRole('region', { name: 'Historique' })
+
+  await user.click(within(history).getByRole('button', { name: 'Annulés · 1' }))
+  expect(within(history).getAllByRole('listitem').map((i) => i.getAttribute('aria-label'))).toEqual([
+    'Rendez-vous du jeudi 12 novembre 2026',
+  ])
+
+  await user.click(within(history).getByRole('button', { name: 'Passés · 1' }))
+  expect(within(history).getAllByRole('listitem').map((i) => i.getAttribute('aria-label'))).toEqual([
+    'Rendez-vous du lundi 2 novembre 2026',
+  ])
+  expect(within(history).getByRole('button', { name: 'Passés · 1' })).toHaveAttribute('aria-pressed', 'true')
+
+  await user.click(within(history).getByRole('button', { name: 'Tous' }))
+  expect(within(history).getAllByRole('listitem')).toHaveLength(2)
+})
+
+test('more appointments than one page: the counts say they are those of the page', async () => {
+  fetchMyAppointments.mockResolvedValue({ items: [UPCOMING, CANCELLED, PAST], total: 25 })
+  renderPage()
+
+  expect(await screen.findByText('Comptés sur les 3 rendez-vous de cette page.')).toBeInTheDocument()
+})

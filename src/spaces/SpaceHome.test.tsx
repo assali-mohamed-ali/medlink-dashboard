@@ -3,6 +3,8 @@ import { RouterProvider, createMemoryRouter } from 'react-router-dom'
 import { beforeEach, expect, test, vi } from 'vitest'
 import { routes } from '@/app/routes'
 import * as authApi from '@/features/auth/api'
+import * as slotsApi from '@/features/slots/api'
+import * as agendaApi from '@/features/agenda/api'
 import AuthProvider from '@/features/auth/AuthProvider'
 import type { Role } from '@/features/auth/roles'
 
@@ -16,6 +18,10 @@ vi.mock('@/features/auth/api', () => ({
   resendVerification: vi.fn(),
 }))
 const fetchMe = vi.mocked(authApi.fetchMe)
+// The patient's home reads their appointments
+vi.mock('@/features/slots/api', () => ({ fetchMyAppointments: vi.fn(), cancelAppointment: vi.fn() }))
+// The practitioner's home reads their agenda
+vi.mock('@/features/agenda/api', () => ({ fetchAgenda: vi.fn(), openSlot: vi.fn(), changeSlotStatus: vi.fn() }))
 
 function renderHome(role: Role, path: string) {
   fetchMe.mockResolvedValue({
@@ -30,11 +36,11 @@ function renderHome(role: Role, path: string) {
 
 beforeEach(() => {
   vi.resetAllMocks()
+  vi.mocked(slotsApi.fetchMyAppointments).mockResolvedValue({ items: [], total: 0 })
+  vi.mocked(agendaApi.fetchAgenda).mockResolvedValue({ clinics: [], items: [] })
 })
 
 test.each([
-  ['PATIENT', '/patient', ['Rendez-vous', 'Documents', 'Messages']],
-  ['PRACTITIONER', '/praticien', ['Agenda', 'Patients', 'Messages']],
   ['ADMINISTRATIVE_STAFF', '/admin', ['Gestion des comptes', 'Rendez-vous des cliniques']],
 ] as const)('a %s is greeted by name and sees the parts of their space', async (role, path, parts) => {
   renderHome(role, path)
@@ -43,12 +49,21 @@ test.each([
   expect(titles).toEqual(parts)
 })
 
-test('what a patient cannot use yet says so, with no link to a page that does not exist', async () => {
+test('the patient has their own home: the greeting, then booking and their appointments in one click', async () => {
   renderHome('PATIENT', '/patient')
   const main = within(await screen.findByRole('main'))
   await main.findByRole('heading', { level: 2, name: 'Bonjour Amel' })
-  expect(main.getAllByText('Bientôt disponible')).toHaveLength(3)
-  expect(main.queryAllByRole('link')).toHaveLength(0)
+  expect(main.getByRole('link', { name: 'Prendre rendez-vous' })).toHaveAttribute('href', '/patient/creneaux')
+  expect(main.getByRole('link', { name: /^Mes rendez-vous/ })).toHaveAttribute('href', '/patient/rendez-vous')
+  expect(await main.findByRole('region', { name: 'Prochain rendez-vous' })).toBeInTheDocument()
+})
+
+test('the practitioner has their own home: the greeting, then the day and the agenda in one click', async () => {
+  renderHome('PRACTITIONER', '/praticien')
+  const main = within(await screen.findByRole('main'))
+  await main.findByRole('heading', { level: 2, name: 'Bonjour Amel' })
+  expect(main.getByRole('link', { name: 'Ouvrir l’agenda' })).toHaveAttribute('href', '/praticien/agenda')
+  expect(await main.findByRole('region', { name: 'Aujourd’hui' })).toBeInTheDocument()
 })
 
 test('the staff home leads to account management in one click', async () => {

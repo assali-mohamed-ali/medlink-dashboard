@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { CalendarPlus, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useSearchParams } from 'react-router-dom'
 import { ApiError } from '@/shared/api/apiClient'
 import { messageFor } from '@/shared/api/errors'
 import { Alert, Button, Skeleton } from '@/shared/ui'
@@ -52,7 +53,9 @@ export default function AgendaPage() {
   const [answer, setAnswer] = useState<Answer | null>(null)
   const [hidden, setHidden] = useState<ReadonlySet<string>>(new Set())
   const formId = useId()
-  const [formOpen, setFormOpen] = useState(false)
+  // "?ajouter" (the practitioner's home, "Ajouter un créneau"): the form opens at once
+  const [searchParams] = useSearchParams()
+  const [formOpen, setFormOpen] = useState(() => searchParams.has('ajouter'))
   const [notice, setNotice] = useState<Notice | null>(null)
   const [pending, setPending] = useState<string | null>(null)
   const pendingRef = useRef<string | null>(null)

@@ -14,11 +14,13 @@ vi.mock('../api', () => ({
   searchSlots: vi.fn(),
   bookSlot: vi.fn(),
   rescheduleAppointment: vi.fn(),
+  fetchMyAppointments: vi.fn(),
 }))
 const bookSlot = vi.mocked(api.bookSlot)
 const rescheduleAppointment = vi.mocked(api.rescheduleAppointment)
 const fetchSlotFilters = vi.mocked(api.fetchSlotFilters)
 const searchSlots = vi.mocked(api.searchSlots)
+const fetchMyAppointments = vi.mocked(api.fetchMyAppointments)
 
 const SOUSSE = 'c1000000-0000-4000-8000-000000000001'
 const SFAX = 'c1000000-0000-4000-8000-000000000002'
@@ -83,6 +85,8 @@ beforeEach(() => {
     items: [slot('s1', new Date(2026, 10, 10, 9, 0)), slot('s2', new Date(2026, 10, 12, 14, 0))],
     total: 2,
   })
+  // The patient's own appointments: none by default
+  fetchMyAppointments.mockResolvedValue({ items: [], total: 0 })
 })
 
 afterEach(() => {
@@ -119,7 +123,7 @@ test('loads every page of the week (the API gives 50 slots at most per call)', a
   expect(await screen.findByText('60 créneaux libres')).toBeInTheDocument()
   expect(searchSlots).toHaveBeenCalledWith({ ...weekOf(MONDAY), page: 0, size: 50 })
   expect(searchSlots).toHaveBeenCalledWith({ ...weekOf(MONDAY), page: 1, size: 50 })
-  expect(screen.getAllByRole('button', { name: 'Choisir ce créneau' })).toHaveLength(60)
+  expect(screen.getAllByRole('button', { name: 'Réserver' })).toHaveLength(60)
 })
 
 /** Review on #18: a busy week of more than 500 slots is loaded whole, so the last slot can be booked too. */
@@ -135,7 +139,7 @@ test('a week of more than 500 slots is loaded to its last page, and the count ma
   expect(await screen.findByText('520 créneaux libres', {}, { timeout: 15_000 })).toBeInTheDocument()
   expect(searchSlots).toHaveBeenCalledWith({ ...weekOf(MONDAY), page: 10, size: 50 })
   // By text, not by role: 520 cards make role queries slow in jsdom
-  expect(screen.getAllByText('Choisir ce créneau')).toHaveLength(520)
+  expect(screen.getAllByText('Réserver')).toHaveLength(520)
 }, 30_000)
 
 /** The loop never runs away: a page that comes back empty (the week changed meanwhile) ends the loading. */
@@ -147,7 +151,7 @@ test('an empty page stops the loading, and the count shows what the grid holds',
 
   expect(await screen.findByText('50 créneaux libres')).toBeInTheDocument()
   expect(searchSlots).toHaveBeenCalledTimes(2)
-  expect(screen.getAllByRole('button', { name: 'Choisir ce créneau' })).toHaveLength(50)
+  expect(screen.getAllByRole('button', { name: 'Réserver' })).toHaveLength(50)
 })
 
 test('the arrows, "Aujourd’hui" and the month calendar change the week', async () => {
@@ -173,19 +177,17 @@ test('the filters come from the API and narrow the search; a clinic keeps only i
   const user = userEvent.setup()
   renderPage()
   await screen.findByText('2 créneaux libres')
-  const practitioner = screen.getByRole('combobox', { name: 'Praticien' })
-  expect(within(practitioner).getAllByRole('option').map((o) => o.textContent)).toEqual([
+  const practitioners = screen.getByRole('group', { name: 'Praticien' })
+  expect(within(practitioners).getAllByRole('radio').map((r) => r.getAttribute('data-name'))).toEqual([
     'Tous les praticiens',
     'Dr Omar Gharbi',
     'Dr Rim Jaziri',
   ])
 
-  await user.click(screen.getByRole('button', { name: 'Sfax' }))
-  expect(screen.getByRole('button', { name: 'Sfax' })).toHaveAttribute('aria-pressed', 'true')
-  expect(within(practitioner).getAllByRole('option').map((o) => o.textContent)).toEqual([
-    'Tous les praticiens',
-    'Dr Rim Jaziri',
-  ])
+  await user.click(screen.getByRole('radio', { name: 'Sfax' }))
+  expect(screen.getByRole('radio', { name: 'Sfax' })).toBeChecked()
+  expect(within(practitioners).queryByRole('radio', { name: 'Dr Omar Gharbi' })).toBeNull()
+  expect(within(practitioners).getByRole('radio', { name: 'Dr Rim Jaziri' })).toBeInTheDocument()
   expect(searchSlots).toHaveBeenLastCalledWith({ ...weekOf(MONDAY), clinicId: SFAX, page: 0, size: 50 })
 
   await user.click(screen.getByRole('radio', { name: 'Cardiologie' }))
@@ -197,7 +199,7 @@ test('the filters come from the API and narrow the search; a clinic keeps only i
     size: 50,
   })
 
-  await user.selectOptions(practitioner, 'Dr Rim Jaziri')
+  await user.click(within(practitioners).getByRole('radio', { name: 'Dr Rim Jaziri' }))
   expect(searchSlots).toHaveBeenLastCalledWith({
     ...weekOf(MONDAY),
     clinicId: SFAX,
@@ -207,7 +209,7 @@ test('the filters come from the API and narrow the search; a clinic keeps only i
     size: 50,
   })
 
-  await user.click(screen.getByRole('button', { name: 'Toutes' }))
+  await user.click(screen.getByRole('radio', { name: 'Toutes les cliniques' }))
   await user.click(screen.getByRole('radio', { name: 'Toutes les spécialités' }))
   expect(searchSlots).toHaveBeenLastCalledWith({
     ...weekOf(MONDAY),
@@ -229,7 +231,7 @@ test('an empty week shows the API message, which suggests widening the search', 
   expect(
     await screen.findByText('Aucun créneau disponible. Élargissez la recherche (dates, clinique ou spécialité).'),
   ).toBeInTheDocument()
-  expect(screen.queryByRole('button', { name: 'Choisir ce créneau' })).toBeNull()
+  expect(screen.queryByRole('button', { name: 'Réserver' })).toBeNull()
 })
 
 test('a 400 shows each server message under its field', async () => {
@@ -271,7 +273,7 @@ const BOOKED: Appointment = {
 /** Opens the confirmation of Tuesday 10's 09:00 slot (the first of the week). */
 async function chooseFirstSlot(user: ReturnType<typeof userEvent.setup>) {
   const tuesday = await screen.findByRole('region', { name: 'mardi 10 novembre' })
-  await user.click(within(tuesday).getByRole('button', { name: 'Choisir ce créneau' }))
+  await user.click(within(tuesday).getByRole('button', { name: 'Réserver' }))
   return screen.getByRole('dialog', { name: 'Confirmer ce rendez-vous ?' })
 }
 
@@ -383,7 +385,7 @@ test('move mode: a banner says so, and the chosen slot is confirmed as the new o
 
   expect(screen.getByText(/Report d’un rendez-vous : choisissez le nouveau créneau/)).toBeInTheDocument()
   const tuesday = await screen.findByRole('region', { name: 'mardi 10 novembre' })
-  await user.click(within(tuesday).getByRole('button', { name: 'Choisir ce créneau' }))
+  await user.click(within(tuesday).getByRole('button', { name: 'Réserver' }))
   const dialog = screen.getByRole('dialog', { name: 'Confirmer le report ?' })
   await user.click(within(dialog).getByRole('button', { name: 'Confirmer' }))
 
@@ -404,7 +406,7 @@ test('move mode, 409: the slot is taken, the message says to choose another and 
   )
   renderMove()
   const tuesday = await screen.findByRole('region', { name: 'mardi 10 novembre' })
-  await user.click(within(tuesday).getByRole('button', { name: 'Choisir ce créneau' }))
+  await user.click(within(tuesday).getByRole('button', { name: 'Réserver' }))
   const searches = searchSlots.mock.calls.length
 
   await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Confirmer' }))
@@ -422,7 +424,7 @@ test('move mode, 422: the API message (deadline passed) stays in the confirmatio
   )
   renderMove()
   const tuesday = await screen.findByRole('region', { name: 'mardi 10 novembre' })
-  await user.click(within(tuesday).getByRole('button', { name: 'Choisir ce créneau' }))
+  await user.click(within(tuesday).getByRole('button', { name: 'Réserver' }))
   const dialog = screen.getByRole('dialog', { name: 'Confirmer le report ?' })
 
   await user.click(within(dialog).getByRole('button', { name: 'Confirmer' }))
@@ -430,4 +432,137 @@ test('move mode, 422: the API message (deadline passed) stays in the confirmatio
   expect(
     await within(dialog).findByText('Ce rendez-vous ne peut plus être annulé moins de 12 heures avant son début.'),
   ).toHaveAttribute('role', 'alert')
+})
+
+// ---- The Stitch design of the week (rows by time, counts from the week shown, legend) ---------------------
+
+test('the filters count the free slots of the week shown, from the slots the grid holds', async () => {
+  renderPage()
+  await screen.findByText('2 créneaux libres')
+
+  expect(screen.getByRole('radio', { name: 'Cardiologie' })).toHaveAccessibleDescription('2 créneaux libres cette semaine')
+  expect(screen.getByRole('radio', { name: 'Pédiatrie' })).toHaveAccessibleDescription('aucun créneau libre cette semaine')
+  expect(screen.getByRole('radio', { name: 'Sfax' })).toHaveAccessibleDescription(
+    'Clinique MedLink Sfax · 2 créneaux libres cette semaine',
+  )
+  expect(screen.getByRole('radio', { name: 'Sousse' })).toHaveAccessibleDescription(
+    'Clinique MedLink Sousse · aucun créneau libre cette semaine',
+  )
+  expect(screen.getByRole('radio', { name: 'Dr Rim Jaziri' })).toHaveAccessibleDescription(
+    'Cardiologie · 2 créneaux libres cette semaine',
+  )
+})
+
+test('a filter that is chosen no longer counts its own group: the other choices were not searched', async () => {
+  const user = userEvent.setup()
+  renderPage()
+  await screen.findByText('2 créneaux libres')
+
+  await user.click(screen.getByRole('radio', { name: 'Cardiologie' }))
+  await screen.findByText('2 créneaux libres')
+
+  expect(screen.getByRole('radio', { name: 'Pédiatrie' })).toHaveAccessibleDescription('')
+  // The other groups still count what this search found
+  expect(screen.getByRole('radio', { name: 'Sfax' })).toHaveAccessibleDescription(
+    'Clinique MedLink Sfax · 2 créneaux libres cette semaine',
+  )
+})
+
+test('each slot card: practitioner, specialty, time and clinic, and "Réserver"', async () => {
+  renderPage()
+
+  const tuesday = await screen.findByRole('region', { name: 'mardi 10 novembre' })
+  const card = within(tuesday).getByRole('article', { name: 'Dr Rim Jaziri, 09:00 – 09:30' })
+  expect(within(card).getByText('Cardiologie')).toBeInTheDocument()
+  expect(within(card).getByText('Clinique MedLink Sfax')).toBeInTheDocument()
+  expect(within(card).getByRole('button', { name: 'Réserver' })).toBeInTheDocument()
+})
+
+test('the days before today are marked as past', async () => {
+  renderPage()
+  await screen.findByText('2 créneaux libres')
+
+  expect(screen.getByRole('region', { name: 'lundi 9 novembre' })).toHaveAttribute('data-past', 'true')
+  expect(screen.getByRole('region', { name: 'mercredi 11 novembre' })).not.toHaveAttribute('data-past')
+})
+
+test('the legend gives each specialty of the week its colour and its number of free slots', async () => {
+  renderPage()
+  await screen.findByText('2 créneaux libres')
+
+  const legend = screen.getByRole('list', { name: 'Légende des spécialités' })
+  // Only the specialties that have a slot this week: the API knows many more (MLink-174)
+  expect(within(legend).getAllByRole('listitem').map((i) => i.textContent)).toEqual(['Cardiologie (2)'])
+})
+
+test('"Mes rendez-vous" leads to the patient’s appointments', async () => {
+  renderPage()
+  await screen.findByText('2 créneaux libres')
+
+  expect(screen.getByRole('link', { name: 'Mes rendez-vous' })).toHaveAttribute('href', '/patient/rendez-vous')
+})
+
+// ---- MLink-167: one place at a time. The API refuses a slot that overlaps one of the patient's appointments
+// (409 PATIENT_BUSY); the week says so before the patient tries ------------------------------------------------
+
+function mine(id: string, start: Date, status = 'BOOKED'): Appointment {
+  return { ...BOOKED, id, status, startsAt: start.toISOString(), endsAt: new Date(start.getTime() + 30 * 60_000).toISOString() }
+}
+
+test('a slot at the time of one of the patient’s appointments says which one, and cannot be booked', async () => {
+  // Already booked on Tuesday 10, 09:00 – 09:30, elsewhere: the same time as the slot s1
+  fetchMyAppointments.mockResolvedValue({ items: [mine('a7', new Date(2026, 10, 10, 9, 0))], total: 1 })
+  renderPage()
+
+  const tuesday = await screen.findByRole('region', { name: 'mardi 10 novembre' })
+  const busy = within(tuesday).getByRole('article', { name: 'Dr Rim Jaziri, 09:00 – 09:30' })
+  // It says which appointment: its time, its practitioner, its clinic (from "Mes rendez-vous")
+  expect(await within(busy).findByText('Déjà un rendez-vous à 09:00 avec Dr Rim Jaziri (Sfax)')).toBeInTheDocument()
+  expect(within(busy).queryByRole('button', { name: 'Réserver' })).toBeNull()
+  // Another time stays bookable
+  const thursday = screen.getByRole('region', { name: 'jeudi 12 novembre' })
+  expect(within(thursday).getByRole('button', { name: 'Réserver' })).toBeInTheDocument()
+  expect(fetchMyAppointments).toHaveBeenCalledWith(0, 50)
+})
+
+test('a cancelled appointment at that time does not make the patient busy', async () => {
+  fetchMyAppointments.mockResolvedValue({ items: [mine('a7', new Date(2026, 10, 10, 9, 0), 'CANCELLED')], total: 1 })
+  renderPage()
+
+  const tuesday = await screen.findByRole('region', { name: 'mardi 10 novembre' })
+  expect(within(tuesday).getByRole('button', { name: 'Réserver' })).toBeInTheDocument()
+})
+
+test('move mode: the appointment being moved does not block the slots at its own time', async () => {
+  fetchMyAppointments.mockResolvedValue({ items: [mine('a9', new Date(2026, 10, 10, 9, 0))], total: 1 })
+  renderMove()
+
+  const tuesday = await screen.findByRole('region', { name: 'mardi 10 novembre' })
+  expect(within(tuesday).getByRole('button', { name: 'Réserver' })).toBeInTheDocument()
+})
+
+test('the patient’s appointments that cannot be read leave every slot bookable (the API still checks)', async () => {
+  fetchMyAppointments.mockRejectedValue(new ApiError(0, 'NETWORK_ERROR', 'Connexion impossible.'))
+  renderPage()
+
+  const tuesday = await screen.findByRole('region', { name: 'mardi 10 novembre' })
+  expect(within(tuesday).getByRole('button', { name: 'Réserver' })).toBeInTheDocument()
+})
+
+test('409 PATIENT_BUSY: the API message stays in the confirmation, nothing is booked', async () => {
+  const user = userEvent.setup()
+  bookSlot.mockRejectedValue(new ApiError(409, 'PATIENT_BUSY', 'Vous avez déjà un rendez-vous à ce moment-là.'))
+  renderPage()
+  const dialog = await chooseFirstSlot(user)
+
+  await user.click(within(dialog).getByRole('button', { name: 'Confirmer' }))
+
+  expect(await within(dialog).findByText('Vous avez déjà un rendez-vous à ce moment-là.')).toHaveAttribute('role', 'alert')
+})
+
+test('no promise the page cannot keep: no "Réservation en deux clics" line', async () => {
+  renderPage()
+  await screen.findByText('2 créneaux libres')
+
+  expect(screen.queryByText(/Réservation en deux clics/)).toBeNull()
 })
