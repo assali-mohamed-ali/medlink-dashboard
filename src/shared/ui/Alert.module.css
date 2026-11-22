@@ -1,0 +1,8 @@
+.alert {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-md);
+  border-radius: var(--radius-control);
+}
+.error { color: var(--on-error-container); background: var(--error-container); }
+.success { color: var(--success); background: var(--success-container); }
+.info { color: var(--on-surface); background: var(--info-container); }
