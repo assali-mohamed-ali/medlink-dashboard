@@ -34,3 +34,29 @@ test('forwards the ref and native props (what react-hook-form needs)', async () 
   expect(ref.current).toHaveAttribute('name', 'lastName')
   expect(ref.current).toHaveAttribute('autocomplete', 'family-name')
 })
+
+test('with maxLength, a count tells how many characters are used, and follows the typing', async () => {
+  render(<TextField label="Motif du rendez-vous" maxLength={100} />)
+  const input = screen.getByLabelText('Motif du rendez-vous')
+  expect(input).toHaveAccessibleDescription('0 / 100 caractères')
+  await userEvent.type(input, 'Douleur')
+  expect(input).toHaveAccessibleDescription('7 / 100 caractères')
+})
+
+test('the count starts from a default value and still calls the given onChange', async () => {
+  const seen: string[] = []
+  render(
+    <TextField
+      label="Motif"
+      maxLength={20}
+      defaultValue="Bilan"
+      hint="Facultatif."
+      onChange={(event) => seen.push(event.target.value)}
+    />,
+  )
+  const input = screen.getByLabelText('Motif')
+  expect(input).toHaveAccessibleDescription('Facultatif. 5 / 20 caractères')
+  await userEvent.type(input, 's')
+  expect(input).toHaveAccessibleDescription('Facultatif. 6 / 20 caractères')
+  expect(seen).toEqual(['Bilans'])
+})

@@ -340,10 +340,8 @@ test('409: the API message is shown and the results are refreshed', async () => 
 
   await user.click(within(dialog).getByRole('button', { name: 'Confirmer' }))
 
-  expect(await screen.findByText('Ce créneau n’est plus disponible. Choisissez-en un autre.')).toHaveAttribute(
-    'role',
-    'alert',
-  )
+  // The UI kit's Alert wraps the text: the alert is the box around it
+  expect((await screen.findByText('Ce créneau n’est plus disponible. Choisissez-en un autre.')).closest('[role="alert"]')).not.toBeNull()
   expect(screen.queryByRole('dialog')).toBeNull()
   expect(searchSlots.mock.calls.length).toBeGreaterThan(searches)
 })
@@ -411,10 +409,8 @@ test('move mode, 409: the slot is taken, the message says to choose another and 
 
   await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Confirmer' }))
 
-  expect(await screen.findByText('Ce créneau n’est plus disponible. Choisissez-en un autre.')).toHaveAttribute(
-    'role',
-    'alert',
-  )
+  // The UI kit's Alert wraps the text: the alert is the box around it
+  expect((await screen.findByText('Ce créneau n’est plus disponible. Choisissez-en un autre.')).closest('[role="alert"]')).not.toBeNull()
   expect(screen.queryByRole('dialog')).toBeNull()
   expect(searchSlots.mock.calls.length).toBeGreaterThan(searches)
 })
