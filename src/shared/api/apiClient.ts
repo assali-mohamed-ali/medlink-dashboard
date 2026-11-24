@@ -86,6 +86,15 @@ async function toApiError(response: Response): Promise<ApiError> {
   return new ApiError(response.status, code, message, details)
 }
 
+// The error of a failed answer; an ended session logs the user out everywhere.
+async function failure(response: Response): Promise<ApiError> {
+  const error = await toApiError(response)
+  if (response.status === 401 && SESSION_ENDED_CODES.has(error.code)) {
+    unauthorizedHandler?.(error)
+  }
+  return error
+}
+
 type RequestOptions = {
   method?: string
   body?: unknown
@@ -115,14 +124,26 @@ export async function apiFetch<T = void>(
     body: body !== undefined ? JSON.stringify(body) : undefined,
   })
 
-  if (!response.ok) {
-    const error = await toApiError(response)
-    if (response.status === 401 && SESSION_ENDED_CODES.has(error.code)) {
-      unauthorizedHandler?.(error)
-    }
-    throw error
-  }
+  if (!response.ok) throw await failure(response)
 
   if (response.status === 204) return undefined as T
   return (await response.json()) as T
+}
+
+/** The file name the API suggests in Content-Disposition (`attachment; filename="x.csv"`), if any. */
+function filenameOf(disposition: string | null): string | null {
+  const match = disposition?.match(/filename="?([^";]+)"?/i)
+  return match?.[1] ?? null
+}
+
+/**
+ * A GET whose answer is a text file (the CSV export): same cookies, timeout and errors as apiFetch.
+ * Returns the text and the file name the API suggests. Errors still come back as JSON, so both are accepted.
+ */
+export async function apiFetchText(path: string): Promise<{ text: string; filename: string | null }> {
+  const response = await send(path, { method: 'GET', headers: { Accept: 'text/csv, application/json' } })
+
+  if (!response.ok) throw await failure(response)
+
+  return { text: await response.text(), filename: filenameOf(response.headers.get('Content-Disposition')) }
 }

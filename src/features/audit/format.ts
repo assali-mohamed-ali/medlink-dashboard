@@ -14,6 +14,7 @@ export const ACTION_LABELS: Record<string, string> = {
   RECORD_VIEWED: 'Dossier patient consulté',
   REPORT_CREATED: 'Compte rendu de consultation créé',
   REPORT_VIEWED: 'Comptes rendus de consultation consultés',
+  STATS_EXPORTED: 'Statistiques anonymisées exportées',
 }
 
 export function actionLabel(action: string): string {
