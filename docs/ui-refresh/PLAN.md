@@ -28,9 +28,10 @@ Each role needs something different:
   (decision D2), and only after the team sees the specimen.
 - **CSP stays `'self'`**: fonts are self-hosted through `@fontsource` npm packages (Vite bundles them into `/assets`).
   No Google Fonts URL, no CDN.
-- **No new UI kit, no Tailwind** (CONTRIBUTING "Keep it simple"). Watermelon UI (connected; shadcn + Tailwind) is a
-  **visual reference only**: we rebuild the patterns we like in CSS Modules with our tokens. Icons: `lucide-react`
-  (already a dependency).
+- **Watermelon UI + shadcn/ui are in** (Mohamed, 2026-10-30, the rule was softened): Tailwind CSS 4 + shadcn
+  (Base UI primitives) are configured on `feat/MLink-128-ui-kit`, mapped to our tokens, with no reset and a scan
+  limited to `src/shared/components` (docs/ONBOARDING.md §7). Use Watermelon components where they fit, wrapped
+  in French; our CSS Modules components stay for what exists. Icons: `lucide-react` (already a dependency).
 - **New dependencies** (the fonts) are explained in the PR (why, size, alternative) and agreed by the team.
 - **Teammates' pages**: `HomePage` and `SignupPage` are Ahlem's (MLink-51/81), `/mot-de-passe` is hers (MLink-89).
   Phase A restyles them **through tokens only**, without touching their files. Phase C changes inside her pages happen
@@ -130,6 +131,9 @@ token names stay as aliases until every page has moved (no big-bang rename).
   Mobile first; no horizontal scroll at 320 px; touch targets ≥ 44 × 44 px.
 
 ### 4.4 Components (only what screens need now; a component joins `shared/ui` the second time it is needed)
+
+New ones come from shadcn/Watermelon (`src/shared/components`) when an item fits, wrapped with French texts and
+checked against the CSP; our existing CSS Modules components stay and are restyled with the tokens.
 
 | Component | State | Change |
 |---|---|---|
@@ -232,7 +236,8 @@ the PR. "Mine" = Mohamed; "Ahlem" = her ticket, or her written OK.
 - **D1** accessibility: keyboard-only run of every flow, screen reader spot check (NVDA), zoom 200 %, `axe` in the
   browser (dev tool, not a dependency), contrast script green.
 - **D2** responsive: screenshots at 320, 375, 768, 1024, 1440 for each page; no horizontal scroll.
-- **D3** performance: entry JS stays ≤ 75 kB gzip, fonts ≤ 90 kB, no layout shift from fonts (`size-adjust` fallback if
+- **D3** performance: the JS a first visit downloads (entry + preloaded chunks) stays ≤ 110 kB gzip (was "entry ≤ 75 kB":
+  Rollup moved react-router into the entry on 2026-11-11 with the same 106 kB download; Mohamed's decision), fonts ≤ 90 kB, no layout shift from fonts (`size-adjust` fallback if
   needed), images keep width/height.
 - **D4** docs: `docs/ONBOARDING.md` §7 (UI library and tokens, the type and spacing rules, "how to build a page that
   looks right"), `docs/MANUAL-TESTING.md` (visual checks), CONTRIBUTING (no raw sizes or colours).
@@ -241,8 +246,8 @@ the PR. "Mine" = Mohamed; "Ahlem" = her ticket, or her written OK.
 
 | # | Question | Who | Default if no answer |
 |---|---|---|---|
-| D1 | Type pairing A or B (or sans only) | team, from B0 | A |
-| D2 | Neutrals move to the green tint | team, from B0 | yes |
+| D1 | Type pairing A or B (or sans only) | team, from B0 | **B** (Mohamed, 2026-10-30) |
+| D2 | Neutrals move to the green tint | team, from B0 | **yes** (Mohamed, 2026-10-30) |
 | D3 | Which claims on the home page are true today (HDS, INPDP, encryption) | team / home page owner | neutral wording |
 | D4 | Branch: start after #11 merges (new branch from `master`), or before | Mohamed | after #11 |
 
@@ -260,5 +265,5 @@ the PR. "Mine" = Mohamed; "Ahlem" = her ticket, or her written OK.
 - [Healthcare dashboard UI/UX best practices (Aufait UX)](https://www.aufaitux.com/blog/healthcare-dashboard-ui-ux-design-best-practices/)
 - [Designing empathetic healthcare interfaces (UXmatters)](https://uxmatters.com/mt/archives/2023/12/designing-empathetic-healthcare-user-interfaces-enhancing-usability-and-accessibility.php)
 - [Best free and premium fonts for 2026 (Freeforfonts)](https://freeforfonts.com/blog/best-free-premium-fonts-designers-will-use-in-2026)
-- Watermelon UI: Medesk Dashboard (`medesk-dashboard`), macOS Sidebar, Navigation-1 (reference only)
+- Watermelon UI: Medesk Dashboard (`medesk-dashboard`), macOS Sidebar, Navigation-1
 - WCAG 2.2: 1.4.3 contrast (minimum), 1.4.11 non-text contrast, 2.5.8 target size

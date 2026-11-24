@@ -67,9 +67,12 @@ test('turns the error body into an ApiError', async () => {
   })
 })
 
-test('handles a non-JSON error body', async () => {
+test('handles a non-JSON error body with a plain message (e.g. the proxy answering while the API is down)', async () => {
   fetchMock.mockResolvedValue(new Response('boom', { status: 500 }))
-  await expect(apiFetch('/x')).rejects.toBeInstanceOf(ApiError)
+  await expect(apiFetch('/x')).rejects.toMatchObject({
+    status: 500,
+    message: 'Un problème est survenu de notre côté. Réessayez dans un instant.',
+  })
 })
 
 test('calls the unauthorized handler on a 401', async () => {
@@ -136,7 +139,7 @@ test('turns a network failure into a NETWORK_ERROR ApiError', async () => {
   await expect(apiFetch('/auth/me')).rejects.toMatchObject({
     status: 0,
     code: 'NETWORK_ERROR',
-    message: 'Impossible de joindre le serveur. Veuillez réessayer.',
+    message: 'Connexion impossible. Vérifiez votre accès à Internet puis réessayez.',
   })
 })
 

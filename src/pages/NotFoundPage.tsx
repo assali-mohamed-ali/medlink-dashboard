@@ -1,5 +1,5 @@
 import { paths } from '@/shared/config/paths'
-import StatusPage from './StatusPage'
+import StatusPage from '@/shared/components/StatusPage'
 
 export default function NotFoundPage() {
   return (
