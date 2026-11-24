@@ -103,6 +103,7 @@ jobs:
       packages: write
       id-token: write
       attestations: write
+      artifact-metadata: write
     outputs:
       digest: ${{ steps.publish.outputs.digest }}
       image: ${{ steps.publish.outputs.ref }}
