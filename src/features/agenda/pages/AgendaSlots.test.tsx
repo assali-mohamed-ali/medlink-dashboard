@@ -267,3 +267,15 @@ test('an overlap with a slot hidden by the filter shows that clinic and its week
   expect(screen.getByRole('form', { name: 'Ouvrir un créneau' })).toBeInTheDocument()
   expect(within(screen.getByRole('form', { name: 'Ouvrir un créneau' })).getByLabelText('Début')).toHaveValue('10:00')
 })
+
+// The practitioner's home leads here with "?ajouter": the agenda opens with the form already open
+test('opened with "?ajouter" (from the home), the agenda shows the form at once', async () => {
+  render(
+    <MemoryRouter initialEntries={['/praticien/agenda?ajouter']}>
+      <AgendaPage />
+    </MemoryRouter>,
+  )
+
+  expect(await screen.findByRole('form', { name: 'Ouvrir un créneau' })).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: /Ajouter un créneau/ })).toHaveAttribute('aria-expanded', 'true')
+})

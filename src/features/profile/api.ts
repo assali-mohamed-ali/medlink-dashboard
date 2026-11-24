@@ -24,3 +24,12 @@ export function thisWeek(now: Date) {
 export function fetchWeek(from: string, to: string) {
   return apiFetch<Week>(`/practitioner/agenda?${new URLSearchParams({ from, to })}`)
 }
+
+/** What the patient's profile counts of an appointment (GET /api/appointments/me, MLink-108). */
+export type MyAppointment = { id: string; status: string; startsAt: string }
+export type MyAppointments = { items: MyAppointment[]; total: number }
+
+/** The patient's appointments, latest first (the API's largest page is 50). Read here for the same reason as the week. */
+export function fetchMyAppointments(page: number, size: number) {
+  return apiFetch<MyAppointments>(`/appointments/me?page=${page}&size=${size}`)
+}

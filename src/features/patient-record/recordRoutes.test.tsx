@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { RouterProvider, createMemoryRouter } from 'react-router-dom'
-import { beforeEach, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { routes } from '@/app/routes'
 import { ApiError } from '@/shared/api/apiClient'
 import * as agendaApi from '@/features/agenda/api'
@@ -40,8 +40,16 @@ beforeEach(() => {
   vi.mocked(api.fetchReports).mockResolvedValue([])
 })
 
+afterEach(() => {
+  vi.useRealTimers()
+})
+
 test('clicking "Ouvrir le dossier" on an appointment of the agenda opens that patient’s record', async () => {
   const user = userEvent.setup()
+  // "Now" is a Wednesday: tomorrow is in the week the agenda shows (Monday to Saturday). With the real date, the test
+  // failed every Saturday, tomorrow being a Sunday
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-11-11T09:00:00Z'))
   const startsAt = new Date(Date.now() + 86_400_000)
   startsAt.setUTCHours(9, 0, 0, 0)
   vi.mocked(agendaApi.fetchAgenda).mockResolvedValue({
