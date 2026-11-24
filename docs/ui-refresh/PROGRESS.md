@@ -1,13 +1,23 @@
 # UI refresh: progress and hand-over
 
 **A new session starts here.** Read this file, then [PLAN.md](PLAN.md) (the why and the what), the repo's `CLAUDE.md`,
-`CONTRIBUTING.md` (Team rules) and `docs/ONBOARDING.md` §7 (UI library and tokens). PR text: [PR-DRAFT.md](PR-DRAFT.md).
+`CONTRIBUTING.md` (Team rules) and `docs/ONBOARDING.md` §7 (UI library and tokens). PR: on GitHub, `feat/MLink-128-ui-kit` → `master` (its description holds the former `PR-DRAFT.md`).
 
 Work for: **Mohamed** (YouTrack `Mohamed.BenNaima`, also "Al-Assad"). Ticket: **MLink-162** (unassigned on purpose).
 Teammate: **Ahlem** (`Ahlem.SAKLY`, GitHub `sakly123`) owns Home, Signup and the password pages (MLink-51/81/89): change
 her files only with her written OK, or when Mohamed explicitly decides it (then comment on her ticket what changed).
 
-## Where things stand (2026-11-11)
+## Where things stand (2026-11-12)
+
+- **#11 merged into `master`** (2026-11-12, code owner). `master` merged here (`88e28e1`, no file changed). Ahlem
+  merged #11 into `epic/MLink-10`, which now merges cleanly with this branch.
+- **PR opened** to `master` (MLink-162) with the former `PR-DRAFT.md` text; that file is deleted. Checks on the merge:
+  221 tests, lint, tsc, build, `check:contrast` (26 pairs), `check:budget` (106.0 / 110 kB); pre-commit rules checked
+  by hand on the 84 changed files (`pre-commit` and `gitleaks` not installed locally: CI runs them).
+- **Still by hand (Mohamed)**: NVDA pass, practitioner and staff spaces with the code (§7b); before/after
+  screenshots on the PR. Open choice: one typeface for the team (Ahlem's agenda uses Plus Jakarta Sans).
+
+### 2026-11-11
 
 - **Code owner's review on #11 (2026-11-10) answered**: "change password is out of logged in interface". The own
   change is now a page of each space (`/patient|/praticien|/admin/mot-de-passe`, `OwnPasswordPage`); `/mot-de-passe`
@@ -46,7 +56,7 @@ her files only with her written OK, or when Mohamed explicitly decides it (then 
 | #11 blocker `/mot-de-passe` | ✅ 2026-11-05 | `d0c2aaf`, `ed53de3` (on #11) | MLink-89, Mohamed's decision, Ahlem notified |
 | C1/C2 home, login/signup layout | ⬜ | | Ahlem's pages; her fixes from MLink-81 are in |
 | D quality pass | 🔄 | `aaacd1c`, `b800a8b` | budget in CI, focus outline, CSP checked on 8090; NVDA + practitioner/staff by hand left |
-| PR | ⏳ | `PR-DRAFT.md` | after #11 is merged |
+| PR | 🔄 2026-11-12 | GitHub | waiting for the code owner's review |
 
 Legend: ✅ done · ⏳ waiting on someone · 🔄 in progress · ⬜ not started.
 
@@ -55,11 +65,10 @@ Legend: ✅ done · ⏳ waiting on someone · 🔄 in progress · ⬜ not starte
 1. **Sync**: `git checkout feat/MLink-128-ui-kit && git pull`; `git fetch`; if #11's branch or `master` moved, merge
    them in (never force-push; check: `git log --oneline HEAD..origin/feat/MLink-6-front-auth-foundation`).
    Then `npm ci && npm test && npm run lint && npm run build && npm run check:contrast && npm run check:budget`.
-2. **Check #11** (`gh pr view 11 --comments`, `gh api repos/{owner}/{repo}/pulls/11/reviews`): the code owner's
-   re-review. Changes asked → fix them on #11 (tell Ahlem on MLink-89/81 which files). Also read MLink-89/81 for Ahlem.
-3. **When #11 is merged**: merge `master` in, re-run the checks, take before/after screenshots (375 and 1440 px: `/`,
-   `/connexion`, `/inscription`, `/patient`, `/admin`), open the PR to `master` with `PR-DRAFT.md` (AI disclosure:
-   tick "J'ai utilisé…", never the human-review box), set MLink-162 to *To Verify* with the PR link (ask first).
+2. **Check the PR** (`gh pr view feat/MLink-128-ui-kit --comments`): the code owner's review. Changes asked → fix
+   them here (red then green), tell Ahlem on MLink-81/89 when her pages are touched.
+3. **On the PR, by hand**: before/after screenshots (375 and 1440 px: `/`, `/connexion`, `/inscription`, `/patient`,
+   `/admin`); set MLink-162 to *To Verify* with the PR link (ask first). #11 is merged (2026-11-12).
 4. **By hand, Mohamed**: an NVDA pass (`docs/MANUAL-TESTING.md` §7b), the practitioner and staff spaces (TOTP).
 5. **Open choices for Mohamed**: the timeout message ("Le serveur met trop de temps à répondre. Veuillez réessayer.")
    kept its old voice; a "Mon compte" page would bring the user dropdown of PLAN.md §4.5; Phase C waits on Ahlem.
@@ -91,6 +100,8 @@ MLink-89 and MLink-81, and give me a brief."*
 
 ## Log
 
+- **2026-11-12**: #11 merged into `master`; `master` merged here; PR opened, `PR-DRAFT.md` removed (its text is the
+  PR description).
 - **2026-11-11**: #11 merged in twice (review fix for MLink-89, then its follow-ups). Conflicts in `paths.ts`,
   `routes.tsx`, `spaces.ts`, `MANUAL-TESTING.md` resolved by keeping both sides (icons + space password paths,
   `SpaceComingSoon` + staff password route, 7b + renamed 7c). `PublicFooter.css` named an unloaded face (audit A1):
