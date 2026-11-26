@@ -256,6 +256,24 @@ test('a practitioner also needs a specialty and clinics, chosen from the lists',
   })
 })
 
+test('when the profile lists cannot be loaded, the dialog says so and "Réessayer" brings the fields back', async () => {
+  vi.mocked(api.fetchProfileChoices)
+    .mockRejectedValueOnce(new ApiError(503, 'UNAVAILABLE', 'Service indisponible.'))
+    .mockResolvedValueOnce(CHOICES)
+  const user = renderPage()
+  const dialog = await openCreate(user)
+
+  await user.click(within(dialog).getByRole('radio', { name: 'Praticien' }))
+  expect(await within(dialog).findByRole('alert')).toHaveTextContent('n’ont pas pu être chargées')
+  expect(within(dialog).queryByLabelText('Spécialité')).not.toBeInTheDocument()
+
+  await user.click(within(dialog).getByRole('button', { name: 'Réessayer' }))
+
+  expect(await within(dialog).findByLabelText('Spécialité')).toBeInTheDocument()
+  expect(within(dialog).getByRole('checkbox', { name: 'Clinique MedLink Sfax' })).toBeInTheDocument()
+  expect(api.fetchProfileChoices).toHaveBeenCalledTimes(2)
+})
+
 test('a 400 puts each message under its own field and keeps what was typed', async () => {
   createAccount.mockRejectedValue(
     new ApiError(400, 'VALIDATION_FAILED', 'Certains champs sont invalides.', {
