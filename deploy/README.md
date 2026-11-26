@@ -86,10 +86,10 @@ server {
 | `/api/...` | `502 API_NOT_ROUTED` (see above) | none |
 
 Every page and file carries the headers of `deploy/nginx/security-headers.conf`: a strict
-`Content-Security-Policy` (`'self'` only, plus `data:` images for the QR code), `X-Frame-Options: DENY`,
-`X-Content-Type-Options: nosniff`, `Referrer-Policy: same-origin` (mailed links carry single-use tokens),
-`Permissions-Policy`, `Cross-Origin-Opener-Policy`. A new third-party script, style, font or image needs a CSP change
-and a security review: prefer self-hosting it.
+`Content-Security-Policy` (`'self'`, Sentry's ingest hosts for error reporting, plus `data:` images for the QR
+code), `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: same-origin` (mailed links
+carry single-use tokens), `Permissions-Policy`, `Cross-Origin-Opener-Policy`. A new third-party script, style, font
+or image needs a CSP change and a security review: prefer self-hosting it.
 
 ## CI and release flow
 
@@ -137,6 +137,21 @@ port from the intended reverse proxy/firewall. Do not generate `known_hosts` wit
 
 The Compose deployment file is intentionally image-only: the remote server pulls an immutable digest; it does not build source code during deployment.
 
+## Sentry
+
+The browser SDK starts in `src/instrument.ts` only when `VITE_SENTRY_DSN` is set at build time. The Dockerfile and
+container workflow default to the project's public DSN; the repository variable `VITE_SENTRY_DSN` overrides it.
+Without a DSN, Sentry is disabled and no event leaves the browser.
+
+Source map upload runs only when `SENTRY_AUTH_TOKEN`, `SENTRY_ORG` and `SENTRY_PROJECT` are all present in the build
+environment. Use an organization token with source-map upload permission; it is a secret and must stay out of the
+browser and runtime image. Set `SENTRY_AUTH_TOKEN` as a repository secret and `SENTRY_ORG`/`SENTRY_PROJECT` as
+variables; the workflow passes the token as a BuildKit secret (never a build arg) and the other values as build args,
+and the Vite plugin removes source maps from `dist/` after upload.
+
+Only Sentry's public ingest hosts are allowed in `connect-src`; a self-hosted Sentry needs its ingest host added
+there. The SDK scrubs mailed tokens, request bodies and authentication headers in `src/shared/lib/sentryScrub.ts`
+before events leave the browser; keep Sentry's server-side data-scrubbing rules enabled as a backstop.
 
 ## Local pre-commit hooks
 

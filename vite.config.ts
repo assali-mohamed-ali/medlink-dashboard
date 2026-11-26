@@ -1,11 +1,28 @@
 import { fileURLToPath } from 'node:url'
+import { sentryVitePlugin } from '@sentry/bundler-plugins/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vitest/config'
 
 const API_PROXY = { '/api': 'http://localhost:8080' }
+const canUploadSourceMaps = Boolean(
+  process.env.SENTRY_AUTH_TOKEN && process.env.SENTRY_ORG && process.env.SENTRY_PROJECT,
+)
 
 export default defineConfig({
-  plugins: [react()],
+  // Sentry is the only browser connection outside our origin (its ingest host is allowed in the CSP).
+  plugins: [
+    react(),
+    ...(canUploadSourceMaps
+      ? sentryVitePlugin({
+          authToken: process.env.SENTRY_AUTH_TOKEN,
+          org: process.env.SENTRY_ORG,
+          project: process.env.SENTRY_PROJECT,
+          telemetry: false,
+          sourcemaps: { filesToDeleteAfterUpload: './dist/**/*.map' },
+        })
+      : []),
+  ],
+  build: { sourcemap: canUploadSourceMaps ? 'hidden' : false },
   resolve: {
     // Same alias as tsconfig.app.json "paths": @/x = src/x
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },

@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Sentry source-map upload token (secret; see README)
+.env.sentry-build-plugin
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
