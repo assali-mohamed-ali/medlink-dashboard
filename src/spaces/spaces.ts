@@ -57,6 +57,8 @@ export const SPACES: Record<Role, Space> = {
       { label: 'Accueil', to: paths.patient.root, icon: House },
       { label: 'Prendre rendez-vous', to: paths.patient.slots, icon: CalendarPlus },
       { label: 'Mes rendez-vous', to: paths.patient.appointments, icon: CalendarCheck },
+      // MLink-32 follow-up: the consultation reports written about the patient
+      { label: 'Comptes-rendus', to: paths.patient.reports, icon: FileText },
       // The password page opens from the profile ("Modifier le mot de passe"), as for the practitioner
       { label: 'Profil', to: paths.patient.profile, icon: UserRound, also: [paths.patient.password] },
     ],
@@ -69,7 +71,12 @@ export const SPACES: Record<Role, Space> = {
           icon: CalendarDays,
           link: { to: paths.patient.appointments, label: 'Voir mes rendez-vous' },
         },
-        { title: 'Documents', text: 'Vos comptes rendus, ordonnances et résultats.', icon: FileText },
+        {
+          title: 'Comptes-rendus',
+          text: 'Les comptes-rendus de vos consultations, écrits par vos médecins.',
+          icon: FileText,
+          link: { to: paths.patient.reports, label: 'Voir mes comptes-rendus' },
+        },
         { title: 'Messages', text: 'Vos échanges avec vos soignants.', icon: MessageSquare },
       ],
     },

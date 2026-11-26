@@ -19,6 +19,7 @@ export const paths = {
     root: '/patient',
     slots: '/patient/creneaux',
     appointments: '/patient/rendez-vous',
+    reports: '/patient/comptes-rendus',
     profile: '/patient/profil',
     password: '/patient/mot-de-passe',
   },

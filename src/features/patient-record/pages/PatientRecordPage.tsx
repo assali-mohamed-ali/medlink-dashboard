@@ -95,7 +95,13 @@ export default function PatientRecordPage() {
       </nav>
 
       {load.status === 'ready' ? (
-        <Record key={patientId} titleId={titleId} patientId={patientId} patient={load.record.patient} />
+        <Record
+          key={patientId}
+          titleId={titleId}
+          patientId={patientId}
+          patient={load.record.patient}
+          canWrite={load.record.canWriteReport}
+        />
       ) : (
         <>
           <h2 id={titleId} className={styles.title}>
@@ -116,11 +122,12 @@ export default function PatientRecordPage() {
   )
 }
 
-type RecordProps = { titleId: string; patientId: string; patient: PatientIdentity }
+type RecordProps = { titleId: string; patientId: string; patient: PatientIdentity; canWrite: boolean }
 
 /** The record once read: the header with the yellow action, the four facts, the identity and the reports. */
-function Record({ titleId, patientId, patient }: RecordProps) {
+function Record({ titleId, patientId, patient, canWrite }: RecordProps) {
   const identityId = useId()
+  const notYetId = useId()
   const [today] = useState(() => new Date())
   const reports = useReports(patientId)
   const [writing, setWriting] = useState(false)
@@ -155,7 +162,10 @@ function Record({ titleId, patientId, patient }: RecordProps) {
           ref={newButton}
           type="button"
           className={styles.newReport}
-          aria-expanded={writing}
+          aria-expanded={canWrite ? writing : undefined}
+          // MLink-32 follow-up: no report before the consultation has started (the API refuses it too)
+          disabled={!canWrite}
+          aria-describedby={canWrite ? undefined : notYetId}
           onClick={() => {
             setSaved(false)
             setWriting(true)
@@ -164,6 +174,11 @@ function Record({ titleId, patientId, patient }: RecordProps) {
           <Plus size={18} aria-hidden="true" />
           Nouveau compte-rendu
         </button>
+        {!canWrite && (
+          <p id={notYetId} className={styles.notYet}>
+            Vous pourrez écrire le compte-rendu une fois la consultation commencée.
+          </p>
+        )}
       </header>
 
       <ul aria-label="En bref" className={styles.glance}>

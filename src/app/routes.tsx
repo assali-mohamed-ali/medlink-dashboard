@@ -3,6 +3,7 @@ import type { RouteObject } from 'react-router-dom'
 import { staffAccountsPages } from '@/features/accounts'
 import { practitionerAgendaPages } from '@/features/agenda'
 import { staffAuditPages } from '@/features/audit'
+import { patientReportPages } from '@/features/my-reports'
 import { practitionerRecordPages } from '@/features/patient-record'
 import { patientProfilePages, practitionerProfilePages } from '@/features/profile'
 import { staffStatsPages } from '@/features/stats'
@@ -53,6 +54,7 @@ export const routes: RouteObject[] = [
       space('PATIENT', paths.patient.root, [
         ...patientSlotPages,
         ...patientProfilePages,
+        ...patientReportPages,
         ownPasswordRoute(paths.patient.password),
       ]),
       space('PRACTITIONER', paths.practitioner.root, [

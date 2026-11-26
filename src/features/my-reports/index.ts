@@ -1,0 +1,1 @@
+export { patientReportPages } from './routes'

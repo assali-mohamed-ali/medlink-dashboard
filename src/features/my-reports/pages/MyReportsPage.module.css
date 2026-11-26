@@ -1,0 +1,31 @@
+/* MLink-32 follow-up: the patient's consultation reports, in the cards of the patient space. Tokens only. */
+.page { display: flex; flex-direction: column; gap: var(--space-5); }
+.head { display: flex; flex-direction: column; gap: var(--space-1); }
+.title { margin: 0; font-size: var(--text-3xl); line-height: var(--leading-3xl); font-weight: 700; letter-spacing: -0.01em; }
+.subtitle { margin: 0; color: var(--text-muted); font-size: var(--text-sm); line-height: var(--leading-sm); }
+.error { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); }
+
+.reports { display: flex; flex-direction: column; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.report {
+  display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-5);
+  background: var(--surface-raised); border: 1px solid var(--border); border-radius: var(--radius-card); box-shadow: var(--elev-1);
+}
+.meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); }
+.author { display: inline-flex; align-items: center; gap: var(--space-2); font-weight: 700; }
+.icon { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: var(--radius-control); background: var(--secondary-fixed); color: var(--primary); }
+.specialty {
+  padding: 2px var(--space-3); border-radius: var(--radius-pill); background: var(--secondary-fixed); color: var(--primary);
+  font-size: var(--text-xs); line-height: var(--leading-xs); font-weight: 600;
+}
+.date { margin-left: auto; color: var(--text-muted); font-size: var(--text-xs); line-height: var(--leading-xs); font-weight: 600; }
+.text { margin: 0; font-size: var(--text-sm); line-height: 1.55; white-space: pre-line; overflow-wrap: anywhere; }
+.more {
+  align-self: flex-start; padding: 0; border: 0; background: none; color: var(--primary);
+  font: inherit; font-size: var(--text-sm); font-weight: 600; cursor: pointer;
+}
+.more:hover { text-decoration: underline; }
+.more:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--radius-field); }
+
+@media (max-width: 640px) {
+  .date { margin-left: 0; flex-basis: 100%; }
+}
