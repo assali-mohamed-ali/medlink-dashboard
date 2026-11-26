@@ -139,13 +139,17 @@ test('the list that cannot be read says so; the quick actions stay', async () =>
   expect(screen.getByRole('link', { name: 'Prendre rendez-vous' })).toBeInTheDocument()
 })
 
-test('documents and messages are not built yet: they say so, with no link', async () => {
+test('the consultation reports lead to their page; messages are not built yet and say so, with no link', async () => {
   renderHome()
   await screen.findByRole('region', { name: 'Prochain rendez-vous' })
 
-  for (const name of ['Documents', 'Messages']) {
-    const part = screen.getByRole('region', { name })
-    expect(within(part).getByText('Bientôt disponible')).toBeInTheDocument()
-    expect(within(part).queryByRole('link')).toBeNull()
-  }
+  const reports = screen.getByRole('region', { name: 'Comptes-rendus' })
+  expect(within(reports).getByRole('link', { name: 'Voir mes comptes-rendus' })).toHaveAttribute(
+    'href',
+    '/patient/comptes-rendus',
+  )
+  expect(within(reports).queryByText('Bientôt disponible')).toBeNull()
+  const messages = screen.getByRole('region', { name: 'Messages' })
+  expect(within(messages).getByText('Bientôt disponible')).toBeInTheDocument()
+  expect(within(messages).queryByRole('link')).toBeNull()
 })

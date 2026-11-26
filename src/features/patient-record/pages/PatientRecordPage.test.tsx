@@ -15,6 +15,7 @@ const fetchPatientRecord = vi.mocked(api.fetchPatientRecord)
 const RECORD: PatientRecord = {
   patient: { id: 'p1', firstName: 'Ahmed', lastName: 'Kacem', birthDate: '1985-03-12', phone: '+216 22 333 444' },
   reports: [],
+  canWriteReport: true,
 }
 
 function renderPage(id = 'p1') {
