@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url'
-import tailwindcss from '@tailwindcss/vite'
 import { sentryVitePlugin } from '@sentry/bundler-plugins/vite'
+import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vitest/config'
 
@@ -10,9 +10,10 @@ const canUploadSourceMaps = Boolean(
 )
 
 export default defineConfig({
-  // Tailwind compiles at build time into our own CSS file: nothing is loaded from elsewhere (CSP 'self')
+  // Sentry is the only browser connection outside our origin (its ingest host is allowed in the CSP).
   plugins: [
     react(),
+    // Tailwind compiles at build time into our own CSS file: nothing is loaded from elsewhere (CSP 'self')
     tailwindcss(),
     ...(canUploadSourceMaps
       ? sentryVitePlugin({
