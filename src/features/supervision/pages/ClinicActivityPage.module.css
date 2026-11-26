@@ -1,0 +1,102 @@
+/* "Rendez-vous des cliniques" (MLink-35): the staff's read-only week of a practitioner. Tokens only. */
+.intro {
+  margin: 0;
+  color: var(--on-surface-variant);
+  font-size: var(--text-md);
+  line-height: var(--leading-md);
+}
+
+.muted {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+}
+
+.failure {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.weekNav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.days {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.dayTitle {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-md);
+  line-height: var(--leading-md);
+  font-weight: 700;
+}
+
+.dayTitle::first-letter {
+  text-transform: uppercase;
+}
+
+.slots {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.slot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--surface-raised);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+}
+
+.time {
+  min-width: 7.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.clinic {
+  color: var(--on-surface-variant);
+}
+
+.status {
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+}
+
+.OPEN {
+  color: var(--success);
+  background: var(--success-container);
+}
+
+.BOOKED {
+  color: var(--on-warning-container);
+  background: var(--warning-container);
+}
+
+.CLOSED {
+  color: var(--on-error-container);
+  background: var(--error-container);
+}
+
+.patient {
+  font-weight: 600;
+}

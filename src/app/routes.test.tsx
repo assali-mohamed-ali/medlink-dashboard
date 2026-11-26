@@ -10,11 +10,13 @@ import { routes } from './routes'
 
 // The real route table, with the API mocked at the auth feature's api.ts
 vi.mock('@/features/auth/api', () => ({
+  activateAccount: vi.fn(),
   changePassword: vi.fn(),
   fetchMe: vi.fn(),
   login: vi.fn(),
   logout: vi.fn(),
   register: vi.fn(),
+  resendActivation: vi.fn(),
   resendVerification: vi.fn(),
 }))
 const fetchMe = vi.mocked(authApi.fetchMe)
@@ -121,10 +123,11 @@ test.each(PASSWORD_PAGES)('a %s changes the password inside their space (%s)', a
   expect(screen.getByRole('heading', { name: title })).toBeInTheDocument()
   expect(screen.getByText(/Amel Test/)).toBeInTheDocument()
   expect(screen.getByRole('button', { name: 'Se déconnecter' })).toBeInTheDocument()
-  const entry = within(screen.getByRole('navigation', { name: 'Menu de l’espace' })).getByRole('link', {
-    name: 'Mot de passe',
-  })
-  expect(entry).toHaveAttribute('href', path)
+  // The practitioner and the patient reach it from "Profil" (no "Mot de passe" entry in their menu), which stays marked
+  const menu = within(screen.getByRole('navigation', { name: 'Menu de l’espace' }))
+  const fromProfile = role !== 'ADMINISTRATIVE_STAFF'
+  const entry = menu.getByRole('link', { name: fromProfile ? 'Profil' : 'Mot de passe' })
+  expect(entry).toHaveAttribute('href', fromProfile ? path.replace('mot-de-passe', 'profil') : path)
   expect(entry).toHaveAttribute('aria-current', 'page')
   // Not the public site's header, which made the person look logged out
   expect(screen.queryByRole('link', { name: 'Créer un compte' })).toBeNull()
@@ -157,4 +160,12 @@ test('an unknown address shows "Page introuvable"', async () => {
 test('public pages stay open to visitors', async () => {
   renderAt('/inscription')
   expect(await screen.findByRole('button', { name: /Créer mon compte/ })).toBeInTheDocument()
+})
+
+test('the activation link of the mail opens the activation page, without a session (no longer a placeholder)', async () => {
+  renderAt('/activer-compte?token=mail-token-1')
+
+  expect(await screen.findByRole('heading', { level: 1, name: 'Activez votre compte' })).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Activer mon compte' })).toBeInTheDocument()
+  expect(screen.queryByText('Activation du compte')).toBeNull()
 })
