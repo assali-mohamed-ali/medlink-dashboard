@@ -33,6 +33,23 @@ Les imports vont dans un seul sens : `app` → `spaces`/`pages` → `features` �
 architecture, flux d'une requête, sécurité, tests, dépannage) : **[docs/ONBOARDING.md](docs/ONBOARDING.md)**.
 Tester à la main tous les parcours (inscription, connexion, code à 6 chiffres, espaces) : **[docs/MANUAL-TESTING.md](docs/MANUAL-TESTING.md)**.
 
+## Sentry (optionnel)
+
+Le SDK Sentry (React) ne démarre que si `VITE_SENTRY_DSN` est défini au build. En local, mettez-le dans
+`.env.local` (ignoré par Git) :
+
+    VITE_SENTRY_DSN=https://<clé-publique>@o<org>.ingest.sentry.io/<projet>
+
+Le DSN est public ; sans lui, aucun événement ne quitte le navigateur. Le SDK est chargé dans un chunk séparé
+pour rester dans le budget JavaScript de la première visite ; les erreurs du premier rendu attendent dans une
+petite file jusqu'à son chargement.
+
+En production, le Dockerfile et le workflow `container-security` utilisent déjà le DSN public du projet ; la
+variable de dépôt `VITE_SENTRY_DSN` peut le remplacer. Pour des stack traces lisibles en production, définissez
+aussi `SENTRY_AUTH_TOKEN`, `SENTRY_ORG` et `SENTRY_PROJECT` au build : le plugin Vite téléverse les source maps
+puis les supprime de `dist/`. Le token est un secret. Voir [deploy/README.md](deploy/README.md#sentry) et la CSP
+dans `deploy/nginx/security-headers.conf`.
+
 ## Local development checks
 
 Install the repository's Git pre-commit hook by following [CONTRIBUTING.md](CONTRIBUTING.md):
