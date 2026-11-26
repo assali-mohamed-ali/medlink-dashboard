@@ -30,6 +30,12 @@ export const paths = {
     profile: '/praticien/profil',
     password: '/praticien/mot-de-passe',
   },
-  staff: { root: '/admin', accounts: '/admin/comptes', password: '/admin/mot-de-passe' },
+  staff: {
+    root: '/admin',
+    accounts: '/admin/comptes',
+    audit: '/admin/journal-audit',
+    stats: '/admin/statistiques',
+    password: '/admin/mot-de-passe',
+  },
   specimen: '/__specimen', // dev only (npm run dev): the UI refresh specimen, absent from production builds
 } as const

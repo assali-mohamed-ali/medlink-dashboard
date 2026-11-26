@@ -10,11 +10,13 @@ import { routes } from './routes'
 
 // The real route table, with the API mocked at the auth feature's api.ts
 vi.mock('@/features/auth/api', () => ({
+  activateAccount: vi.fn(),
   changePassword: vi.fn(),
   fetchMe: vi.fn(),
   login: vi.fn(),
   logout: vi.fn(),
   register: vi.fn(),
+  resendActivation: vi.fn(),
   resendVerification: vi.fn(),
 }))
 const fetchMe = vi.mocked(authApi.fetchMe)
@@ -158,4 +160,12 @@ test('an unknown address shows "Page introuvable"', async () => {
 test('public pages stay open to visitors', async () => {
   renderAt('/inscription')
   expect(await screen.findByRole('button', { name: /Créer mon compte/ })).toBeInTheDocument()
+})
+
+test('the activation link of the mail opens the activation page, without a session (no longer a placeholder)', async () => {
+  renderAt('/activer-compte?token=mail-token-1')
+
+  expect(await screen.findByRole('heading', { level: 1, name: 'Activez votre compte' })).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Activer mon compte' })).toBeInTheDocument()
+  expect(screen.queryByText('Activation du compte')).toBeNull()
 })
