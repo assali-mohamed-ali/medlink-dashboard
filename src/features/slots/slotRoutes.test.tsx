@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { RouterProvider, createMemoryRouter } from 'react-router-dom'
 import { beforeEach, expect, test, vi } from 'vitest'
@@ -41,7 +41,9 @@ test('a patient opens the slot search from the menu of their space', async () =>
   loggedInAs('PATIENT')
   const router = renderAt('/patient')
 
-  await user.click(await screen.findByRole('link', { name: 'Prendre rendez-vous' }))
+  // The menu's link: the patient's home has its own quick links of the same name
+  const menu = await screen.findByRole('navigation', { name: 'Menu de l’espace' })
+  await user.click(within(menu).getByRole('link', { name: 'Prendre rendez-vous' }))
 
   expect(await screen.findByRole('heading', { name: 'Prendre un rendez-vous' })).toBeInTheDocument()
   expect(router.state.location.pathname).toBe('/patient/creneaux')
@@ -62,7 +64,9 @@ test('a patient opens their appointments from the menu of their space', async ()
   loggedInAs('PATIENT')
   const router = renderAt('/patient')
 
-  await user.click(await screen.findByRole('link', { name: 'Mes rendez-vous' }))
+  // The menu's link: the patient's home has its own quick links of the same name
+  const menu = await screen.findByRole('navigation', { name: 'Menu de l’espace' })
+  await user.click(within(menu).getByRole('link', { name: 'Mes rendez-vous' }))
 
   expect(await screen.findByRole('heading', { name: 'Mes rendez-vous' })).toBeInTheDocument()
   expect(router.state.location.pathname).toBe('/patient/rendez-vous')

@@ -1,8 +1,8 @@
 import { useEffect } from 'react'
 import { useRouteError } from 'react-router-dom'
 import { paths } from '@/shared/config/paths'
+import StatusPage from '@/shared/components/StatusPage'
 import { reportError } from '@/shared/lib/errorReporting'
-import StatusPage from './StatusPage'
 
 /**
  * The router's errorElement: a page crashed or failed to load (e.g. a lazy chunk after a new deployment).
