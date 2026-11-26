@@ -1,6 +1,6 @@
 import { useEffect, useId, useState } from 'react'
 import { messageFor } from '@/shared/api/errors'
-import { Checkbox, Select } from '@/shared/ui'
+import { Button, Checkbox, Select } from '@/shared/ui'
 import { fetchProfileChoices } from '../api'
 import type { PractitionerProfile, ProfileChoices } from '../types'
 import styles from '../accounts.module.css'
@@ -16,6 +16,8 @@ export default function ProfileFields({ value, onChange, errors }: Props) {
   const clinicErrorId = useId()
   const [choices, setChoices] = useState<ProfileChoices | null>(null)
   const [failure, setFailure] = useState<string | null>(null)
+  // Bumped by "Réessayer": loads the lists again
+  const [attempt, setAttempt] = useState(0)
 
   useEffect(() => {
     let current = true
@@ -26,13 +28,23 @@ export default function ProfileFields({ value, onChange, errors }: Props) {
     return () => {
       current = false
     }
-  }, [])
+  }, [attempt])
+
+  function retry() {
+    setFailure(null)
+    setAttempt((count) => count + 1)
+  }
 
   if (failure) {
     return (
-      <p className={styles.fieldError} role="alert">
-        Les spécialités et les cliniques n’ont pas pu être chargées. {failure}
-      </p>
+      <div className={styles.profile}>
+        <p className={styles.fieldError} role="alert">
+          Les spécialités et les cliniques n’ont pas pu être chargées. {failure}
+        </p>
+        <Button variant="ghost" onClick={retry}>
+          Réessayer
+        </Button>
+      </div>
     )
   }
   if (!choices) return <p className={styles.muted}>Chargement des spécialités et des cliniques…</p>

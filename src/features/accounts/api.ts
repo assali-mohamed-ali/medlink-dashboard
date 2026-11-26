@@ -32,13 +32,10 @@ export function forcePasswordReset(id: string) {
   return apiFetch<void>(`/admin/users/${encodeURIComponent(id)}/force-password-reset`, { method: 'POST' })
 }
 
-type SlotFilters = ProfileChoices & { practitioners: unknown[] }
-
 /**
- * The clinics and specialties a practitioner's profile is chosen from. The API has one list of both, the slot search's
- * (`GET /api/slots/filters`); staff need it to be allowed there (asked on MLink-69). Only the two lists are kept.
+ * Endpoint 16b (MLink-69): the clinics and specialties a practitioner's profile is chosen from, in French order. Staff
+ * only; the patients' slot search lists (`/slots/filters`) refuse staff.
  */
-export async function fetchProfileChoices(): Promise<ProfileChoices> {
-  const { clinics, specialties } = await apiFetch<SlotFilters>('/slots/filters')
-  return { clinics, specialties }
+export function fetchProfileChoices() {
+  return apiFetch<ProfileChoices>('/admin/profile-choices')
 }
