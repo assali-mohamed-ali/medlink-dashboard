@@ -11,7 +11,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@hookform/resolvers": "^5.9.2",
+    "@hookform/resolvers": "^7.0.8",
     "@sentry/react": "^11.17.0",
     "lucide-react": "^1.72.0",
     "react": "^19.3.1",
