@@ -66,11 +66,13 @@ test('the practitioner has their own home: the greeting, then the day and the ag
   expect(await main.findByRole('region', { name: 'Aujourd’hui' })).toBeInTheDocument()
 })
 
-test('the staff home leads to account management and to the statistics in one click', async () => {
+test("the staff home leads to account management, the statistics and the clinics' appointments in one click", async () => {
   renderHome('ADMINISTRATIVE_STAFF', '/admin')
   const main = within(await screen.findByRole('main'))
   await main.findByRole('heading', { level: 2, name: 'Bonjour Amel' })
   expect(main.getByRole('link', { name: 'Ouvrir la gestion des comptes' })).toHaveAttribute('href', '/admin/comptes')
   expect(main.getByRole('link', { name: 'Ouvrir les statistiques' })).toHaveAttribute('href', '/admin/statistiques')
-  expect(main.getAllByText('Bientôt disponible')).toHaveLength(1)
+  // MLink-35: the last part that said "Bientôt disponible" now opens the clinics' appointments
+  expect(main.getByRole('link', { name: 'Ouvrir les rendez-vous des cliniques' })).toHaveAttribute('href', '/admin/rendez-vous')
+  expect(main.queryByText('Bientôt disponible')).toBeNull()
 })

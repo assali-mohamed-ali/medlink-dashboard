@@ -105,6 +105,7 @@ export const SPACES: Record<Role, Space> = {
       { label: 'Gestion des comptes', to: paths.staff.accounts, icon: Users },
       { label: 'Journal d’audit', to: paths.staff.audit, icon: ScrollText },
       { label: 'Statistiques', to: paths.staff.stats, icon: ChartColumn },
+      { label: 'Rendez-vous des cliniques', to: paths.staff.activity, icon: CalendarDays },
       { label: 'Mot de passe', to: paths.staff.password, icon: KeyRound },
     ],
     home: {
@@ -122,7 +123,12 @@ export const SPACES: Record<Role, Space> = {
           icon: ChartColumn,
           link: { to: paths.staff.stats, label: 'Ouvrir les statistiques' },
         },
-        { title: 'Rendez-vous des cliniques', text: 'Les plannings des trois cliniques.', icon: CalendarDays },
+        {
+          title: 'Rendez-vous des cliniques',
+          text: 'Le planning de chaque praticien dans les trois cliniques, en lecture seule.',
+          icon: CalendarDays,
+          link: { to: paths.staff.activity, label: 'Ouvrir les rendez-vous des cliniques' },
+        },
       ],
     },
   },
