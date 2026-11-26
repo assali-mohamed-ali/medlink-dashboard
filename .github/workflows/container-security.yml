@@ -45,7 +45,17 @@ jobs:
       - name: Build production image once
         env:
           IMAGE: ${{ steps.image.outputs.tag }}
-        run: docker build --pull --tag "$IMAGE" .
+          VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN || 'https://4a7f107c50daa5bfd1f4c2081d121d2a@o4512487805812736.ingest.de.sentry.io/4512487825408080' }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
+        run: >-
+          docker build --pull
+          --build-arg VITE_SENTRY_DSN="$VITE_SENTRY_DSN"
+          --build-arg SENTRY_ORG="$SENTRY_ORG"
+          --build-arg SENTRY_PROJECT="$SENTRY_PROJECT"
+          --secret id=sentry_auth_token,env=SENTRY_AUTH_TOKEN
+          --tag "$IMAGE" .
 
       - name: Scan exact image (block on HIGH/CRITICAL)
         id: trivy
@@ -103,6 +113,7 @@ jobs:
       packages: write
       id-token: write
       attestations: write
+      artifact-metadata: write
     outputs:
       digest: ${{ steps.publish.outputs.digest }}
       image: ${{ steps.publish.outputs.ref }}
