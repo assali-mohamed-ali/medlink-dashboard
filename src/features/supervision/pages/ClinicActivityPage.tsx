@@ -1,47 +1,81 @@
-import { useEffect, useState } from 'react'
-import { CalendarDays } from 'lucide-react'
+import { useEffect, useId, useState } from 'react'
+import { CalendarDays, ChevronLeft, ChevronRight, Lock, Search } from 'lucide-react'
 import { messageFor } from '@/shared/api/errors'
-import { Alert, Button, Card, EmptyState, Select, Skeleton } from '@/shared/ui'
+import { Alert, Button, EmptyState, Skeleton } from '@/shared/ui'
 import { fetchPractitionerAgenda, fetchPractitioners } from '../api'
-import type { AdminPractitioner, SlotStatus, SupervisedAgenda, SupervisedSlot } from '../types'
-import { addDays, longDayLabel, mondayOf, timeLabel, tunisDay, weekDays, weekPeriod, weekTitle } from '../week'
+import type { AdminPractitioner, ClinicRef, SlotStatus, SupervisedAgenda, SupervisedSlot } from '../types'
+import {
+  addDays,
+  dayOfMonth,
+  isoWeek,
+  longDayLabel,
+  mondayOf,
+  shortWeekday,
+  timeLabel,
+  tunisDay,
+  weekDays,
+  weekPeriod,
+  weekTitle,
+} from '../week'
 import ClinicCards from '../components/ClinicCards'
 import styles from './ClinicActivityPage.module.css'
 
-const STATUS_WORDS: Record<SlotStatus, string> = { OPEN: 'Disponible', BOOKED: 'Réservé', CLOSED: 'Fermé' }
+const STATUS_WORDS: Record<SlotStatus, string> = { OPEN: 'libre', BOOKED: 'réservé', CLOSED: 'fermé' }
 
 type Loaded<T> = { data: T } | { failure: string } | null
 
-const practitionerLabel = (p: AdminPractitioner) => `${p.lastName} ${p.firstName} · ${p.specialty.name}`
+const fullName = (p: { firstName: string; lastName: string }) => `${p.firstName} ${p.lastName}`
+const initials = (p: { firstName: string; lastName: string }) =>
+  `${p.firstName.charAt(0)}${p.lastName.charAt(0)}`.toUpperCase()
 
-/** One slot, read only: when, where, its status and, on a booked one, the patient's names. */
-function SlotLine({ slot }: { slot: SupervisedSlot }) {
+/** "Clinique MedLink Sousse" → "Sousse". */
+const shortName = (clinic: ClinicRef) => clinic.name.replace(/^Clinique\s+MedLink\s+/i, '')
+
+/** Lower case, no accents: "Pédiatrie" and "pediatrie" match. */
+const normalize = (text: string) => text.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase()
+
+/** One pastel tone per clinic, in the order of their names (as on the practitioner's agenda). */
+function tonesOf(clinics: readonly ClinicRef[]) {
+  const unique = [...new Map(clinics.map((clinic) => [clinic.id, clinic])).values()]
+  const sorted = unique.sort((a, b) => a.name.localeCompare(b.name, 'fr'))
+  return new Map(sorted.map((clinic, index) => [clinic.id, (index % 3) + 1]))
+}
+
+function plural(count: number, one: string, many: string) {
+  return count > 1 ? many : one
+}
+
+/** One slot, read only: its time, and on a booked one the patient ("Amel B."), the whole name read out. */
+function SlotCard({ slot, tone }: { slot: SupervisedSlot; tone: number }) {
   const patient = slot.status === 'BOOKED' ? slot.appointment?.patient : undefined
+  const time = `${timeLabel(slot.startsAt)} – ${timeLabel(slot.endsAt)}`
+  const label = [time, slot.clinic.name, STATUS_WORDS[slot.status], patient && fullName(patient)].filter(Boolean).join(', ')
   return (
-    <li className={styles.slot}>
-      <span className={styles.time}>
-        {timeLabel(slot.startsAt)} – {timeLabel(slot.endsAt)}
+    <li className={styles.slot} data-status={slot.status} data-tone={tone} aria-label={label}>
+      <b>{timeLabel(slot.startsAt)}</b>
+      <span className={styles.slotWhat}>
+        {patient ? `${patient.firstName} ${patient.lastName.charAt(0)}.` : slot.status === 'OPEN' ? 'Libre' : 'Fermé'}
       </span>
-      <span className={styles.clinic}>{slot.clinic.name}</span>
-      <span className={`${styles.status} ${styles[slot.status]}`}>{STATUS_WORDS[slot.status]}</span>
-      {patient && (
-        <span className={styles.patient}>
-          {patient.firstName} {patient.lastName}
-        </span>
-      )}
+      <small>{shortName(slot.clinic)}</small>
     </li>
   )
 }
 
 /**
- * "Rendez-vous des cliniques" (MLink-35): staff choose a practitioner and read their week, Monday to Saturday in Tunis
- * time, day by day. Read only, on purpose: no action on a slot and no way to a medical record.
+ * "Rendez-vous des cliniques" (MLink-35), after the Stitch design of the staff space: the practitioners as cards with a
+ * search, then the chosen one's week, Monday to Saturday in Tunis time, slots tinted by clinic. Read only, on purpose:
+ * no action on a slot and no way to a medical record.
  */
 export default function ClinicActivityPage() {
+  const titleId = useId()
+  const searchId = useId()
+  const chosenId = useId()
   // Read once: the clock is not called again at each render
-  const [thisMonday] = useState(() => mondayOf(tunisDay(new Date())))
+  const [today] = useState(() => tunisDay(new Date()))
+  const thisMonday = mondayOf(today)
   const [practitioners, setPractitioners] = useState<Loaded<AdminPractitioner[]>>(null)
   const [listAttempt, setListAttempt] = useState(0)
+  const [search, setSearch] = useState('')
   const [chosen, setChosen] = useState('')
   const [monday, setMonday] = useState(thisMonday)
   const [agenda, setAgenda] = useState<Loaded<SupervisedAgenda>>(null)
@@ -72,6 +106,7 @@ export default function ClinicActivityPage() {
   }, [chosen, monday, agendaAttempt])
 
   function choose(id: string) {
+    if (id === chosen) return
     setAgenda(null)
     setChosen(id)
   }
@@ -81,9 +116,16 @@ export default function ClinicActivityPage() {
     setMonday(day)
   }
 
+  const list = practitioners && 'data' in practitioners ? practitioners.data : null
+  const wanted = normalize(search.trim())
+  const shown = list?.filter((p) => !wanted || normalize(`${fullName(p)} ${p.lastName} ${p.specialty.name}`).includes(wanted))
+  const practitioner = list?.find((p) => p.id === chosen)
+  // One tone per clinic for the whole page (cards, slots, legend): from every practitioner's clinics
+  const networkTones = tonesOf(list?.flatMap((p) => p.clinics) ?? [])
+
   let picker
   if (practitioners === null) {
-    picker = <Skeleton lines={1} label="Chargement des praticiens" />
+    picker = <Skeleton lines={3} label="Chargement des praticiens" />
   } else if ('failure' in practitioners) {
     picker = (
       <div className={styles.failure}>
@@ -100,23 +142,65 @@ export default function ClinicActivityPage() {
       </div>
     )
   } else {
+    const tones = networkTones
     picker = (
-      <Select label="Praticien" value={chosen} onChange={(event) => choose(event.target.value)}>
-        <option value="">Choisir un praticien</option>
-        {practitioners.data.map((practitioner) => (
-          <option key={practitioner.id} value={practitioner.id}>
-            {practitionerLabel(practitioner)}
-          </option>
-        ))}
-      </Select>
+      <>
+        <label htmlFor={searchId} className="visually-hidden">
+          Rechercher un praticien
+        </label>
+        <div className={styles.search}>
+          <Search size={16} aria-hidden="true" />
+          <input
+            id={searchId}
+            type="search"
+            placeholder="Nom ou spécialité"
+            autoComplete="off"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+          />
+        </div>
+        {shown && shown.length === 0 && <p className={styles.muted}>Aucun praticien ne correspond.</p>}
+        <ul className={styles.pros} aria-label="Praticiens">
+          {shown?.map((p) => (
+            <li key={p.id}>
+              <button
+                type="button"
+                className={styles.pro}
+                aria-pressed={p.id === chosen}
+                aria-label={`Dr ${fullName(p)}, ${p.specialty.name}`}
+                onClick={() => choose(p.id)}
+              >
+                <span className={styles.initials} aria-hidden="true">
+                  {initials(p)}
+                </span>
+                <span className={styles.proText}>
+                  <b>Dr {fullName(p)}</b>
+                  <small>{p.specialty.name}</small>
+                  <span className={styles.chips}>
+                    {p.clinics.map((clinic) => (
+                      <span key={clinic.id} className={styles.chip} data-tone={tones.get(clinic.id)}>
+                        {shortName(clinic)}
+                      </span>
+                    ))}
+                  </span>
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </>
     )
   }
 
   let week
   if (!chosen) {
-    week = <p className={styles.muted}>Choisissez un praticien pour voir sa semaine.</p>
+    week = (
+      <EmptyState icon={CalendarDays} title="Aucun praticien choisi" compact>
+        Choisissez un praticien pour voir sa semaine.
+      </EmptyState>
+    )
   } else if (agenda === null) {
-    week = <Skeleton lines={4} label="Chargement de la semaine" />
+    week = <Skeleton lines={6} label="Chargement de la semaine" />
   } else if ('failure' in agenda) {
     week = (
       <div className={styles.failure}>
@@ -132,60 +216,162 @@ export default function ClinicActivityPage() {
         </Button>
       </div>
     )
-  } else if (agenda.data.items.length === 0) {
-    week = (
-      <EmptyState icon={CalendarDays} title="Aucun créneau cette semaine" compact>
-        Ce praticien n’a ouvert aucun créneau sur ces jours.
-      </EmptyState>
-    )
   } else {
     const items = agenda.data.items
+    const tones = networkTones.size > 0 ? networkTones : tonesOf(agenda.data.clinics)
+    const count = (status: SlotStatus) => items.filter((slot) => slot.status === status).length
+    const booked = count('BOOKED')
+    const open = count('OPEN')
+    const closed = count('CLOSED')
     week = (
-      <div className={styles.days}>
-        {weekDays(monday).map((day) => {
-          const slots = items.filter((slot) => tunisDay(slot.startsAt) === day)
-          if (slots.length === 0) return null
-          const label = longDayLabel(day)
-          return (
-            <section key={day} aria-label={label} className={styles.day}>
-              <h4 className={styles.dayTitle}>{label}</h4>
-              <ul className={styles.slots}>
-                {slots.map((slot) => (
-                  <SlotLine key={slot.slotId} slot={slot} />
-                ))}
-              </ul>
-            </section>
-          )
-        })}
-      </div>
+      <>
+        {practitioner && (
+          <section className={styles.chosen} aria-labelledby={chosenId}>
+            <span className={styles.initials} data-size="lg" aria-hidden="true">
+              {initials(practitioner)}
+            </span>
+            <div className={styles.chosenText}>
+              <h3 id={chosenId}>Dr {fullName(practitioner)}</h3>
+              <span>
+                {practitioner.specialty.name} · {practitioner.clinics.map(shortName).join(', ')}
+              </span>
+            </div>
+            <ul className={styles.counts} aria-label="La semaine en chiffres">
+              <li>
+                <b>{booked}</b>
+                <small>{plural(booked, 'réservé', 'réservés')}</small>
+              </li>
+              <li>
+                <b>{open}</b>
+                <small>{plural(open, 'libre', 'libres')}</small>
+              </li>
+              <li>
+                <b>{closed}</b>
+                <small>{plural(closed, 'fermé', 'fermés')}</small>
+              </li>
+            </ul>
+          </section>
+        )}
+        {items.length === 0 ? (
+          <EmptyState icon={CalendarDays} title="Aucun créneau cette semaine" compact>
+            Ce praticien n’a ouvert aucun créneau sur ces jours.
+          </EmptyState>
+        ) : (
+          <div className={styles.grid}>
+            {weekDays(monday).map((day) => {
+              const slots = items.filter((slot) => tunisDay(slot.startsAt) === day)
+              return (
+                <section
+                  key={day}
+                  aria-label={longDayLabel(day)}
+                  aria-current={day === today ? 'date' : undefined}
+                  className={styles.day}
+                >
+                  <h4 className={styles.dayHead} aria-hidden="true">
+                    <small>{shortWeekday(day)}</small>
+                    <b>{dayOfMonth(day)}</b>
+                  </h4>
+                  {slots.length === 0 ? (
+                    <p className={styles.none}>Aucun créneau</p>
+                  ) : (
+                    <ul className={styles.slots}>
+                      {slots.map((slot) => (
+                        <SlotCard key={slot.slotId} slot={slot} tone={tones.get(slot.clinic.id) ?? 1} />
+                      ))}
+                    </ul>
+                  )}
+                </section>
+              )
+            })}
+          </div>
+        )}
+        {items.length > 0 && (
+          <ul className={styles.legend} aria-label="Légende">
+            {[...agenda.data.clinics]
+              .sort((a, b) => a.name.localeCompare(b.name, 'fr'))
+              .map((clinic) => (
+                <li key={clinic.id}>
+                  <span className={styles.swatch} data-tone={tones.get(clinic.id)} aria-hidden="true" />
+                  {shortName(clinic)}
+                </li>
+              ))}
+            <li>
+              <span className={styles.swatch} data-status="OPEN" aria-hidden="true" />
+              Libre
+            </li>
+            <li>
+              <span className={styles.swatch} data-status="CLOSED" aria-hidden="true" />
+              Fermé
+            </li>
+          </ul>
+        )}
+      </>
     )
   }
 
   return (
-    <>
-      <h2>Rendez-vous des cliniques</h2>
-      <p className={styles.intro}>
-        Le planning de chaque praticien dans les trois cliniques, en lecture seule. Les dossiers médicaux restent
-        réservés aux praticiens.
-      </p>
-      <ClinicCards monday={monday} />
-      <Card title="Choix du praticien" headingLevel={3}>
-        {picker}
-      </Card>
-      <Card title={weekTitle(monday)} headingLevel={3}>
-        <div className={styles.weekNav}>
-          <Button variant="secondary" onClick={() => moveTo(addDays(monday, -7))}>
-            Semaine précédente
-          </Button>
-          <Button variant="ghost" onClick={() => moveTo(thisMonday)} disabled={monday === thisMonday}>
-            Cette semaine
-          </Button>
-          <Button variant="secondary" onClick={() => moveTo(addDays(monday, 7))}>
-            Semaine suivante
-          </Button>
+    <section className={styles.page} data-width="wide" aria-labelledby={titleId}>
+      <header className={styles.header}>
+        <div>
+          <p className={styles.eyebrow}>
+            <span className={styles.liveDot} aria-hidden="true" />
+            Espace administratif
+          </p>
+          <h2 id={titleId} className={styles.title}>
+            Rendez-vous des cliniques
+          </h2>
+          <p className={styles.intro}>
+            Le planning de chaque praticien dans les trois cliniques. Les dossiers médicaux restent réservés aux
+            praticiens.
+          </p>
         </div>
-        {week}
-      </Card>
-    </>
+        <span className={styles.readOnly}>
+          <Lock size={16} aria-hidden="true" />
+          Lecture seule
+        </span>
+      </header>
+
+      <ClinicCards monday={monday} />
+
+      <div className={styles.layout}>
+        <aside className={styles.card} aria-label="Choix du praticien">
+          <h3 className={styles.cardTitle}>
+            Praticiens{list && <span className={styles.total}> · {list.length}</span>}
+          </h3>
+          {picker}
+        </aside>
+
+        <div className={styles.card}>
+          <div className={styles.weekBar}>
+            <div className={styles.weekNav}>
+              <button
+                type="button"
+                className={styles.iconButton}
+                aria-label="Semaine précédente"
+                onClick={() => moveTo(addDays(monday, -7))}
+              >
+                <ChevronLeft size={16} aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                className={styles.iconButton}
+                aria-label="Semaine suivante"
+                onClick={() => moveTo(addDays(monday, 7))}
+              >
+                <ChevronRight size={16} aria-hidden="true" />
+              </button>
+            </div>
+            <div className={styles.weekText}>
+              <b>{weekTitle(monday)}</b>
+              <small>Semaine {isoWeek(monday)} · heure de Tunis</small>
+            </div>
+            <Button variant="secondary" size="sm" onClick={() => moveTo(thisMonday)} disabled={monday === thisMonday}>
+              Cette semaine
+            </Button>
+          </div>
+          {week}
+        </div>
+      </div>
+    </section>
   )
 }

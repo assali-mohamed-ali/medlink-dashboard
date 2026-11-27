@@ -92,6 +92,18 @@ async function rowOf(name: string) {
   return within(await table()).findByRole('row', { name: new RegExp(name) })
 }
 
+/** Opens the row's "⋯" menu (one button per row, named after the person) and returns the menu. */
+async function openMenu(user: ReturnType<typeof userEvent.setup>, row: HTMLElement, name: string) {
+  await user.click(within(row).getByRole('button', { name: `Actions pour ${name}` }))
+  return screen.getByRole('menu', { name: `Actions pour ${name}` })
+}
+
+/** Chooses an action in the row's menu. */
+async function choose(user: ReturnType<typeof userEvent.setup>, row: HTMLElement, name: string, item: string) {
+  const menu = await openMenu(user, row, name)
+  await user.click(within(menu).getByRole('menuitem', { name: new RegExp(`^${item}`) }))
+}
+
 beforeEach(() => {
   vi.resetAllMocks()
   fetchAccounts.mockResolvedValue({ items: [SAMI, NOUR, AMEL, ME], total: 4 })
@@ -100,7 +112,7 @@ beforeEach(() => {
 
 // ---- the list ----
 
-test('lists the accounts: e-mail, nom, prénom, rôle, statut', async () => {
+test('lists the accounts: who (name and e-mail together), rôle, statut, and one actions button', async () => {
   fetchAccounts.mockResolvedValue({
     items: [SAMI, account({ id: 'u4', firstName: 'Ines', lastName: 'Off', email: 'ines@medlink.local', enabled: false })],
     total: 2,
@@ -109,10 +121,11 @@ test('lists the accounts: e-mail, nom, prénom, rôle, statut', async () => {
 
   const grid = await table()
   const headers = within(grid).getAllByRole('columnheader').map((cell) => cell.textContent)
-  expect(headers).toEqual(['E-mail', 'Nom', 'Prénom', 'Rôle', 'Statut', 'Actions'])
+  expect(headers).toEqual(['Compte', 'Rôle', 'Statut', 'Actions'])
   const sami = within(grid).getByRole('row', { name: /sami\.dev@medlink\.local/ })
-  expect(sami).toHaveTextContent('Dev')
-  expect(sami).toHaveTextContent('Sami')
+  expect(sami).toHaveTextContent('Sami Dev')
+  // One button per row instead of three: the actions are in its menu
+  expect(within(sami).getAllByRole('button')).toHaveLength(1)
   expect(sami).toHaveTextContent('Praticien')
   expect(sami).toHaveTextContent('Actif')
   expect(within(grid).getByRole('row', { name: /ines@medlink\.local/ })).toHaveTextContent('Désactivé')
@@ -202,6 +215,16 @@ test('the list cannot be loaded: an error and a way to try again', async () => {
 })
 
 // ---- "Nouveau compte" ----
+
+test('opened from the staff home ("?nouveau"), the page shows the new account dialog at once', async () => {
+  render(
+    <MemoryRouter initialEntries={['/admin/comptes?nouveau']}>
+      <AccountsPage />
+    </MemoryRouter>,
+  )
+
+  expect(await screen.findByRole('dialog', { name: 'Nouveau compte' })).toBeInTheDocument()
+})
 
 async function openCreate(user: ReturnType<typeof userEvent.setup>) {
   await table()
@@ -333,7 +356,7 @@ test('changes the role: practitioner to staff, then the row is read again', asyn
   const user = renderPage()
   const row = await rowOf('sami.dev@medlink.local')
 
-  await user.click(within(row).getByRole('button', { name: 'Changer le rôle de Sami Dev' }))
+  await choose(user, row, 'Sami Dev', 'Changer le rôle')
   const dialog = screen.getByRole('dialog', { name: 'Changer le rôle de Sami Dev' })
   expect(within(dialog).getByRole('radio', { name: 'Praticien' })).toBeChecked()
   fetchAccounts.mockResolvedValue({ items: [{ ...SAMI, role: 'ADMINISTRATIVE_STAFF', roles: ['ADMINISTRATIVE_STAFF'] }], total: 1 })
@@ -350,7 +373,7 @@ test('becoming a practitioner asks for the specialty and clinics', async () => {
   const user = renderPage()
   const row = await rowOf('nour@medlink.local')
 
-  await user.click(within(row).getByRole('button', { name: 'Changer le rôle de Nour Admin' }))
+  await choose(user, row, 'Nour Admin', 'Changer le rôle')
   const dialog = screen.getByRole('dialog', { name: 'Changer le rôle de Nour Admin' })
   await user.click(within(dialog).getByRole('radio', { name: 'Praticien' }))
   await user.selectOptions(await within(dialog).findByLabelText('Spécialité'), 'Médecine générale')
@@ -372,7 +395,7 @@ test('a refused role change (409) is shown in the dialog, which stays open', asy
   const user = renderPage()
   const row = await rowOf('sami.dev@medlink.local')
 
-  await user.click(within(row).getByRole('button', { name: 'Changer le rôle de Sami Dev' }))
+  await choose(user, row, 'Sami Dev', 'Changer le rôle')
   const dialog = screen.getByRole('dialog', { name: 'Changer le rôle de Sami Dev' })
   await user.click(within(dialog).getByRole('radio', { name: 'Personnel administratif' }))
   await user.click(within(dialog).getByRole('button', { name: 'Enregistrer' }))
@@ -380,19 +403,20 @@ test('a refused role change (409) is shown in the dialog, which stays open', asy
   expect(await within(dialog).findByText('Ce praticien a des créneaux : son rôle ne peut pas être changé.')).toBeInTheDocument()
 })
 
-test('a patient’s role cannot be changed: no such action on their row', async () => {
-  renderPage()
+test('a patient’s role cannot be changed: no such action in their menu', async () => {
+  const user = renderPage()
   const row = await rowOf('amel@example.com')
 
-  expect(within(row).queryByRole('button', { name: /Changer le rôle/ })).toBeNull()
-  expect(within(row).getByRole('button', { name: 'Désactiver le compte de Amel Patient' })).toBeInTheDocument()
+  const menu = await openMenu(user, row, 'Amel Patient')
+  expect(within(menu).queryByRole('menuitem', { name: /Changer le rôle/ })).toBeNull()
+  expect(within(menu).getByRole('menuitem', { name: /^Désactiver le compte/ })).toBeInTheDocument()
 })
 
 test('disabling asks first; "Annuler" changes nothing', async () => {
   const user = renderPage()
   const row = await rowOf('sami.dev@medlink.local')
 
-  await user.click(within(row).getByRole('button', { name: 'Désactiver le compte de Sami Dev' }))
+  await choose(user, row, 'Sami Dev', 'Désactiver le compte')
   const confirm = screen.getByRole('alertdialog', { name: 'Désactiver le compte de Sami Dev ?' })
   expect(confirm).toHaveTextContent('ne pourra plus se connecter')
   await user.click(within(confirm).getByRole('button', { name: 'Annuler' }))
@@ -406,7 +430,7 @@ test('disabling once confirmed: PATCH enabled=false, a message, the row shows "D
   const user = renderPage()
   const row = await rowOf('sami.dev@medlink.local')
 
-  await user.click(within(row).getByRole('button', { name: 'Désactiver le compte de Sami Dev' }))
+  await choose(user, row, 'Sami Dev', 'Désactiver le compte')
   fetchAccounts.mockResolvedValue({ items: [{ ...SAMI, enabled: false }], total: 1 })
   await user.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Désactiver' }))
 
@@ -414,7 +438,7 @@ test('disabling once confirmed: PATCH enabled=false, a message, the row shows "D
   expect(await screen.findByRole('status')).toHaveTextContent('Le compte de Sami Dev est désactivé.')
   const updated = await rowOf('sami.dev@medlink.local')
   expect(updated).toHaveTextContent('Désactivé')
-  expect(within(updated).getByRole('button', { name: 'Activer le compte de Sami Dev' })).toBeInTheDocument()
+  expect(within(await openMenu(user, updated, 'Sami Dev')).getByRole('menuitem', { name: /^Activer le compte/ })).toBeInTheDocument()
 })
 
 test('enabling a disabled account, after its confirmation', async () => {
@@ -423,7 +447,7 @@ test('enabling a disabled account, after its confirmation', async () => {
   const user = renderPage()
   const row = await rowOf('sami.dev@medlink.local')
 
-  await user.click(within(row).getByRole('button', { name: 'Activer le compte de Sami Dev' }))
+  await choose(user, row, 'Sami Dev', 'Activer le compte')
   await user.click(within(screen.getByRole('alertdialog', { name: 'Activer le compte de Sami Dev ?' })).getByRole('button', { name: 'Activer' }))
 
   expect(setAccountEnabled).toHaveBeenCalledExactlyOnceWith('u1', true)
@@ -431,10 +455,62 @@ test('enabling a disabled account, after its confirmation', async () => {
 })
 
 test('a staff member cannot disable their own account from here', async () => {
-  renderPage()
+  const user = renderPage()
   const row = await rowOf('staff.dev@medlink.local')
 
-  expect(within(row).queryByRole('button', { name: /Désactiver/ })).toBeNull()
+  expect(within(await openMenu(user, row, 'Salma Staff')).queryByRole('menuitem', { name: /Désactiver/ })).toBeNull()
+})
+
+// ---- the row's menu ----
+
+test('the "⋯" button opens a menu named after the person, with their e-mail, then the actions, the risky one last', async () => {
+  const user = renderPage()
+  const row = await rowOf('sami.dev@medlink.local')
+  const button = within(row).getByRole('button', { name: 'Actions pour Sami Dev' })
+  expect(button).toHaveAttribute('aria-haspopup', 'menu')
+  expect(button).toHaveAttribute('aria-expanded', 'false')
+
+  const menu = await openMenu(user, row, 'Sami Dev')
+
+  expect(button).toHaveAttribute('aria-expanded', 'true')
+  expect(menu).toHaveTextContent('sami.dev@medlink.local')
+  expect(within(menu).getAllByRole('menuitem').map((item) => item.querySelector('[data-label]')?.textContent)).toEqual([
+    'Changer le rôle',
+    'Forcer un nouveau mot de passe',
+    'Modifier le nom',
+    'Désactiver le compte',
+  ])
+  // The keyboard lands on the first action
+  expect(within(menu).getAllByRole('menuitem')[0]).toHaveFocus()
+})
+
+test('the menu follows the arrow keys, and Escape closes it, the focus back on its button', async () => {
+  const user = renderPage()
+  const row = await rowOf('sami.dev@medlink.local')
+  const menu = await openMenu(user, row, 'Sami Dev')
+  const items = within(menu).getAllByRole('menuitem')
+
+  await user.keyboard('{ArrowDown}')
+  expect(items[1]).toHaveFocus()
+  await user.keyboard('{ArrowDown}{ArrowDown}{ArrowDown}')
+  expect(items[0]).toHaveFocus()
+  await user.keyboard('{ArrowUp}')
+  expect(items[3]).toHaveFocus()
+  await user.keyboard('{Escape}')
+
+  expect(screen.queryByRole('menu')).toBeNull()
+  expect(within(row).getByRole('button', { name: 'Actions pour Sami Dev' })).toHaveFocus()
+})
+
+test('a click outside closes the menu; one menu at a time', async () => {
+  const user = renderPage()
+  await openMenu(user, await rowOf('sami.dev@medlink.local'), 'Sami Dev')
+  await openMenu(user, await rowOf('nour@medlink.local'), 'Nour Admin')
+  expect(screen.getAllByRole('menu')).toHaveLength(1)
+
+  await user.click(screen.getByRole('heading', { name: 'Gestion des comptes' }))
+
+  expect(screen.queryByRole('menu')).toBeNull()
 })
 
 test('forcing a password change, after its confirmation', async () => {
@@ -442,7 +518,7 @@ test('forcing a password change, after its confirmation', async () => {
   const user = renderPage()
   const row = await rowOf('nour@medlink.local')
 
-  await user.click(within(row).getByRole('button', { name: 'Forcer le changement de mot de passe de Nour Admin' }))
+  await choose(user, row, 'Nour Admin', 'Forcer un nouveau mot de passe')
   const confirm = screen.getByRole('alertdialog', { name: 'Forcer le changement de mot de passe de Nour Admin ?' })
   await user.click(within(confirm).getByRole('button', { name: 'Forcer le changement' }))
 
@@ -457,7 +533,7 @@ test('an action that fails says so, and the list stays as it was', async () => {
   const user = renderPage()
   const row = await rowOf('sami.dev@medlink.local')
 
-  await user.click(within(row).getByRole('button', { name: 'Désactiver le compte de Sami Dev' }))
+  await choose(user, row, 'Sami Dev', 'Désactiver le compte')
   await user.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Désactiver' }))
 
   expect(await screen.findByRole('alert')).toHaveTextContent('Le service de connexion ne répond pas.')
@@ -470,7 +546,7 @@ test('edits the account name without changing the email and reloads the row', as
   const user = renderPage()
   const row = await rowOf('sami.dev@medlink.local')
 
-  await user.click(within(row).getByRole('button', { name: 'Modifier le nom de Sami Dev' }))
+  await choose(user, row, 'Sami Dev', 'Modifier le nom')
   const dialog = within(screen.getByRole('dialog', { name: 'Modifier le nom de Sami Dev' }))
   const firstName = dialog.getByRole('textbox', { name: 'Prénom' })
   await user.clear(firstName)

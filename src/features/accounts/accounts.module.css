@@ -58,10 +58,19 @@
 .table th:first-child { border-top-left-radius: var(--radius-control); }
 .table th:last-child { border-top-right-radius: var(--radius-control); }
 .table tbody tr:hover { background: var(--stitch-surface-low); }
-.who { display: inline-flex; align-items: center; gap: var(--space-3); }
-.email { font-weight: 600; white-space: nowrap; }
-.actions { display: flex; flex-wrap: nowrap; gap: var(--space-2); }
-.table td:nth-child(2), .table td:nth-child(3) { white-space: nowrap; }
+.table tbody tr[data-open] { background: var(--stitch-surface-low); }
+.who { display: inline-flex; align-items: center; gap: var(--space-3); min-width: 0; }
+.initials {
+  flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%;
+  background: var(--secondary-fixed); color: var(--primary); font-size: var(--text-xs); font-weight: 700;
+}
+.initials[data-tone='1'] { background: var(--clinic-1-container); color: var(--on-clinic-1-container); }
+.initials[data-tone='2'] { background: var(--clinic-2-container); color: var(--on-clinic-2-container); }
+.initials[data-tone='3'] { background: var(--clinic-3-container); color: var(--on-clinic-3-container); }
+.whoText { display: flex; flex-direction: column; min-width: 0; }
+.name { font-weight: 700; color: var(--on-surface); font-size: var(--text-md); }
+.email { color: var(--text-muted); font-size: var(--text-sm); white-space: nowrap; }
+.actionsHead, .actionsCell { text-align: right; width: 1%; white-space: nowrap; }
 
 /* A role in the agenda's pastel tones: practitioner blue, staff amber, patient rose */
 .role {
@@ -72,14 +81,33 @@
 .role[data-tone='2'] { background: var(--clinic-2-container); color: var(--on-clinic-2-container); }
 .role[data-tone='3'] { background: var(--clinic-3-container); color: var(--on-clinic-3-container); }
 
-/* Row actions as soft pills: neutral, a rose one to disable, a sage one to enable */
-.action {
-  min-height: 36px; padding: 0 var(--space-3); gap: var(--space-1); white-space: nowrap;
-  border-radius: var(--radius-pill); background: var(--stitch-surface-low); font-size: var(--text-sm);
+/* One "⋯" button per row, and its menu */
+.kebab {
+  display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: var(--radius-control);
+  border: 1px solid var(--border); background: var(--surface-raised); color: var(--on-surface-variant); cursor: pointer;
 }
-.action:hover { background: var(--stitch-surface-container); }
-.action[data-action='disable'] { background: var(--clinic-2-container); color: var(--on-clinic-2-container); }
-.action[data-action='enable'] { background: var(--secondary-fixed); color: var(--primary); }
+.kebab:hover { border-color: var(--border-strong); }
+.kebab[data-open] { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
+.kebab:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.menu {
+  position: fixed; z-index: 40; width: min(320px, calc(100vw - 16px)); padding: var(--space-2); text-align: left;
+  background: var(--surface-raised); border: 1px solid var(--border); border-radius: var(--radius-card); box-shadow: var(--elev-3);
+}
+.menuHead { display: flex; flex-direction: column; padding: var(--space-2) var(--space-3) var(--space-3); margin-bottom: var(--space-1); border-bottom: 1px solid var(--border); }
+.menuHead b { font-size: var(--text-sm); color: var(--on-surface); }
+.menuHead small { font-size: var(--text-xs); color: var(--text-muted); overflow-wrap: anywhere; }
+.menuItem {
+  display: flex; align-items: center; gap: var(--space-3); width: 100%; padding: var(--space-2) var(--space-3);
+  border: 0; border-radius: var(--radius-control); background: none; color: var(--on-surface);
+  font: inherit; font-size: var(--text-sm); font-weight: 600; text-align: left; cursor: pointer;
+}
+.menuItem:hover, .menuItem:focus-visible { outline: none; background: var(--stitch-surface-low); }
+.menuIcon { flex: none; display: grid; color: var(--primary); }
+.menuText { display: flex; flex-direction: column; }
+.menuText small { font-weight: 500; font-size: var(--text-xs); color: var(--text-muted); }
+.menuItem[data-tone='danger'], .menuItem[data-tone='danger'] .menuIcon { color: var(--error); }
+.menuItem[data-tone='danger']:hover, .menuItem[data-tone='danger']:focus-visible { background: var(--error-container); }
+.menuSeparator { height: 1px; margin: var(--space-1) var(--space-2); background: var(--border); }
 
 .pager { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-3); font-size: var(--text-sm); }
 

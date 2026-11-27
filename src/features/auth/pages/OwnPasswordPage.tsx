@@ -15,12 +15,14 @@ import styles from './PasswordPage.module.css'
  */
 export default function OwnPasswordPage() {
   const { user, endSession } = useAuth()
-  // The practitioner and the patient open it from their profile: a way back to it under the button
+  // Every space opens it from its profile: a way back to it under the button
   const profile = user?.roles.includes('PRACTITIONER')
     ? paths.practitioner.profile
     : user?.roles.includes('PATIENT')
       ? paths.patient.profile
-      : null
+      : user?.roles.includes('ADMINISTRATIVE_STAFF')
+        ? paths.staff.profile
+        : null
 
   return (
     // data-width: the space gives the page its whole width, so the card sits in the middle of the screen

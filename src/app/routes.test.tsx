@@ -123,11 +123,10 @@ test.each(PASSWORD_PAGES)('a %s changes the password inside their space (%s)', a
   expect(screen.getByRole('heading', { name: title })).toBeInTheDocument()
   expect(screen.getByText(/Amel Test/)).toBeInTheDocument()
   expect(screen.getByRole('button', { name: 'Se déconnecter' })).toBeInTheDocument()
-  // The practitioner and the patient reach it from "Profil" (no "Mot de passe" entry in their menu), which stays marked
+  // Every space reaches it from "Profil" (no "Mot de passe" entry in the menu), which stays marked
   const menu = within(screen.getByRole('navigation', { name: 'Menu de l’espace' }))
-  const fromProfile = role !== 'ADMINISTRATIVE_STAFF'
-  const entry = menu.getByRole('link', { name: fromProfile ? 'Profil' : 'Mot de passe' })
-  expect(entry).toHaveAttribute('href', fromProfile ? path.replace('mot-de-passe', 'profil') : path)
+  const entry = menu.getByRole('link', { name: 'Profil' })
+  expect(entry).toHaveAttribute('href', path.replace('mot-de-passe', 'profil'))
   expect(entry).toHaveAttribute('aria-current', 'page')
   // Not the public site's header, which made the person look logged out
   expect(screen.queryByRole('link', { name: 'Créer un compte' })).toBeNull()

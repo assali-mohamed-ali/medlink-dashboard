@@ -44,7 +44,7 @@ test('asks for the first page of 50 and shows a loader meanwhile', () => {
   expect(fetchAuditEntries).toHaveBeenCalledWith({ page: 0, size: 50 })
 })
 
-test('shows each entry in a table, with a dash for what is unknown', async () => {
+test('shows each entry in a table: the time, the action, short ids, the resource in French, the outcome; a dash for what is unknown', async () => {
   fetchAuditEntries.mockResolvedValue(
     pageOf([
       entry(),
@@ -61,26 +61,101 @@ test('shows each entry in a table, with a dash for what is unknown', async () =>
   )
   render(<AuditLogPage />)
   expect(await screen.findByRole('table')).toBeInTheDocument()
-  for (const name of ['Date', 'Utilisateur', 'Action', 'Ressource', 'Adresse IP', 'Résultat']) {
+  for (const name of ['Heure', 'Action', 'Utilisateur', 'Ressource', 'Adresse IP', 'Résultat']) {
     expect(screen.getByRole('columnheader', { name })).toBeInTheDocument()
   }
-  const rows = screen.getAllByRole('row')
-  expect(rows).toHaveLength(3)
-  const [, firstRow, secondRow] = rows
+  const [firstRow, secondRow] = screen.getAllByRole('row').filter((row) => row.querySelector('td'))
   const first = within(firstRow as HTMLElement)
   const second = within(secondRow as HTMLElement)
-  const when = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'short', timeStyle: 'medium' })
-    .format(new Date('2026-11-10T09:30:00Z'))
-    .replace(/\s+/g, ' ')
-  expect(first.getByText(when)).toBeInTheDocument()
-  expect(first.getByText(USER_ID)).toBeInTheDocument()
+  const time = new Intl.DateTimeFormat('fr-FR', { timeStyle: 'medium' }).format(new Date('2026-11-10T09:30:00Z'))
+  expect(first.getByText(time)).toBeInTheDocument()
   expect(first.getByText('Connexion')).toBeInTheDocument()
-  expect(first.getByText('USER u-42')).toBeInTheDocument()
+  // A long id is shortened, the whole one is its title
+  expect(first.getByText('3f1c…4a5b')).toHaveAttribute('title', USER_ID)
+  expect(first.getByText('Compte utilisateur · u-42')).toBeInTheDocument()
   expect(first.getByText('10.0.0.7')).toBeInTheDocument()
   expect(first.getByText('Réussi')).toBeInTheDocument()
   expect(second.getByText('Compte modifié')).toBeInTheDocument()
   expect(second.getByText('Échec')).toBeInTheDocument()
   expect(second.getAllByText('—')).toHaveLength(3)
+})
+
+test('the entries are grouped by day: today, yesterday, then the date', async () => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date(2026, 10, 27, 17, 0))
+  fetchAuditEntries.mockResolvedValue(
+    pageOf([
+      entry({ id: 'a', timestamp: new Date(2026, 10, 27, 16, 9).toISOString() }),
+      entry({ id: 'b', timestamp: new Date(2026, 10, 27, 15, 0).toISOString() }),
+      entry({ id: 'c', timestamp: new Date(2026, 10, 26, 11, 2).toISOString() }),
+      entry({ id: 'd', timestamp: new Date(2026, 10, 20, 8, 30).toISOString() }),
+    ]),
+  )
+  render(<AuditLogPage />)
+  await screen.findByRole('table')
+  const days = screen.getAllByRole('rowheader').map((cell) => cell.textContent)
+  expect(days).toEqual(['Aujourd’hui · vendredi 27 novembre', 'Hier · jeudi 26 novembre', 'vendredi 20 novembre 2026'])
+  vi.useRealTimers()
+})
+
+test('a local address is said "Local"', async () => {
+  fetchAuditEntries.mockResolvedValue(
+    pageOf([entry({ ipAddress: '0:0:0:0:0:0:0:1' }), entry({ id: 'e2', ipAddress: '127.0.0.1' }), entry({ id: 'e3', ipAddress: '::1' })]),
+  )
+  render(<AuditLogPage />)
+  await screen.findByRole('table')
+  expect(screen.getAllByText('Local')).toHaveLength(3)
+  expect(screen.queryByText('0:0:0:0:0:0:0:1')).toBeNull()
+})
+
+test('the copy button puts the whole user id in the clipboard, to paste it in the filter', async () => {
+  fetchAuditEntries.mockResolvedValue(pageOf([entry()]))
+  const user = userEvent.setup()
+  render(<AuditLogPage />)
+  await screen.findByRole('table')
+
+  await user.click(screen.getByRole('button', { name: 'Copier l’identifiant 3f1c…4a5b' }))
+
+  expect(await navigator.clipboard.readText()).toBe(USER_ID)
+  expect(await screen.findByText('Identifiant copié.')).toBeInTheDocument()
+})
+
+test('the quick filters ask for today, the logins or the refused accesses, and "Tout" for everything', async () => {
+  fetchAuditEntries.mockResolvedValue(pageOf([entry()]))
+  const user = userEvent.setup()
+  render(<AuditLogPage />)
+  await screen.findByRole('table')
+  const quick = within(screen.getByRole('group', { name: 'Filtres rapides' }))
+  expect(quick.getByRole('button', { name: 'Tout' })).toHaveAttribute('aria-pressed', 'true')
+
+  await user.click(quick.getByRole('button', { name: 'Aujourd’hui' }))
+  const midnight = new Date()
+  midnight.setHours(0, 0, 0, 0)
+  await waitFor(() =>
+    expect(fetchAuditEntries).toHaveBeenLastCalledWith({ page: 0, size: 50, from: midnight.toISOString() }),
+  )
+  expect(quick.getByRole('button', { name: 'Aujourd’hui' })).toHaveAttribute('aria-pressed', 'true')
+
+  await user.click(quick.getByRole('button', { name: 'Connexions' }))
+  await waitFor(() => expect(fetchAuditEntries).toHaveBeenLastCalledWith({ page: 0, size: 50, action: 'LOGIN' }))
+  expect(screen.getByLabelText('Action')).toHaveValue('LOGIN')
+
+  await user.click(quick.getByRole('button', { name: 'Accès refusés' }))
+  await waitFor(() =>
+    expect(fetchAuditEntries).toHaveBeenLastCalledWith({ page: 0, size: 50, action: 'ACCESS_DENIED' }),
+  )
+
+  await user.click(quick.getByRole('button', { name: 'Tout' }))
+  await waitFor(() => expect(fetchAuditEntries).toHaveBeenLastCalledWith({ page: 0, size: 50 }))
+  expect(quick.getByRole('button', { name: 'Tout' })).toHaveAttribute('aria-pressed', 'true')
+})
+
+test('the page says it is read only', async () => {
+  fetchAuditEntries.mockResolvedValue(pageOf([entry()]))
+  render(<AuditLogPage />)
+  expect(screen.getByText('Lecture seule')).toBeInTheDocument()
+  expect(screen.getByText(/jamais de nom ni de donnée médicale/)).toBeInTheDocument()
+  await screen.findByRole('table')
 })
 
 test('no entry: says so instead of showing an empty table', async () => {

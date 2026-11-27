@@ -5,6 +5,7 @@ import { routes } from '@/app/routes'
 import * as authApi from '@/features/auth/api'
 import * as slotsApi from '@/features/slots/api'
 import * as agendaApi from '@/features/agenda/api'
+import * as staffHomeApi from '@/features/staff-home/api'
 import AuthProvider from '@/features/auth/AuthProvider'
 import type { Role } from '@/features/auth/roles'
 
@@ -22,6 +23,12 @@ const fetchMe = vi.mocked(authApi.fetchMe)
 vi.mock('@/features/slots/api', () => ({ fetchMyAppointments: vi.fn(), cancelAppointment: vi.fn() }))
 // The practitioner's home reads their agenda
 vi.mock('@/features/agenda/api', () => ({ fetchAgenda: vi.fn(), openSlot: vi.fn(), changeSlotStatus: vi.fn() }))
+// The staff's home reads the accounts, the practitioners and the audit trail
+vi.mock('@/features/staff-home/api', () => ({
+  fetchAccountsOverview: vi.fn(),
+  fetchPractitioners: vi.fn(),
+  fetchAuditEntries: vi.fn(),
+}))
 
 function renderHome(role: Role, path: string) {
   fetchMe.mockResolvedValue({
@@ -38,15 +45,9 @@ beforeEach(() => {
   vi.resetAllMocks()
   vi.mocked(slotsApi.fetchMyAppointments).mockResolvedValue({ items: [], total: 0 })
   vi.mocked(agendaApi.fetchAgenda).mockResolvedValue({ clinics: [], items: [] })
-})
-
-test.each([
-  ['ADMINISTRATIVE_STAFF', '/admin', ['Gestion des comptes', 'Statistiques', 'Rendez-vous des cliniques']],
-] as const)('a %s is greeted by name and sees the parts of their space', async (role, path, parts) => {
-  renderHome(role, path)
-  expect(await screen.findByRole('heading', { level: 2, name: 'Bonjour Amel' })).toBeInTheDocument()
-  const titles = screen.getAllByRole('heading', { level: 3 }).map((heading) => heading.textContent)
-  expect(titles).toEqual(parts)
+  vi.mocked(staffHomeApi.fetchAccountsOverview).mockResolvedValue({ items: [], total: 0 })
+  vi.mocked(staffHomeApi.fetchPractitioners).mockResolvedValue([])
+  vi.mocked(staffHomeApi.fetchAuditEntries).mockResolvedValue({ items: [], page: 0, size: 1, totalElements: 0, totalPages: 0 })
 })
 
 test('the patient has their own home: the greeting, then booking and their appointments in one click', async () => {
@@ -66,13 +67,15 @@ test('the practitioner has their own home: the greeting, then the day and the ag
   expect(await main.findByRole('region', { name: 'Aujourd’hui' })).toBeInTheDocument()
 })
 
-test("the staff home leads to account management, the statistics and the clinics' appointments in one click", async () => {
+test("the staff has their own home: the greeting, then accounts, the audit log, the statistics and the clinics' appointments in one click", async () => {
   renderHome('ADMINISTRATIVE_STAFF', '/admin')
   const main = within(await screen.findByRole('main'))
   await main.findByRole('heading', { level: 2, name: 'Bonjour Amel' })
-  expect(main.getByRole('link', { name: 'Ouvrir la gestion des comptes' })).toHaveAttribute('href', '/admin/comptes')
-  expect(main.getByRole('link', { name: 'Ouvrir les statistiques' })).toHaveAttribute('href', '/admin/statistiques')
-  // MLink-35: the last part that said "Bientôt disponible" now opens the clinics' appointments
-  expect(main.getByRole('link', { name: 'Ouvrir les rendez-vous des cliniques' })).toHaveAttribute('href', '/admin/rendez-vous')
+  expect(main.getByRole('link', { name: 'Nouveau compte' })).toHaveAttribute('href', '/admin/comptes?nouveau')
+  expect(main.getByRole('link', { name: 'Gérer les comptes' })).toHaveAttribute('href', '/admin/comptes')
+  expect(main.getByRole('link', { name: 'Voir le journal d’audit' })).toHaveAttribute('href', '/admin/journal-audit')
+  expect(main.getByRole('link', { name: /Statistiques anonymisées/ })).toHaveAttribute('href', '/admin/statistiques')
+  expect(main.getByRole('link', { name: 'Rendez-vous des cliniques' })).toHaveAttribute('href', '/admin/rendez-vous')
+  expect(await main.findByRole('list', { name: 'Le réseau en chiffres' })).toBeInTheDocument()
   expect(main.queryByText('Bientôt disponible')).toBeNull()
 })
