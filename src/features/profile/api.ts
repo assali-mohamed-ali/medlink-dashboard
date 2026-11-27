@@ -1,4 +1,4 @@
-import { apiFetch } from '@/shared/api/apiClient'
+import { apiFetch, apiFetchBlob } from '@/shared/api/apiClient'
 
 // One function per endpoint (api-MedLink, MLink-26). The profile reads the practitioner's week from the agenda route
 // itself, so the agenda feature's code does not have to load with the app's first page (npm run check:budget).
@@ -32,4 +32,28 @@ export type MyAppointments = { items: MyAppointment[]; total: number }
 /** The patient's appointments, latest first (the API's largest page is 50). Read here for the same reason as the week. */
 export function fetchMyAppointments(page: number, size: number) {
   return apiFetch<MyAppointments>(`/appointments/me?page=${page}&size=${size}`)
+}
+
+export type ContactDetails = { phone: string | null; address: string | null }
+export type DeletionRequest = {
+  requested: boolean
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | null
+  dueAt: string | null
+  decisionNote: string | null
+}
+
+export function fetchContactDetails() {
+  return apiFetch<ContactDetails>('/patients/me')
+}
+
+export function saveContactDetails(phone: string, address: string) {
+  return apiFetch<ContactDetails>('/patients/me', { method: 'PUT', body: { phone, address } })
+}
+
+export function deletionRequest(method = 'GET') {
+  return apiFetch<DeletionRequest>('/patients/me/deletion-request', { method })
+}
+
+export function exportPatientData() {
+  return apiFetchBlob('/patients/me/export')
 }

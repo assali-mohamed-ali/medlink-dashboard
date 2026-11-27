@@ -44,3 +44,29 @@ export function fetchProfileChoices() {
 export function updateName(id: string, name: { firstName: string; lastName: string }) {
   return apiFetch<void>(`/admin/users/${encodeURIComponent(id)}/name`, { method: 'PUT', body: name })
 }
+
+export type ClinicAssignment = { id: string; firstName: string; lastName: string; clinics: { id: string; name: string }[] }
+export function fetchClinicAssignments() {
+  return apiFetch<ClinicAssignment[]>('/admin/practitioners')
+}
+export function saveClinicAssignment(id: string, clinicIds: string[]) {
+  return apiFetch<ClinicAssignment>(`/admin/practitioners/${encodeURIComponent(id)}/clinics`, {
+    method: 'PUT', body: { clinicIds },
+  })
+}
+
+export type PendingDeletion = {
+  patientId: string
+  firstName: string
+  lastName: string
+  dueAt: string
+  retainedUntil: string | null
+}
+export function fetchDeletionRequests() {
+  return apiFetch<PendingDeletion[]>('/admin/deletion-requests')
+}
+export function decideDeletion(id: string, decision: 'APPROVED' | 'REJECTED', note: string) {
+  return apiFetch(`/admin/deletion-requests/${encodeURIComponent(id)}/decision`, {
+    method: 'POST', body: { decision, note },
+  })
+}

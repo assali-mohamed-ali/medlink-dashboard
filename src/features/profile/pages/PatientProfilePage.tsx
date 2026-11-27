@@ -5,6 +5,8 @@ import { useAuth } from '@/features/auth'
 import { paths } from '@/shared/config/paths'
 import { type MyAppointments, fetchMyAppointments } from '../api'
 import { AccountCard, Badge, Count, ProfileHero, SecurityCard } from '../components/ProfileParts'
+import PatientDetails from '../components/PatientDetails'
+import PatientData from '../components/PatientData'
 import styles from '../profile.module.css'
 
 /** The API's largest page: the counts are those of the latest 50 appointments, and the page says so beyond. */
@@ -92,6 +94,8 @@ export default function PatientProfilePage() {
       <div className={styles.layout}>
         <AccountCard name={fullName} email={user?.email ?? ''} role="Patient" whom="l’accueil de votre clinique" />
         <SecurityCard passwordPath={paths.patient.password} onLogout={onLogout} />
+        <PatientDetails />
+        <PatientData />
       </div>
     </div>
   )
