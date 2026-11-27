@@ -72,3 +72,11 @@ export function deletionRequest(method = 'GET') {
 export function exportPatientData() {
   return apiFetchBlob('/patients/me/export')
 }
+
+/** US-15: password proof and single-use mailbox confirmation. */
+export function requestEmailChange(email: string, currentPassword: string) {
+  return apiFetch('/patients/me/email-change', { method: 'POST', body: { email, currentPassword } })
+}
+export function confirmEmailChange(code: string) {
+  return apiFetch<{ status: 'ACCEPTED' }>('/patients/me/email-change/confirm', { method: 'POST', body: { code } })
+}
