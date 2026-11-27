@@ -222,6 +222,12 @@ function Record({ titleId, patientId, patient, canWrite }: RecordProps) {
               <dt>Téléphone</dt>
               <dd>{patient.phone || 'Non renseigné'}</dd>
             </div>
+            {patient.recordNumber && (
+              <div className={styles.fact}>
+                <dt>N° de dossier</dt>
+                <dd>{patient.recordNumber}</dd>
+              </div>
+            )}
           </dl>
           <p className={styles.shield}>
             <ShieldCheck size={18} aria-hidden="true" />

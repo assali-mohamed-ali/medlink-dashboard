@@ -8,6 +8,8 @@ export type PatientIdentity = {
   /** yyyy-MM-dd */
   birthDate: string
   phone: string | null
+  /** US-22: MED-000042 (absent from an API older than V31). */
+  recordNumber?: string | null
 }
 
 /**
