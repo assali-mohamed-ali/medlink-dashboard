@@ -47,8 +47,10 @@ petite file jusqu'à son chargement.
 En production, le Dockerfile et le workflow `container-security` utilisent déjà le DSN public du projet ; la
 variable de dépôt `VITE_SENTRY_DSN` peut le remplacer. Pour des stack traces lisibles en production, définissez
 aussi `SENTRY_AUTH_TOKEN`, `SENTRY_ORG` et `SENTRY_PROJECT` au build : le plugin Vite téléverse les source maps
-puis les supprime de `dist/`. Le token est un secret. Voir [deploy/README.md](deploy/README.md#sentry) et la CSP
-dans `deploy/nginx/security-headers.conf`.
+puis les supprime de `dist/`. Le token est un secret. Ce projet est dans la région EU de Sentry : le Dockerfile et
+le workflow utilisent `SENTRY_URL=https://de.sentry.io` par défaut, modifiable par la variable de dépôt
+`SENTRY_URL`. Voir [deploy/README.md](deploy/README.md#sentry) et la CSP dans
+`deploy/nginx/security-headers.conf`.
 
 ## Local development checks
 

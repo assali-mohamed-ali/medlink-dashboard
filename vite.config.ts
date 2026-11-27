@@ -19,6 +19,7 @@ export default defineConfig({
           authToken: process.env.SENTRY_AUTH_TOKEN,
           org: process.env.SENTRY_ORG,
           project: process.env.SENTRY_PROJECT,
+          url: process.env.SENTRY_URL || undefined,
           telemetry: false,
           sourcemaps: { filesToDeleteAfterUpload: './dist/**/*.map' },
         })
