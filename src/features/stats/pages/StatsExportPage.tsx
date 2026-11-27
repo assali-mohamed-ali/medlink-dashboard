@@ -9,18 +9,17 @@ import { INDICATORS } from '../types'
 import type { Indicator, StatsExport } from '../types'
 import styles from './StatsExportPage.module.css'
 
-/** The API refuses a period longer than this many days. */
-const MAX_DAYS = 366
-const DAY_MS = 24 * 60 * 60 * 1000
-
 type Draft = { from: string; to: string; indicators: Indicator[] }
 type Errors = { from?: string; to?: string; indicators?: string }
 
-const EMPTY: Draft = { from: '', to: '', indicators: INDICATORS.map((indicator) => indicator.value) }
+const EMPTY: Draft = { from: '', to: '', indicators: ['APPOINTMENTS_PER_STATUS'] }
 
-function dayNumber(value: string): number {
-  const [y = 0, m = 1, d = 1] = value.split('-').map(Number)
-  return Date.UTC(y, m - 1, d) / DAY_MS
+function validMonth(from: string, to: string): boolean {
+  const [y = 0, m = 0] = from.split('-').map(Number)
+  const end = new Date(Date.UTC(y, m, 0))
+  const today = new Date().toISOString().slice(0, 10)
+  return from.endsWith('-01') && Number.isFinite(end.getTime()) &&
+    to === end.toISOString().slice(0, 10) && to < today
 }
 
 /** What the person typed, checked before asking the API: the message to show under each wrong field. */
@@ -29,11 +28,9 @@ function check(draft: Draft): Errors {
   if (!draft.from) errors.from = 'Choisissez la date de début.'
   if (!draft.to) errors.to = 'Choisissez la date de fin.'
   if (draft.from && draft.to) {
-    const days = dayNumber(draft.to) - dayNumber(draft.from) + 1
-    if (days < 1) errors.to = 'La date de fin doit suivre la date de début.'
-    else if (days > MAX_DAYS) errors.to = `La période ne peut pas dépasser ${MAX_DAYS} jours.`
+    if (!validMonth(draft.from, draft.to)) errors.to = 'Choisissez un mois civil terminé, du premier au dernier jour.'
   }
-  if (draft.indicators.length === 0) errors.indicators = 'Choisissez au moins un indicateur.'
+  if (draft.indicators.length !== 1) errors.indicators = 'Choisissez un seul indicateur.'
   return errors
 }
 
@@ -42,8 +39,11 @@ function messageOf(error: unknown): string {
     if (error.code === 'ANONYMISATION_IMPOSSIBLE') {
       return (
         'Ces statistiques ne peuvent pas être fournies : pour au moins un indicateur, il y a trop peu de patients ' +
-        'par groupe pour protéger leur anonymat. Élargissez la période ou choisissez d’autres indicateurs.'
+        'par groupe pour protéger leur anonymat. Cette publication est figée pour le mois choisi.'
       )
+    }
+    if (error.code === 'STATS_PARTITION_LOCKED') {
+      return 'Un autre indicateur a déjà été choisi pour ce mois. Les exports croisés sont interdits.'
     }
     if (error.code === 'VALIDATION_FAILED') {
       return 'La période ou les indicateurs choisis ne sont pas valides. Vérifiez-les puis réessayez.'
@@ -77,11 +77,7 @@ export default function StatsExportPage() {
   const [file, setFile] = useState<StatsExport | null>(null)
 
   function toggle(indicator: Indicator) {
-    const chosen = draft.indicators.includes(indicator)
-      ? draft.indicators.filter((value) => value !== indicator)
-      : [...draft.indicators, indicator]
-    // Always in the order of the list, whatever the order of the clicks
-    setDraft({ ...draft, indicators: INDICATORS.map((i) => i.value).filter((value) => chosen.includes(value)) })
+    setDraft({ ...draft, indicators: [indicator] })
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -140,7 +136,7 @@ export default function StatsExportPage() {
           </table>
         </div>
         <p className={styles.note}>
-          Pour protéger les patients, les groupes trop petits ne sont pas affichés.
+          Pour protéger les patients, les groupes trop petits ne sont pas affichés et le résultat reste figé.
         </p>
         <div className={styles.actions}>
           <Button onClick={() => download(file)}>Télécharger le fichier CSV</Button>
@@ -159,7 +155,9 @@ export default function StatsExportPage() {
     <>
       <h2>Statistiques</h2>
       <p className={styles.intro}>
-        Des chiffres anonymisés sur les rendez-vous des cliniques, à lire ici ou à télécharger en fichier CSV.
+        Des chiffres agrégés sur les rendez-vous des cliniques, à lire ici ou à télécharger en fichier CSV.
+        Un seul indicateur est publié par mois civil terminé, pour limiter les recoupements. Le premier export
+        fixe définitivement l’indicateur et son résultat pour ce mois.
       </p>
       <Card title="Période et indicateurs" headingLevel={3}>
         <form onSubmit={submit} noValidate aria-label="Export des statistiques">
@@ -184,7 +182,8 @@ export default function StatsExportPage() {
             {INDICATORS.map((indicator) => (
               <label key={indicator.value} className={styles.choice}>
                 <input
-                  type="checkbox"
+                  type="radio"
+                  name="stats-indicator"
                   checked={draft.indicators.includes(indicator.value)}
                   onChange={() => toggle(indicator.value)}
                 />
