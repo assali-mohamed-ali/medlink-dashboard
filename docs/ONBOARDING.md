@@ -495,3 +495,7 @@ Still to build on this foundation: the account activation page (`/activer-compte
 
 **UI refresh** (typography, tokens v2, components, space shell, words): the plan and its progress are in
 [docs/ui-refresh/](ui-refresh/PROGRESS.md). Start from `PROGRESS.md`.
+
+## Backlog workflow integration
+
+The API feature branch must include Flyway migrations through V34 before running the corresponding dashboard. Patient appointment history shows staff-assisted booking provenance, but not the staff actor ID. Patients can manage their own bookings and view/decide on reassignment proposals from their appointment screen. Practitioners can see absence periods in the agenda and independently accept or refuse their own reassignment proposals. Administrative staff create proposals from clinic assignments and view clinic capacity and occupancy in supervision. Both approvals are required before the API changes a booking. A refusal or unavailable target leaves the original booking in place. The dashboard depends on the API for authorization and atomic transitions; route guards are not a substitute for API authorization.
