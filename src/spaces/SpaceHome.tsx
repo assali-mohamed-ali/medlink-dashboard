@@ -1,52 +1,15 @@
-import { ArrowRight } from 'lucide-react'
-import { Link } from 'react-router-dom'
 import { PractitionerHome } from '@/features/agenda'
 import { useAuth, type Role } from '@/features/auth'
 import { PatientHome } from '@/features/slots'
-import StatusBadge from '@/shared/components/StatusBadge'
-import { Card, EmptyState } from '@/shared/ui'
-import { SPACES } from './spaces'
-import styles from './SpaceHome.module.css'
+import { StaffHome } from '@/features/staff-home'
 
 /**
- * The first page of every space (PLAN.md §4.5): a greeting, one sentence, then the parts that matter for the role
- * (spaces.ts). A part whose page exists links to it; the others say "Bientôt disponible", never fake data.
+ * The first page of every space (PLAN.md §4.5): each role's home, after the Stitch design, shows its own data from
+ * the API (the patient's appointments, the practitioner's agenda, the staff's accounts and audit trail), never fake data.
  */
 export default function SpaceHome({ role }: { role: Role }) {
   const { user } = useAuth()
-  // The patient's and the practitioner's homes show their own data (Stitch design); the staff keeps its parts
   if (role === 'PATIENT') return <PatientHome firstName={user?.firstName} />
   if (role === 'PRACTITIONER') return <PractitionerHome firstName={user?.firstName} />
-  const { home } = SPACES[role]
-  return (
-    <div className={styles.home}>
-      <div className={styles.greeting}>
-        <h2 className={styles.hello}>Bonjour{user ? ` ${user.firstName}` : ''}</h2>
-        <p className={styles.intro}>{home.intro}</p>
-      </div>
-      <div className={styles.parts}>
-        {home.parts.map((part) => (
-          <Card key={part.title}>
-            <EmptyState
-              icon={part.icon}
-              title={part.title}
-              compact
-              action={
-                part.link ? (
-                  <Link to={part.link.to} className={styles.open}>
-                    {part.link.label}
-                    <ArrowRight size={16} aria-hidden="true" />
-                  </Link>
-                ) : (
-                  <StatusBadge>Bientôt disponible</StatusBadge>
-                )
-              }
-            >
-              {part.text}
-            </EmptyState>
-          </Card>
-        ))}
-      </div>
-    </div>
-  )
+  return <StaffHome firstName={user?.firstName} />
 }

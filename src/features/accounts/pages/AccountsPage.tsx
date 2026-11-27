@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { KeyRound, Search, ShieldCheck, ShieldOff, UserCog, UserPlus, Users } from 'lucide-react'
+import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '@/features/auth'
 import StatusBadge from '@/shared/components/StatusBadge'
 import UserAvatar from '@/shared/components/UserAvatar'
@@ -59,7 +60,9 @@ export default function AccountsPage() {
   const [data, setData] = useState<AccountPage | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [notice, setNotice] = useState<Notice | null>(null)
-  const [open, setOpen] = useState<Open>(null)
+  // "?nouveau" (the staff home's "Nouveau compte"): the page opens with the new account dialog
+  const [params] = useSearchParams()
+  const [open, setOpen] = useState<Open>(() => (params.has('nouveau') ? { kind: 'create' } : null))
   const requestRef = useRef(0)
 
   useEffect(() => {
