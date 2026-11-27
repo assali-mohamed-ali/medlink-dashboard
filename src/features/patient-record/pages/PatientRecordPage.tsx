@@ -1,3 +1,4 @@
+import PublishResultForm from "../components/PublishResultForm"
 import { useEffect, useId, useRef, useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { ArrowLeft, Cake, IdCard, Clock, FileText, Lock, Plus, ShieldCheck } from 'lucide-react'
@@ -228,6 +229,7 @@ function Record({ titleId, patientId, patient, canWrite }: RecordProps) {
           </p>
         </section>
 
+        <PublishResultForm key={patientId} patientId={patientId} />
         <ReportsPanel
           patientId={patientId}
           load={reports.load}
