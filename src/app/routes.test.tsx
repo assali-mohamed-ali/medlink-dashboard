@@ -185,7 +185,9 @@ test.each(BACKLOG_PAGES)('the %s can open %s', async (role, path, title) => {
     const url = String(input)
     const body = url.endsWith('/filters') || url.endsWith('/profile-choices')
       ? { clinics: [], specialties: [], practitioners: [] }
-      : []
+      : url.includes('/practitioner/patients') || url.includes('/results/me')
+        ? { items: [], page: 0, size: 20, total: 0, unseen: 0 }
+        : []
     return new Response(JSON.stringify(body), { headers: { 'Content-Type': 'application/json' } })
   })
   try {
