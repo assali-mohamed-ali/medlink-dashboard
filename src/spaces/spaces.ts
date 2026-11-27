@@ -5,7 +5,6 @@ import {
   ChartColumn,
   FileText,
   House,
-  KeyRound,
   MessageSquare,
   ScrollText,
   Stethoscope,
@@ -106,7 +105,8 @@ export const SPACES: Record<Role, Space> = {
       { label: 'Journal d’audit', to: paths.staff.audit, icon: ScrollText },
       { label: 'Statistiques', to: paths.staff.stats, icon: ChartColumn },
       { label: 'Rendez-vous des cliniques', to: paths.staff.activity, icon: CalendarDays },
-      { label: 'Mot de passe', to: paths.staff.password, icon: KeyRound },
+      // The password page opens from the profile ("Modifier le mot de passe"), as for the other spaces
+      { label: 'Profil', to: paths.staff.profile, icon: UserRound, also: [paths.staff.password] },
     ],
     home: {
       intro: 'Les comptes et l’organisation des trois cliniques.',
