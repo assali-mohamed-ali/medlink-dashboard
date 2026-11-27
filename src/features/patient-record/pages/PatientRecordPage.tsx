@@ -164,7 +164,7 @@ function Record({ titleId, patientId, patient, canWrite }: RecordProps) {
           type="button"
           className={styles.newReport}
           aria-expanded={canWrite ? writing : undefined}
-          // MLink-32 follow-up: no report before the consultation has started (the API refuses it too)
+          // MLink-32 follow-up: no report before the consultation has ended (the API refuses it too)
           disabled={!canWrite}
           aria-describedby={canWrite ? undefined : notYetId}
           onClick={() => {
@@ -177,7 +177,7 @@ function Record({ titleId, patientId, patient, canWrite }: RecordProps) {
         </button>
         {!canWrite && (
           <p id={notYetId} className={styles.notYet}>
-            Vous pourrez écrire le compte-rendu une fois la consultation commencée.
+            Vous pourrez écrire le compte-rendu une fois la consultation terminée.
           </p>
         )}
       </header>
