@@ -25,3 +25,15 @@ test('requests mailbox verification then confirms without claiming an immediate 
   await user.click(screen.getByRole('button', { name: 'Se reconnecter' }))
   expect(onConfirmed).toHaveBeenCalledOnce()
 })
+
+test('resumes confirmation after reconnecting without requesting a second code', async () => {
+  const user = userEvent.setup()
+  vi.mocked(api.confirmEmailChange).mockResolvedValue({ status: 'ACCEPTED' })
+  render(<EmailChange onConfirmed={vi.fn().mockResolvedValue(undefined)} />)
+  await user.click(screen.getByRole('button', { name: 'J’ai déjà un code' }))
+  const code = 'b'.repeat(43)
+  await user.type(screen.getByLabelText('Code de confirmation'), code)
+  await user.click(screen.getByRole('button', { name: 'Confirmer le changement' }))
+  expect(api.confirmEmailChange).toHaveBeenCalledWith(code)
+  expect(api.requestEmailChange).not.toHaveBeenCalled()
+})

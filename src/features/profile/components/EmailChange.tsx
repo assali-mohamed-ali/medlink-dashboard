@@ -51,6 +51,7 @@ export default function EmailChange({ onConfirmed }: { onConfirmed: () => Promis
               <TextField label="Nouvelle adresse e-mail" name="email" type="email" autoComplete="email" required maxLength={254} />
               <TextField label="Mot de passe actuel" name="currentPassword" type="password" autoComplete="current-password" required maxLength={128} />
               <Button type="submit" disabled={busy}>Envoyer le code</Button>
+              <Button type="button" variant="secondary" disabled={busy} onClick={() => { setError(''); setStep('confirm') }}>J’ai déjà un code</Button>
             </>
           ) : (
             <>
