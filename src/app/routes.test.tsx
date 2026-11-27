@@ -169,3 +169,36 @@ test('the activation link of the mail opens the activation page, without a sessi
   expect(screen.getByRole('button', { name: 'Activer mon compte' })).toBeInTheDocument()
   expect(screen.queryByText('Activation du compte')).toBeNull()
 })
+
+const BACKLOG_PAGES = [
+  ['PATIENT', '/patient/resultats', 'Mes résultats d’examens'],
+  ['PRACTITIONER', '/praticien/patients', 'Mes patients'],
+  ['PRACTITIONER', '/praticien/absences', 'Mes absences'],
+  ['ADMINISTRATIVE_STAFF', '/admin/reservation', 'Réserver pour un patient'],
+  ['ADMINISTRATIVE_STAFF', '/admin/comptes/affectations', 'Affectations aux cliniques'],
+  ['ADMINISTRATIVE_STAFF', '/admin/demandes-suppression', 'Demandes de suppression'],
+] as const
+
+test.each(BACKLOG_PAGES)('the %s can open %s', async (role, path, title) => {
+  loggedInAs(role)
+  const http = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+    const url = String(input)
+    const body = url.endsWith('/filters') || url.endsWith('/profile-choices')
+      ? { clinics: [], specialties: [], practitioners: [] }
+      : []
+    return new Response(JSON.stringify(body), { headers: { 'Content-Type': 'application/json' } })
+  })
+  try {
+    renderAt(path)
+    expect(await screen.findByRole('heading', { name: title })).toBeVisible()
+  } finally {
+    http.mockRestore()
+  }
+})
+
+test.each(BACKLOG_PAGES)('another role cannot open a %s backlog page at %s', async (role, path, title) => {
+  loggedInAs(role === 'PATIENT' ? 'PRACTITIONER' : 'PATIENT')
+  renderAt(path)
+  expect(await screen.findByRole('heading', { name: 'Accès refusé' })).toBeVisible()
+  expect(screen.queryByRole('heading', { name: title })).toBeNull()
+})
