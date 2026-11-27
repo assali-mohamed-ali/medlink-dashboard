@@ -9,7 +9,7 @@ import PatientRecordPage from './PatientRecordPage'
 
 // MLink-32 (32.5, 32.6): the practitioner writes a consultation report from the patient record; a failed save never
 // loses the text. The API is mocked at the feature's api.ts; dates are shown in Tunis time.
-vi.mock('../api', () => ({ fetchPatientRecord: vi.fn(), fetchReports: vi.fn(), createReport: vi.fn(), fetchPublishedResults: vi.fn(async () => []) }))
+vi.mock('../api', () => ({ fetchPatientRecord: vi.fn(), fetchReports: vi.fn(), createReport: vi.fn(), fetchPublishedResults: vi.fn(async () => ({ items: [], page: 0, size: 20, total: 0, unseen: 0 })), fetchPatientFiles: vi.fn(async () => ({ items: [], total: 0 })) }))
 const fetchReports = vi.mocked(api.fetchReports)
 const createReport = vi.mocked(api.createReport)
 
