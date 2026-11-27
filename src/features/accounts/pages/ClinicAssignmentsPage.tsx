@@ -1,4 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
+import { paths } from '@/shared/config/paths'
 import { messageFor } from '@/shared/api/errors'
 import { Button, Card } from '@/shared/ui'
 import { fetchClinicAssignments, fetchProfileChoices, saveClinicAssignment, type ClinicAssignment } from '../api'
@@ -55,6 +57,8 @@ export default function ClinicAssignmentsPage() {
 
   return (
     <Card title="Affectations aux cliniques">
+      <p>Les créneaux futurs ouverts ou réservés bloquent un retrait. Fermez les créneaux libres et proposez les transferts nécessaires.</p>
+      <Link to={paths.staff.reassignments}>Gérer les réaffectations de rendez-vous</Link>
       {error && <p role="alert">{error}</p>}
       {saved && <p role="status">Affectations enregistrées.</p>}
       {!data && !error && <p role="status">Chargement des affectations…</p>}

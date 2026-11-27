@@ -185,6 +185,7 @@ export default function AgendaPage() {
             Agenda praticien — Consultations multi-cliniques
           </h2>
           <p className={styles.subtitle}>Supervision hebdomadaire de vos consultations réparties sur le réseau MedLink</p>
+          <Link to={paths.practitioner.reassignments}>Propositions de réaffectation</Link>
         </div>
         <div className={styles.headerSide}>
           <button

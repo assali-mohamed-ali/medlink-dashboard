@@ -106,6 +106,7 @@ export default function MyAppointmentsPage() {
           </p>
           <h2 className={styles.title}>Mes rendez-vous</h2>
           <p className={styles.lead}>Vos rendez-vous à venir et votre historique. Annulez ou reportez-les vous-même.</p>
+          <Link to={paths.patient.reassignments}>Propositions de réaffectation</Link>
         </div>
         <Link className={styles.newOne} to={paths.patient.slots}>
           <CalendarPlus size={18} aria-hidden="true" />

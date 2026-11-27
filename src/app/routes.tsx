@@ -5,6 +5,7 @@ import { practitionerAgendaPages } from '@/features/agenda'
 import { staffAuditPages } from '@/features/audit'
 import { patientDocumentPages, staffDocumentPages } from '@/features/documents'
 import { patientReportPages } from '@/features/my-reports'
+import { patientReassignmentPages, practitionerReassignmentPages, staffReassignmentPages } from '@/features/reassignments'
 import { patientResultPages, practitionerRecordPages } from '@/features/patient-record'
 import { patientProfilePages, practitionerProfilePages, staffProfilePages } from '@/features/profile'
 import { staffStatsPages } from '@/features/stats'
@@ -52,6 +53,7 @@ export const routes: RouteObject[] = [
       // Each space has its own password page (MLink-89), so the change happens inside the space
       space('PATIENT', paths.patient.root, [
         ...patientSlotPages,
+        ...patientReassignmentPages,
         ...patientDocumentPages,
         ...patientProfilePages,
         ...patientReportPages,
@@ -60,12 +62,14 @@ export const routes: RouteObject[] = [
       ]),
       space('PRACTITIONER', paths.practitioner.root, [
         ...practitionerAgendaPages,
+        ...practitionerReassignmentPages,
         ...practitionerRecordPages,
         ...practitionerProfilePages,
         ownPasswordRoute(paths.practitioner.password),
       ]),
       space('ADMINISTRATIVE_STAFF', paths.staff.root, [
         ...staffAccountsPages,
+        ...staffReassignmentPages,
         ...staffBookingPages,
         ...staffDocumentPages,
         ...staffAuditPages,
