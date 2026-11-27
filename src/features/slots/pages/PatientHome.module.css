@@ -76,6 +76,9 @@
 .soonIcon { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: var(--radius-control); background: var(--stitch-surface-low); color: var(--on-surface-variant); }
 .soonText { flex: 1; display: flex; flex-direction: column; min-width: 0; font-size: var(--text-xs); color: var(--on-surface-variant); }
 .soonTitle { margin: 0; font-size: var(--text-md); font-weight: 700; color: var(--on-surface); }
+.partLink { flex: none; color: var(--primary); font-size: var(--text-sm); font-weight: 700; text-decoration: none; }
+.partLink:hover { text-decoration: underline; }
+.partLink:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--radius-field); }
 .pill { flex: none; padding: 2px var(--space-3); border-radius: var(--radius-pill); background: var(--surface-low); color: var(--on-surface-variant); font-size: 0.6875rem; font-weight: 700; }
 .help { display: flex; flex-direction: column; gap: 2px; padding: var(--space-4); border-radius: var(--radius-card); background: var(--secondary-fixed); color: var(--on-surface); font-size: var(--text-sm); line-height: 1.5; }
 .help strong { color: var(--primary); }

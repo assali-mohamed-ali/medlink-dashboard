@@ -4,6 +4,7 @@ import { staffAccountsPages } from '@/features/accounts'
 import { practitionerAgendaPages } from '@/features/agenda'
 import { staffAuditPages } from '@/features/audit'
 import { patientDocumentPages, staffDocumentPages } from '@/features/documents'
+import { patientReportPages } from '@/features/my-reports'
 import { practitionerRecordPages } from '@/features/patient-record'
 import { patientProfilePages, practitionerProfilePages, staffProfilePages } from '@/features/profile'
 import { staffStatsPages } from '@/features/stats'
@@ -55,6 +56,7 @@ export const routes: RouteObject[] = [
         ...patientSlotPages,
         ...patientDocumentPages,
         ...patientProfilePages,
+        ...patientReportPages,
         ownPasswordRoute(paths.patient.password),
       ]),
       space('PRACTITIONER', paths.practitioner.root, [

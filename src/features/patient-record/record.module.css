@@ -28,6 +28,8 @@
   font: inherit; font-size: var(--text-sm); line-height: var(--leading-sm); font-weight: 700; cursor: pointer; box-shadow: var(--elev-1);
 }
 .newReport:hover { background: var(--stitch-action-hover); }
+.newReport:disabled { background: var(--surface-low); color: var(--text-muted); box-shadow: none; cursor: not-allowed; }
+.notYet { flex-basis: 100%; margin: 0; text-align: right; color: var(--text-muted); font-size: var(--text-sm); line-height: var(--leading-sm); }
 .newReport:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 
 /* The four facts at a glance */

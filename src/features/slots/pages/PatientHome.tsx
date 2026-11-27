@@ -211,7 +211,12 @@ export default function PatientHome({ firstName }: { firstName?: string }) {
         </section>
 
         <div className={styles.side}>
-          <Soon icon={<FileText size={20} aria-hidden="true" />} title="Documents" text="Comptes-rendus, ordonnances et résultats" />
+          <Part
+            icon={<FileText size={20} aria-hidden="true" />}
+            title="Comptes-rendus"
+            text="Les comptes-rendus de vos consultations"
+            link={{ to: paths.patient.reports, label: 'Voir mes comptes-rendus' }}
+          />
           <Soon icon={<MessageSquare size={20} aria-hidden="true" />} title="Messages" text="Vos échanges avec vos soignants" />
           <aside className={styles.help} aria-label="Un empêchement ?">
             <strong>Un empêchement ?</strong>
@@ -241,6 +246,25 @@ export default function PatientHome({ firstName }: { firstName?: string }) {
         </Dialog>
       )}
     </div>
+  )
+}
+
+/** A part of the space with its page (MLink-32 follow-up: the consultation reports). */
+function Part({ icon, title, text, link }: { icon: ReactNode; title: string; text: string; link: { to: string; label: string } }) {
+  const id = useId()
+  return (
+    <section className={styles.soon} aria-labelledby={id}>
+      <span className={styles.soonIcon}>{icon}</span>
+      <div className={styles.soonText}>
+        <h3 id={id} className={styles.soonTitle}>
+          {title}
+        </h3>
+        <span>{text}</span>
+      </div>
+      <Link to={link.to} className={styles.partLink}>
+        {link.label}
+      </Link>
+    </section>
   )
 }
 

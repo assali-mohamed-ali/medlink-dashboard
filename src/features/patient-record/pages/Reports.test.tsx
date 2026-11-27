@@ -45,8 +45,26 @@ beforeEach(() => {
   vi.mocked(api.fetchPatientRecord).mockResolvedValue({
     patient: { id: 'p1', firstName: 'Ahmed', lastName: 'Kacem', birthDate: '1985-03-12', phone: null },
     reports: [],
+    canWriteReport: true,
   })
   fetchReports.mockResolvedValue([OLD])
+})
+
+test('before the consultation has started, no report can be written: the button is off and says why', async () => {
+  vi.mocked(api.fetchPatientRecord).mockResolvedValue({
+    patient: { id: 'p1', firstName: 'Ahmed', lastName: 'Kacem', birthDate: '1985-03-12', phone: null },
+    reports: [],
+    canWriteReport: false,
+  })
+  renderPage()
+
+  const region = await reportsRegion()
+  const button = screen.getByRole('button', { name: 'Nouveau compte-rendu' })
+  expect(button).toBeDisabled()
+  expect(button).toHaveAccessibleDescription('Vous pourrez écrire le compte-rendu une fois la consultation commencée.')
+  // The earlier reports stay readable, to prepare the consultation
+  expect(await within(region).findByText('Bilan annuel sans particularité.')).toBeInTheDocument()
+  expect(within(region).queryByRole('form', { name: 'Nouveau compte-rendu' })).toBeNull()
 })
 
 afterEach(() => {

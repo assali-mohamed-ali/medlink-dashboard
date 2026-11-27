@@ -36,7 +36,7 @@ function renderAt(path: string) {
 
 beforeEach(() => {
   vi.resetAllMocks()
-  vi.mocked(api.fetchPatientRecord).mockResolvedValue({ patient: PATIENT, reports: [] })
+  vi.mocked(api.fetchPatientRecord).mockResolvedValue({ patient: PATIENT, reports: [], canWriteReport: true })
   vi.mocked(api.fetchReports).mockResolvedValue([])
 })
 
