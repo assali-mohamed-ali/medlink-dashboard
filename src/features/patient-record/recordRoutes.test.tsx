@@ -12,7 +12,7 @@ import * as api from './api'
 
 // MLink-31 (31.4): the record opens from an appointment of the agenda, in the practitioner's space only.
 vi.mock('@/features/auth/api', () => ({ fetchMe: vi.fn(), login: vi.fn(), logout: vi.fn() }))
-vi.mock('@/features/agenda/api', () => ({ fetchAgenda: vi.fn(), openSlot: vi.fn(), changeSlotStatus: vi.fn() }))
+vi.mock('@/features/agenda/api', () => ({ fetchAgenda: vi.fn(), fetchAbsences: vi.fn(), openSlot: vi.fn(), changeSlotStatus: vi.fn() }))
 vi.mock('./api', () => ({ fetchPatientRecord: vi.fn(), fetchReports: vi.fn(), createReport: vi.fn(), fetchPublishedResults: vi.fn(async () => ({ items: [], page: 0, size: 20, total: 0, unseen: 0 })), fetchPatientFiles: vi.fn(async () => ({ items: [], total: 0 })) }))
 const fetchMe = vi.mocked(authApi.fetchMe)
 
@@ -38,6 +38,7 @@ beforeEach(() => {
   vi.resetAllMocks()
   vi.mocked(api.fetchPatientRecord).mockResolvedValue({ patient: PATIENT, reports: [], canWriteReport: true })
   vi.mocked(api.fetchReports).mockResolvedValue([])
+  vi.mocked(agendaApi.fetchAbsences).mockResolvedValue([])
 })
 
 afterEach(() => {
