@@ -18,7 +18,7 @@ vi.mock('@/features/auth/api', () => ({
   register: vi.fn(),
   resendVerification: vi.fn(),
 }))
-vi.mock('./api', () => ({ fetchPractitioners: vi.fn(), fetchPractitionerAgenda: vi.fn() }))
+vi.mock('./api', () => ({ fetchPractitioners: vi.fn(), fetchPractitionerAgenda: vi.fn(), fetchClinics: vi.fn(), fetchClinicActivity: vi.fn() }))
 const fetchMe = vi.mocked(authApi.fetchMe)
 const fetchPractitioners = vi.mocked(supervisionApi.fetchPractitioners)
 
@@ -39,6 +39,7 @@ function renderAt(path: string) {
 beforeEach(() => {
   vi.resetAllMocks()
   fetchMe.mockRejectedValue(new ApiError(401, 'UNAUTHENTICATED', 'Non connecté.'))
+  vi.mocked(supervisionApi.fetchClinics).mockResolvedValue([])
   fetchPractitioners.mockResolvedValue([])
 })
 
@@ -56,14 +57,12 @@ test('the administrative staff reach the clinics\' appointments inside their spa
   expect(fetchPractitioners).toHaveBeenCalled()
 })
 
-test('the staff home links its "Rendez-vous des cliniques" part, no longer "Bientôt disponible"', async () => {
+test('the staff home leads to "Rendez-vous des cliniques", no longer "Bientôt disponible"', async () => {
   loggedInAs('ADMINISTRATIVE_STAFF')
   renderAt(paths.staff.root)
 
-  expect(await screen.findByRole('link', { name: 'Ouvrir les rendez-vous des cliniques' })).toHaveAttribute(
-    'href',
-    paths.staff.activity,
-  )
+  const main = within(await screen.findByRole('main'))
+  expect(await main.findByRole('link', { name: 'Rendez-vous des cliniques' })).toHaveAttribute('href', paths.staff.activity)
   expect(screen.queryByText('Bientôt disponible')).toBeNull()
 })
 

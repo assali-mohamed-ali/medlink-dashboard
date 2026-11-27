@@ -39,3 +39,8 @@ export function forcePasswordReset(id: string) {
 export function fetchProfileChoices() {
   return apiFetch<ProfileChoices>('/admin/profile-choices')
 }
+
+/** MLink-20: 204; only the displayed first and last name may change, never the email. */
+export function updateName(id: string, name: { firstName: string; lastName: string }) {
+  return apiFetch<void>(`/admin/users/${encodeURIComponent(id)}/name`, { method: 'PUT', body: name })
+}

@@ -1,14 +1,16 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { KeyRound, Search, ShieldCheck, ShieldOff, UserCog, UserPlus, Users } from 'lucide-react'
+import { KeyRound, Pencil, Search, ShieldCheck, ShieldOff, UserCog, UserPlus, Users } from 'lucide-react'
+import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '@/features/auth'
 import StatusBadge from '@/shared/components/StatusBadge'
-import UserAvatar from '@/shared/components/UserAvatar'
 import { messageFor } from '@/shared/api/errors'
 import { Alert, Button, EmptyState, Skeleton } from '@/shared/ui'
 import { PAGE_SIZE, fetchAccounts, forcePasswordReset, setAccountEnabled } from '../api'
 import ConfirmDialog from '../components/ConfirmDialog'
+import RowMenu, { type RowAction } from '../components/RowMenu'
 import CreateAccountDialog from '../components/CreateAccountDialog'
+import NameDialog from '../components/NameDialog'
 import RoleDialog from '../components/RoleDialog'
 import { ROLE_LABELS } from '../components/roleLabels'
 import type { Account, AccountPage } from '../types'
@@ -24,11 +26,16 @@ const ROLE_TONES = { PRACTITIONER: '1', ADMINISTRATIVE_STAFF: '3', PATIENT: '2' 
 type Notice = { tone: 'success' | 'error'; text: string }
 type Open =
   | { kind: 'create' }
+  | { kind: 'name'; account: Account }
   | { kind: 'role'; account: Account }
   | { kind: 'disable' | 'enable' | 'reset'; account: Account }
   | null
 
 const fullName = (account: Account) => `${account.firstName} ${account.lastName}`
+
+/** "SD": the first letters of the first and last names. */
+const initials = (account: Account) =>
+  `${account.firstName.charAt(0)}${account.lastName.charAt(0)}`.toUpperCase() || '?'
 
 function Status({ account }: { account: Account }) {
   if (!account.enabled) return <StatusBadge tone="danger">Désactivé</StatusBadge>
@@ -59,7 +66,11 @@ export default function AccountsPage() {
   const [data, setData] = useState<AccountPage | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [notice, setNotice] = useState<Notice | null>(null)
-  const [open, setOpen] = useState<Open>(null)
+  // "?nouveau" (the staff home's "Nouveau compte"): the page opens with the new account dialog
+  const [params] = useSearchParams()
+  const [open, setOpen] = useState<Open>(() => (params.has('nouveau') ? { kind: 'create' } : null))
+  // The account whose "⋯" menu is open: one at a time
+  const [menuFor, setMenuFor] = useState<string | null>(null)
   const requestRef = useRef(0)
 
   useEffect(() => {
@@ -185,86 +196,87 @@ export default function AccountsPage() {
               <caption className={styles.caption}>Comptes, page {query.page + 1}</caption>
               <thead>
                 <tr>
-                  <th scope="col">E-mail</th>
-                  <th scope="col">Nom</th>
-                  <th scope="col">Prénom</th>
+                  <th scope="col">Compte</th>
                   <th scope="col">Rôle</th>
                   <th scope="col">Statut</th>
-                  <th scope="col">Actions</th>
+                  <th scope="col" className={styles.actionsHead}>
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {data.items.map((account) => {
                   const name = fullName(account)
+                  const actions: RowAction[] = []
+                  if (account.role !== 'PATIENT') {
+                    actions.push({
+                      key: 'role',
+                      label: 'Changer le rôle',
+                      hint: 'Praticien ou personnel administratif',
+                      icon: <UserCog size={18} />,
+                      onSelect: () => setOpen({ kind: 'role', account }),
+                    })
+                  }
+                  actions.push({
+                    key: 'reset',
+                    label: 'Forcer un nouveau mot de passe',
+                    hint: 'Ses sessions se terminent',
+                    icon: <KeyRound size={18} />,
+                    onSelect: () => setOpen({ kind: 'reset', account }),
+                  })
+                  actions.push({
+                    key: 'name',
+                    label: 'Modifier le nom',
+                    hint: 'Prénom et nom',
+                    icon: <Pencil size={18} />,
+                    onSelect: () => setOpen({ kind: 'name', account }),
+                  })
+                  if (!account.enabled) {
+                    actions.push({
+                      key: 'enable',
+                      label: 'Activer le compte',
+                      hint: 'Il pourra de nouveau se connecter',
+                      icon: <ShieldCheck size={18} />,
+                      tone: 'safe',
+                      onSelect: () => setOpen({ kind: 'enable', account }),
+                    })
+                  } else if (account.id !== user?.id) {
+                    actions.push({
+                      key: 'disable',
+                      label: 'Désactiver le compte',
+                      hint: 'Il ne pourra plus se connecter',
+                      icon: <ShieldOff size={18} />,
+                      tone: 'danger',
+                      onSelect: () => setOpen({ kind: 'disable', account }),
+                    })
+                  }
                   return (
-                    <tr key={account.id}>
+                    <tr key={account.id} data-open={menuFor === account.id || undefined}>
                       <td>
                         <span className={styles.who}>
-                          <UserAvatar firstName={account.firstName} lastName={account.lastName} size="sm" />
-                          <span className={styles.email}>{account.email}</span>
+                          <span className={styles.initials} data-tone={account.role ? ROLE_TONES[account.role] : undefined} aria-hidden="true">
+                            {initials(account)}
+                          </span>
+                          <span className={styles.whoText}>
+                            <span className={styles.name}>{name}</span>
+                            <span className={styles.email}>{account.email}</span>
+                          </span>
                         </span>
                       </td>
-                      <td>{account.lastName}</td>
-                      <td>{account.firstName}</td>
                       <td>
                         <Role account={account} />
                       </td>
                       <td>
                         <Status account={account} />
                       </td>
-                      <td>
-                        <div className={styles.actions}>
-                          {account.role !== 'PATIENT' && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              aria-label={`Changer le rôle de ${name}`}
-                              className={styles.action}
-                              data-action="role"
-                              onClick={() => setOpen({ kind: 'role', account })}
-                            >
-                              <UserCog size={16} aria-hidden="true" />
-                              Rôle
-                            </Button>
-                          )}
-                          {account.enabled && account.id !== user?.id && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              aria-label={`Désactiver le compte de ${name}`}
-                              className={styles.action}
-                              data-action="disable"
-                              onClick={() => setOpen({ kind: 'disable', account })}
-                            >
-                              <ShieldOff size={16} aria-hidden="true" />
-                              Désactiver
-                            </Button>
-                          )}
-                          {!account.enabled && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              aria-label={`Activer le compte de ${name}`}
-                              className={styles.action}
-                              data-action="enable"
-                              onClick={() => setOpen({ kind: 'enable', account })}
-                            >
-                              <ShieldCheck size={16} aria-hidden="true" />
-                              Activer
-                            </Button>
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            aria-label={`Forcer le changement de mot de passe de ${name}`}
-                              className={styles.action}
-                              data-action="reset"
-                            onClick={() => setOpen({ kind: 'reset', account })}
-                          >
-                            <KeyRound size={16} aria-hidden="true" />
-                            Mot de passe
-                          </Button>
-                        </div>
+                      <td className={styles.actionsCell}>
+                        <RowMenu
+                          name={name}
+                          email={account.email}
+                          actions={actions}
+                          open={menuFor === account.id}
+                          onOpenChange={(opened) => setMenuFor(opened ? account.id : null)}
+                        />
                       </td>
                     </tr>
                   )
@@ -299,6 +311,17 @@ export default function AccountsPage() {
         )}
       </div>
 
+      {open?.kind === 'name' && (
+        <NameDialog
+          account={open.account}
+          onClose={() => setOpen(null)}
+          onSaved={() => {
+            setOpen(null)
+            setNotice({ tone: 'success', text: `Nom de ${fullName(open.account)} modifié.` })
+            reload()
+          }}
+        />
+      )}
       {open?.kind === 'create' && (
         <CreateAccountDialog
           onClose={() => setOpen(null)}

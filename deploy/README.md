@@ -149,6 +149,10 @@ browser and runtime image. Set `SENTRY_AUTH_TOKEN` as a repository secret and `S
 variables; the workflow passes the token as a BuildKit secret (never a build arg) and the other values as build args,
 and the Vite plugin removes source maps from `dist/` after upload.
 
+This project lives in Sentry's EU region, so the Dockerfile and workflow default `SENTRY_URL` to
+`https://de.sentry.io`. Override the `SENTRY_URL` repository variable only if the project moves; an organization
+token embeds its region, while a personal token does not.
+
 Only Sentry's public ingest hosts are allowed in `connect-src`; a self-hosted Sentry needs its ingest host added
 there. The SDK scrubs mailed tokens, request bodies and authentication headers in `src/shared/lib/sentryScrub.ts`
 before events leave the browser; keep Sentry's server-side data-scrubbing rules enabled as a backstop.

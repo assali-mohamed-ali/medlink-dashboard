@@ -20,6 +20,7 @@ export const paths = {
     slots: '/patient/creneaux',
     appointments: '/patient/rendez-vous',
     reports: '/patient/comptes-rendus',
+    documents: '/patient/documents',
     profile: '/patient/profil',
     password: '/patient/mot-de-passe',
   },
@@ -34,9 +35,11 @@ export const paths = {
   staff: {
     root: '/admin',
     accounts: '/admin/comptes',
+    documents: '/admin/documents',
     audit: '/admin/journal-audit',
     stats: '/admin/statistiques',
     activity: '/admin/rendez-vous',
+    profile: '/admin/profil',
     password: '/admin/mot-de-passe',
   },
   specimen: '/__specimen', // dev only (npm run dev): the UI refresh specimen, absent from production builds

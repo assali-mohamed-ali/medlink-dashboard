@@ -47,3 +47,18 @@ export function weekTitle(monday: string): string {
   }
   return `Semaine du ${Number(monday.slice(8, 10))} au ${DAY_MONTH.format(asDate(last))} ${lastYear}`
 }
+
+/** The ISO week number of a Monday: "Semaine 49". */
+export function isoWeek(monday: string): number {
+  const thursday = new Date(Date.parse(`${addDays(monday, 3)}T00:00:00Z`))
+  const yearStart = Date.UTC(thursday.getUTCFullYear(), 0, 1)
+  return Math.floor((thursday.getTime() - yearStart) / DAY_MS / 7) + 1
+}
+
+const SHORT_WEEKDAY = /* @__PURE__ */ new Intl.DateTimeFormat('fr-FR', { timeZone: 'UTC', weekday: 'short' })
+
+/** "MAR" */
+export const shortWeekday = (day: string) => SHORT_WEEKDAY.format(asDate(day)).replace('.', '').toUpperCase()
+
+/** "1" */
+export const dayOfMonth = (day: string) => String(Number(day.slice(8, 10)))
