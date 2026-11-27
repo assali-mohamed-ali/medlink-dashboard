@@ -16,6 +16,7 @@ vi.mock('@/features/auth/api', () => ({
   login: vi.fn(),
   logout: vi.fn(),
   register: vi.fn(),
+  currentConsent: vi.fn(async () => ({ version: 'test-policy', text: 'Texte de test', required: false })),
   resendActivation: vi.fn(),
   resendVerification: vi.fn(),
 }))

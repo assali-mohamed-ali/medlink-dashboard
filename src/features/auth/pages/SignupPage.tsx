@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -30,7 +30,7 @@ import PublicHeader from '@/shared/layout/PublicHeader'
 import { ApiError } from '@/shared/api/apiClient'
 import { fieldErrors as pickFieldErrors, messageFor } from '@/shared/api/errors'
 import { paths } from '@/shared/config/paths'
-import { register as registerRequest } from '../api'
+import { currentConsent, register as registerRequest } from '../api'
 import {
   allPasswordRulesPass,
   evaluatePasswordRules,
@@ -74,6 +74,20 @@ const API_FIELDS = [
 ] as const
 
 export default function SignupPage() {
+  const [policy, setPolicy] = useState<Awaited<ReturnType<typeof currentConsent>>>()
+  const [policyFailed, setPolicyFailed] = useState(false)
+  const [attempt, setAttempt] = useState(0)
+  const [acceptedVersion, setAcceptedVersion] = useState<string>()
+  useEffect(() => {
+    let active = true
+    currentConsent().then(
+      (value) => { if (active) setPolicy(value) },
+      () => { if (active) setPolicyFailed(true) },
+    )
+    return () => { active = false }
+  }, [attempt])
+  const accepted = policy !== undefined && acceptedVersion === policy.version
+
   const [showPassword, setShowPassword] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
@@ -119,6 +133,11 @@ export default function SignupPage() {
       return
     }
 
+    if (!policy || (policy.required && !accepted)) {
+      setFormError('Prenez connaissance du texte et confirmez votre choix.')
+      return
+    }
+
     let phone = values.phone.trim()
     if (phone && !phone.startsWith('+')) {
       phone = `+216 ${phone.replace(/^0+/, '')}`
@@ -133,6 +152,7 @@ export default function SignupPage() {
         birthDate: values.birthDate,
         phone,
         address: values.address.trim(),
+        ...(accepted ? { consentVersion: policy.version } : {}),
       })
       setSubmittedEmail(values.email.trim())
       setSuccess(true)
@@ -606,6 +626,28 @@ export default function SignupPage() {
               </div>
             </fieldset>
 
+            <fieldset className="signup__section">
+              <legend className="signup__section-label">Consentement</legend>
+              {policyFailed ? (
+                <>
+                  <p role="alert">Le texte de consentement est indisponible.</p>
+                  <button type="button" onClick={() => {
+                    setPolicyFailed(false)
+                    setAttempt(attempt + 1)
+                  }}>Réessayer</button>
+                </>
+              ) : !policy ? <p role="status">Chargement du texte de consentement…</p> : (
+                <>
+                  <p>{policy.text}</p>
+                  <label>
+                    <input type="checkbox" checked={accepted} onChange={(event) =>
+                      setAcceptedVersion(event.target.checked ? policy.version : undefined)
+                    } />
+                    {' '}J’accepte le texte de consentement présenté ci-dessus.
+                  </label>
+                </>
+              )}
+            </fieldset>
             <div className="signup__actions">
               <p className="signup__login-link">
                 Déjà inscrit ? <Link to={paths.login}>Se connecter</Link>
@@ -613,7 +655,7 @@ export default function SignupPage() {
               <button
                 className="signup__submit"
                 type="submit"
-                disabled={isSubmitting || !passwordOk}
+                disabled={isSubmitting || !passwordOk || !policy || (policy.required && !accepted)}
               >
                 {isSubmitting ? (
                   'Création du compte…'

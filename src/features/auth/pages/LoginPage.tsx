@@ -185,6 +185,9 @@ export default function LoginPage() {
         </div>
 
         <p className="login__signup">
+          <Link to={paths.forgotPassword}>Mot de passe oublié ?</Link>
+        </p>
+        <p>
           Pas encore de compte ? <Link to={paths.signup}>Créer un compte</Link>
         </p>
       </div>
