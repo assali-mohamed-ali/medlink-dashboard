@@ -76,7 +76,7 @@ export default function MyAppointmentsPage() {
     try {
       await cancelAppointment(toCancel.id)
       setToCancel(null)
-      setNotice('Votre rendez-vous est annulé. Le créneau est de nouveau proposé aux autres patients.')
+      setNotice('Votre rendez-vous est annulé.')
       setReload((n) => n + 1)
     } catch (e) {
       setCancelError(messageFor(e))
@@ -209,7 +209,7 @@ export default function MyAppointmentsPage() {
               </ul>
             )}
             <p className={styles.hint}>
-              <Check size={14} aria-hidden="true" /> Un rendez-vous annulé libère le créneau pour les autres patients.
+              <Check size={14} aria-hidden="true" /> Un créneau libéré peut être réservé à nouveau s’il reste disponible.
             </p>
             {pages > 1 && (
               <nav className={styles.pager} aria-label="Pages de rendez-vous">
@@ -316,6 +316,7 @@ function ToComeCard({ appointment, tint, next, onCancel }: ToComeProps) {
           <MapPin size={11} aria-hidden="true" />
           <span>{appointment.clinic.name}</span>
         </span>
+        {appointment.bookedByStaff && <p>Pris par l’accueil</p>}
       </div>
       <div className={styles.actions}>
         <Link className={styles.move} to={`${paths.patient.slots}?reporter=${appointment.id}`}>
@@ -345,6 +346,7 @@ function HistoryRow({ appointment, kind }: { appointment: Appointment; kind: Kin
           Dr {firstName} {lastName}
         </span>{' '}
         · <span>{appointment.clinic.name}</span>
+        {appointment.bookedByStaff && <span>Pris par l’accueil</span>}
       </span>
       <span className={`${styles.status} ${cancelled ? styles.cancelled : styles.past}`}>
         {cancelled ? 'Annulé' : 'Passé'}
