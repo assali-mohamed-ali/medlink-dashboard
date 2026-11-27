@@ -36,6 +36,15 @@ function ClinicCard({ clinic, monday }: { clinic: ClinicSummary; monday: string 
         <dl>
           <dt>Rendez-vous réservés</dt><dd>{result.data.BOOKED}</dd>
           <dt>Rendez-vous annulés</dt><dd>{result.data.CANCELLED}</dd>
+          <dt>Taux d’occupation</dt>
+          <dd>{result.data.OCCUPANCY_PERCENT === undefined ? 'Indisponible' :
+            result.data.OPEN_SLOTS === 0 && result.data.BOOKED_SLOTS === 0 ? 'Aucun créneau' :
+              `${result.data.OCCUPANCY_PERCENT} %`}</dd>
+          {result.data.OPEN_SLOTS !== undefined && <>
+            <dt>Créneaux libres</dt><dd>{result.data.OPEN_SLOTS}</dd>
+            <dt>Créneaux réservés</dt><dd>{result.data.BOOKED_SLOTS}</dd>
+            <dt>Créneaux fermés</dt><dd>{result.data.CLOSED_SLOTS}</dd>
+          </>}
         </dl>
       )}
     </Card>
