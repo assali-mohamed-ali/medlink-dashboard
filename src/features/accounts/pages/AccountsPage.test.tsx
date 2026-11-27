@@ -202,6 +202,16 @@ test('the list cannot be loaded: an error and a way to try again', async () => {
 
 // ---- "Nouveau compte" ----
 
+test('opened from the staff home ("?nouveau"), the page shows the new account dialog at once', async () => {
+  render(
+    <MemoryRouter initialEntries={['/admin/comptes?nouveau']}>
+      <AccountsPage />
+    </MemoryRouter>,
+  )
+
+  expect(await screen.findByRole('dialog', { name: 'Nouveau compte' })).toBeInTheDocument()
+})
+
 async function openCreate(user: ReturnType<typeof userEvent.setup>) {
   await table()
   await user.click(screen.getByRole('button', { name: 'Nouveau compte' }))

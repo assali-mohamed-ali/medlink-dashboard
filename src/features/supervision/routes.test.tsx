@@ -56,14 +56,12 @@ test('the administrative staff reach the clinics\' appointments inside their spa
   expect(fetchPractitioners).toHaveBeenCalled()
 })
 
-test('the staff home links its "Rendez-vous des cliniques" part, no longer "Bientôt disponible"', async () => {
+test('the staff home leads to "Rendez-vous des cliniques", no longer "Bientôt disponible"', async () => {
   loggedInAs('ADMINISTRATIVE_STAFF')
   renderAt(paths.staff.root)
 
-  expect(await screen.findByRole('link', { name: 'Ouvrir les rendez-vous des cliniques' })).toHaveAttribute(
-    'href',
-    paths.staff.activity,
-  )
+  const main = within(await screen.findByRole('main'))
+  expect(await main.findByRole('link', { name: 'Rendez-vous des cliniques' })).toHaveAttribute('href', paths.staff.activity)
   expect(screen.queryByText('Bientôt disponible')).toBeNull()
 })
 
