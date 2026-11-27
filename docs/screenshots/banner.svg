@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="300" viewBox="0 0 1280 300" role="img" aria-label="MedLink : Portail de santé multi-cliniques — interface web">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0e5245"/>
+      <stop offset="1" stop-color="#2d6a5c"/>
+    </linearGradient>
+    <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.4" fill="#b1efdd" fill-opacity="0.13"/>
+    </pattern>
+  </defs>
+  <rect width="1280" height="300" rx="24" fill="url(#bg)"/>
+  <rect x="760" width="520" height="300" rx="24" fill="url(#dots)"/>
+  <circle cx="1130" cy="70" r="150" fill="#b1efdd" fill-opacity="0.07"/>
+  <circle cx="1210" cy="250" r="90" fill="#b1efdd" fill-opacity="0.06"/>
+  <g transform="translate(96 62)">
+    <rect width="76" height="76" rx="20" fill="#ffffff"/>
+    <path d="M31 16h14v15h15v14H45v15H31V45H16V31h15z" fill="#0e5245"/>
+  </g>
+  <g font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif">
+    <text x="196" y="112" font-size="58" font-weight="700" fill="#ffffff">MedLink</text>
+    <text x="198" y="150" font-size="22" fill="#cfeee3">Portail de santé multi-cliniques — interface web</text>
+    <rect x="96" y="214" width="85" height="34" rx="17" fill="#b1efdd" fill-opacity="0.16" stroke="#b1efdd" stroke-opacity="0.45"/><text x="139" y="236" text-anchor="middle" font-size="15" fill="#dff7ee">React 19</text><rect x="193" y="214" width="119" height="34" rx="17" fill="#b1efdd" fill-opacity="0.16" stroke="#b1efdd" stroke-opacity="0.45"/><text x="253" y="236" text-anchor="middle" font-size="15" fill="#dff7ee">TypeScript 6</text><rect x="324" y="214" width="68" height="34" rx="17" fill="#b1efdd" fill-opacity="0.16" stroke="#b1efdd" stroke-opacity="0.45"/><text x="358" y="236" text-anchor="middle" font-size="15" fill="#dff7ee">Vite 8</text><rect x="404" y="214" width="152" height="34" rx="17" fill="#b1efdd" fill-opacity="0.16" stroke="#b1efdd" stroke-opacity="0.45"/><text x="481" y="236" text-anchor="middle" font-size="15" fill="#dff7ee">Session HttpOnly</text><rect x="569" y="214" width="85" height="34" rx="17" fill="#b1efdd" fill-opacity="0.16" stroke="#b1efdd" stroke-opacity="0.45"/><text x="611" y="236" text-anchor="middle" font-size="15" fill="#dff7ee">CSP self</text>
+  </g>
+</svg>
