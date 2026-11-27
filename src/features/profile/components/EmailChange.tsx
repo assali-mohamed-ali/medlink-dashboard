@@ -45,7 +45,7 @@ export default function EmailChange({ onConfirmed }: { onConfirmed: () => Promis
           <Button onClick={() => void onConfirmed()}>Se reconnecter</Button>
         </>
       ) : (
-        <form onSubmit={submit}>
+        <form key={step} onSubmit={submit}>
           {step === 'request' ? (
             <>
               <TextField label="Nouvelle adresse e-mail" name="email" type="email" autoComplete="email" required maxLength={254} />
