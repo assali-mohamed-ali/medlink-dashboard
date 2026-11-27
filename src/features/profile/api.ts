@@ -38,9 +38,16 @@ export type ContactDetails = { phone: string | null; address: string | null }
 export type DeletionRequest = {
   requested: boolean
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | null
+  requestedAt?: string | null
   dueAt: string | null
   decisionNote: string | null
+  decidedAt?: string | null
+  /** When an approval closed the account (api-MedLink V30). */
+  accountClosedAt?: string | null
 }
+
+/** US-15: the optional mails (GET/PUT /api/patients/me/notification-preferences). E-mail is the only channel. */
+export type NotificationPreferences = { appointmentReminders: boolean; examResults: boolean }
 
 export function fetchContactDetails() {
   return apiFetch<ContactDetails>('/patients/me')
@@ -48,6 +55,14 @@ export function fetchContactDetails() {
 
 export function saveContactDetails(phone: string, address: string) {
   return apiFetch<ContactDetails>('/patients/me', { method: 'PUT', body: { phone, address } })
+}
+
+export function fetchNotificationPreferences() {
+  return apiFetch<NotificationPreferences>('/patients/me/notification-preferences')
+}
+
+export function saveNotificationPreferences(preferences: NotificationPreferences) {
+  return apiFetch<NotificationPreferences>('/patients/me/notification-preferences', { method: 'PUT', body: preferences })
 }
 
 export function deletionRequest(method = 'GET') {

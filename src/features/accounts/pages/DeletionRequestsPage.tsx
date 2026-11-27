@@ -33,10 +33,12 @@ export default function DeletionRequestsPage() {
     setBusy(true)
     setError('')
     try {
-      await decideDeletion(selected.patientId, decision, note)
+      const decided = await decideDeletion(selected.patientId, decision, note)
       setRequests((value) => value?.filter((request) => request.patientId !== selected.patientId))
       setSelected(undefined)
-      setNotice('Décision enregistrée.')
+      setNotice(decided?.accountClosedAt
+        ? 'Demande approuvée : le compte est clôturé et ses sessions sont fermées. Le dossier est conservé.'
+        : 'Décision enregistrée : le patient voit le motif dans son profil.')
     } catch (cause) {
       setError(messageFor(cause))
     } finally {
@@ -69,6 +71,11 @@ export default function DeletionRequestsPage() {
             <option value="REJECTED">Refuser</option>
             <option value="APPROVED">Approuver la demande</option>
           </select></label>
+          <p>
+            Approuver clôture le compte du patient et ferme ses sessions ; son dossier médical et le journal d’audit sont
+            conservés. L’anonymisation et la purge ne sont pas réalisées tant que la politique de conservation n’est pas
+            approuvée. L’approbation est refusée tant que la durée de conservation court.
+          </p>
           <TextField id="deletion-note" label="Motif transmis au patient" name="note" maxLength={500} />
           <Button type="submit" disabled={busy}>Confirmer la décision</Button>
           <Button type="button" disabled={busy} onClick={() => setSelected(undefined)}>Annuler</Button>

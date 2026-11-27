@@ -65,8 +65,10 @@ export type PendingDeletion = {
 export function fetchDeletionRequests() {
   return apiFetch<PendingDeletion[]>('/admin/deletion-requests')
 }
+/** The request once decided: an approval closes the account (accountClosedAt), nothing is erased. */
+export type DecidedDeletion = { status: 'APPROVED' | 'REJECTED'; accountClosedAt: string | null }
 export function decideDeletion(id: string, decision: 'APPROVED' | 'REJECTED', note: string) {
-  return apiFetch(`/admin/deletion-requests/${encodeURIComponent(id)}/decision`, {
+  return apiFetch<DecidedDeletion>(`/admin/deletion-requests/${encodeURIComponent(id)}/decision`, {
     method: 'POST', body: { decision, note },
   })
 }
