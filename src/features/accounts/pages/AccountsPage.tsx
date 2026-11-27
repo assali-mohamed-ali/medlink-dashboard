@@ -9,6 +9,7 @@ import { Alert, Button, EmptyState, Skeleton } from '@/shared/ui'
 import { PAGE_SIZE, fetchAccounts, forcePasswordReset, setAccountEnabled } from '../api'
 import ConfirmDialog from '../components/ConfirmDialog'
 import CreateAccountDialog from '../components/CreateAccountDialog'
+import NameDialog from '../components/NameDialog'
 import RoleDialog from '../components/RoleDialog'
 import { ROLE_LABELS } from '../components/roleLabels'
 import type { Account, AccountPage } from '../types'
@@ -24,6 +25,7 @@ const ROLE_TONES = { PRACTITIONER: '1', ADMINISTRATIVE_STAFF: '3', PATIENT: '2' 
 type Notice = { tone: 'success' | 'error'; text: string }
 type Open =
   | { kind: 'create' }
+  | { kind: 'name'; account: Account }
   | { kind: 'role'; account: Account }
   | { kind: 'disable' | 'enable' | 'reset'; account: Account }
   | null
@@ -256,6 +258,16 @@ export default function AccountsPage() {
                           <Button
                             variant="ghost"
                             size="sm"
+                            aria-label={`Modifier le nom de ${name}`}
+                            className={styles.action}
+                            data-action="name"
+                            onClick={() => setOpen({ kind: 'name', account })}
+                          >
+                            Modifier le nom
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             aria-label={`Forcer le changement de mot de passe de ${name}`}
                               className={styles.action}
                               data-action="reset"
@@ -299,6 +311,17 @@ export default function AccountsPage() {
         )}
       </div>
 
+      {open?.kind === 'name' && (
+        <NameDialog
+          account={open.account}
+          onClose={() => setOpen(null)}
+          onSaved={() => {
+            setOpen(null)
+            setNotice({ tone: 'success', text: `Nom de ${fullName(open.account)} modifié.` })
+            reload()
+          }}
+        />
+      )}
       {open?.kind === 'create' && (
         <CreateAccountDialog
           onClose={() => setOpen(null)}

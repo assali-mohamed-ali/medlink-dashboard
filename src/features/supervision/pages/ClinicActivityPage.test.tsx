@@ -7,7 +7,7 @@ import * as api from '../api'
 import type { AdminPractitioner, SupervisedAgenda } from '../types'
 import ClinicActivityPage from './ClinicActivityPage'
 
-vi.mock('../api', () => ({ fetchPractitioners: vi.fn(), fetchPractitionerAgenda: vi.fn() }))
+vi.mock('../api', () => ({ fetchPractitioners: vi.fn(), fetchPractitionerAgenda: vi.fn(), fetchClinics: vi.fn(), fetchClinicActivity: vi.fn() }))
 const fetchPractitioners = vi.mocked(api.fetchPractitioners)
 const fetchPractitionerAgenda = vi.mocked(api.fetchPractitionerAgenda)
 
@@ -65,6 +65,7 @@ beforeEach(() => {
   vi.resetAllMocks()
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(NOW)
+  vi.mocked(api.fetchClinics).mockResolvedValue([])
   fetchPractitioners.mockResolvedValue([KARIM, LINA])
   fetchPractitionerAgenda.mockResolvedValue(AGENDA)
 })
@@ -157,4 +158,20 @@ test('a failed list of practitioners shows the message and "Réessayer" asks aga
   expect(await screen.findByRole('alert')).toHaveTextContent('Service indisponible.')
   await user.click(screen.getByRole('button', { name: 'Réessayer' }))
   expect(await screen.findByLabelText('Praticien')).toBeInTheDocument()
+})
+
+test('a failed clinic leaves the other clinic available and can be retried independently', async () => {
+  vi.mocked(api.fetchClinics).mockResolvedValue([{ ...SOUSSE, city: 'Sousse' }, { ...TUNIS, city: 'Tunis' }])
+  const activity = vi.mocked(api.fetchClinicActivity)
+  activity.mockImplementation((id) => id === SOUSSE.id
+    ? Promise.reject(new ApiError(503, 'UNAVAILABLE', 'Clinique indisponible'))
+    : Promise.resolve({ BOOKED: 12, CANCELLED: 2 }))
+  const user = renderPage()
+
+  expect(await screen.findByText('12')).toBeInTheDocument()
+  expect(await screen.findByText('Clinique indisponible')).toBeInTheDocument()
+  activity.mockResolvedValueOnce({ BOOKED: 9, CANCELLED: 0 })
+  await user.click(screen.getByRole('button', { name: 'Réessayer' }))
+  expect(await screen.findByText('9')).toBeInTheDocument()
+  expect(activity.mock.calls.filter(([id]) => id === TUNIS.id)).toHaveLength(1)
 })

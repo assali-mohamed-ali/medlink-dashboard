@@ -1,7 +1,7 @@
 import { apiFetch } from '@/shared/api/apiClient'
 import type { AuditPage, AuditQuery } from './types'
 
-const PARAMS = ['page', 'size', 'from', 'to', 'userId', 'action'] as const
+const PARAMS = ['page', 'size', 'from', 'to', 'userId', 'patientId', 'action'] as const
 
 /** GET /api/admin/audit-entries (staff only, newest first). Empty filters are not sent. */
 export function fetchAuditEntries(query: AuditQuery = {}) {

@@ -5,6 +5,7 @@ import { Alert, Button, Card, EmptyState, Select, Skeleton } from '@/shared/ui'
 import { fetchPractitionerAgenda, fetchPractitioners } from '../api'
 import type { AdminPractitioner, SlotStatus, SupervisedAgenda, SupervisedSlot } from '../types'
 import { addDays, longDayLabel, mondayOf, timeLabel, tunisDay, weekDays, weekPeriod, weekTitle } from '../week'
+import ClinicCards from '../components/ClinicCards'
 import styles from './ClinicActivityPage.module.css'
 
 const STATUS_WORDS: Record<SlotStatus, string> = { OPEN: 'Disponible', BOOKED: 'Réservé', CLOSED: 'Fermé' }
@@ -167,6 +168,7 @@ export default function ClinicActivityPage() {
         Le planning de chaque praticien dans les trois cliniques, en lecture seule. Les dossiers médicaux restent
         réservés aux praticiens.
       </p>
+      <ClinicCards monday={monday} />
       <Card title="Choix du praticien" headingLevel={3}>
         {picker}
       </Card>

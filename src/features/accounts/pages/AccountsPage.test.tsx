@@ -15,6 +15,7 @@ vi.mock('../api', () => ({
   fetchAccounts: vi.fn(),
   createAccount: vi.fn(),
   changeRole: vi.fn(),
+  updateName: vi.fn(),
   setAccountEnabled: vi.fn(),
   forcePasswordReset: vi.fn(),
   fetchProfileChoices: vi.fn(),
@@ -461,4 +462,23 @@ test('an action that fails says so, and the list stays as it was', async () => {
 
   expect(await screen.findByRole('alert')).toHaveTextContent('Le service de connexion ne répond pas.')
   expect(await rowOf('sami.dev@medlink.local')).toHaveTextContent('Actif')
+})
+
+test('edits the account name without changing the email and reloads the row', async () => {
+  const updateName = vi.mocked(api.updateName)
+  updateName.mockResolvedValue(undefined)
+  const user = renderPage()
+  const row = await rowOf('sami.dev@medlink.local')
+
+  await user.click(within(row).getByRole('button', { name: 'Modifier le nom de Sami Dev' }))
+  const dialog = within(screen.getByRole('dialog', { name: 'Modifier le nom de Sami Dev' }))
+  const firstName = dialog.getByRole('textbox', { name: 'Prénom' })
+  await user.clear(firstName)
+  await user.type(firstName, '  Karim  ')
+  fetchAccounts.mockResolvedValue({ items: [{ ...SAMI, firstName: 'Karim' }], total: 1 })
+  await user.click(dialog.getByRole('button', { name: 'Enregistrer' }))
+
+  expect(updateName).toHaveBeenCalledExactlyOnceWith('u1', { firstName: 'Karim', lastName: 'Dev' })
+  await waitFor(async () => expect(await rowOf('sami.dev@medlink.local')).toHaveTextContent('Karim'))
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 })
