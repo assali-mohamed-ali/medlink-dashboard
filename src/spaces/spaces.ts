@@ -57,6 +57,7 @@ export const SPACES: Record<Role, Space> = {
       { label: 'Accueil', to: paths.patient.root, icon: House },
       { label: 'Prendre rendez-vous', to: paths.patient.slots, icon: CalendarPlus },
       { label: 'Mes rendez-vous', to: paths.patient.appointments, icon: CalendarCheck },
+      { label: 'Mes documents', to: paths.patient.documents, icon: FileText },
       // The password page opens from the profile ("Modifier le mot de passe"), as for the practitioner
       { label: 'Profil', to: paths.patient.profile, icon: UserRound, also: [paths.patient.password] },
     ],
@@ -69,7 +70,12 @@ export const SPACES: Record<Role, Space> = {
           icon: CalendarDays,
           link: { to: paths.patient.appointments, label: 'Voir mes rendez-vous' },
         },
-        { title: 'Documents', text: 'Vos comptes rendus, ordonnances et résultats.', icon: FileText },
+        {
+          title: 'Documents',
+          text: 'Vos comptes rendus, ordonnances et résultats.',
+          icon: FileText,
+          link: { to: paths.patient.documents, label: 'Voir mes documents' },
+        },
         { title: 'Messages', text: 'Vos échanges avec vos soignants.', icon: MessageSquare },
       ],
     },
@@ -103,6 +109,7 @@ export const SPACES: Record<Role, Space> = {
     menu: [
       { label: 'Accueil', to: paths.staff.root, icon: House },
       { label: 'Gestion des comptes', to: paths.staff.accounts, icon: Users },
+      { label: 'Documents patients', to: paths.staff.documents, icon: FileText },
       { label: 'Journal d’audit', to: paths.staff.audit, icon: ScrollText },
       { label: 'Statistiques', to: paths.staff.stats, icon: ChartColumn },
       { label: 'Rendez-vous des cliniques', to: paths.staff.activity, icon: CalendarDays },

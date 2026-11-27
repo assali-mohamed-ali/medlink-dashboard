@@ -3,6 +3,7 @@ import type { RouteObject } from 'react-router-dom'
 import { staffAccountsPages } from '@/features/accounts'
 import { practitionerAgendaPages } from '@/features/agenda'
 import { staffAuditPages } from '@/features/audit'
+import { patientDocumentPages, staffDocumentPages } from '@/features/documents'
 import { practitionerRecordPages } from '@/features/patient-record'
 import { patientProfilePages, practitionerProfilePages } from '@/features/profile'
 import { staffStatsPages } from '@/features/stats'
@@ -52,6 +53,7 @@ export const routes: RouteObject[] = [
       // Each space has its own password page (MLink-89), so the change happens inside the space
       space('PATIENT', paths.patient.root, [
         ...patientSlotPages,
+        ...patientDocumentPages,
         ...patientProfilePages,
         ownPasswordRoute(paths.patient.password),
       ]),
@@ -63,6 +65,7 @@ export const routes: RouteObject[] = [
       ]),
       space('ADMINISTRATIVE_STAFF', paths.staff.root, [
         ...staffAccountsPages,
+        ...staffDocumentPages,
         ...staffAuditPages,
         ...staffStatsPages,
         ...staffSupervisionPages,
