@@ -7,7 +7,7 @@ import * as api from '../api'
 import type { AdminPractitioner, SupervisedAgenda } from '../types'
 import ClinicActivityPage from './ClinicActivityPage'
 
-vi.mock('../api', () => ({ fetchPractitioners: vi.fn(), fetchPractitionerAgenda: vi.fn() }))
+vi.mock('../api', () => ({ fetchPractitioners: vi.fn(), fetchPractitionerAgenda: vi.fn(), fetchClinics: vi.fn(), fetchClinicActivity: vi.fn() }))
 const fetchPractitioners = vi.mocked(api.fetchPractitioners)
 const fetchPractitionerAgenda = vi.mocked(api.fetchPractitionerAgenda)
 
@@ -66,6 +66,7 @@ beforeEach(() => {
   vi.resetAllMocks()
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(NOW)
+  vi.mocked(api.fetchClinics).mockResolvedValue([])
   fetchPractitioners.mockResolvedValue([KARIM, LINA])
   fetchPractitionerAgenda.mockResolvedValue(AGENDA)
 })
@@ -114,7 +115,7 @@ test("a chosen practitioner's week: their card, the week's counts, and six days 
   expect(chosen).toHaveTextContent('Cardiologie · Sousse, Tunis')
   const counts = within(chosen).getByRole('list', { name: 'La semaine en chiffres' })
   expect(within(counts).getAllByRole('listitem').map((item) => item.textContent)).toEqual(['1réservé', '1libre', '1fermé'])
-  expect(screen.getByText('Semaine du 30 novembre au 5 décembre 2026')).toBeInTheDocument()
+  expect(screen.getByText('Semaine du 30 novembre au 5 décembre 2026', { selector: 'b' })).toBeInTheDocument()
   expect(screen.getByText('Semaine 49 · heure de Tunis')).toBeInTheDocument()
 
   const tuesday = await screen.findByRole('region', { name: 'mardi 1 décembre' })
@@ -186,4 +187,20 @@ test('a failed list of practitioners shows the message and "Réessayer" asks aga
   expect(await screen.findByRole('alert')).toHaveTextContent('Service indisponible.')
   await user.click(screen.getByRole('button', { name: 'Réessayer' }))
   expect(await screen.findByRole('list', { name: 'Praticiens' })).toBeInTheDocument()
+})
+
+test('a failed clinic leaves the other clinic available and can be retried independently', async () => {
+  vi.mocked(api.fetchClinics).mockResolvedValue([{ ...SOUSSE, city: 'Sousse' }, { ...TUNIS, city: 'Tunis' }])
+  const activity = vi.mocked(api.fetchClinicActivity)
+  activity.mockImplementation((id) => id === SOUSSE.id
+    ? Promise.reject(new ApiError(503, 'UNAVAILABLE', 'Clinique indisponible'))
+    : Promise.resolve({ BOOKED: 12, CANCELLED: 2 }))
+  const user = renderPage()
+
+  expect(await screen.findByText('12')).toBeInTheDocument()
+  expect(await screen.findByText('Clinique indisponible')).toBeInTheDocument()
+  activity.mockResolvedValueOnce({ BOOKED: 9, CANCELLED: 0 })
+  await user.click(screen.getByRole('button', { name: 'Réessayer' }))
+  expect(await screen.findByText('9')).toBeInTheDocument()
+  expect(activity.mock.calls.filter(([id]) => id === TUNIS.id)).toHaveLength(1)
 })

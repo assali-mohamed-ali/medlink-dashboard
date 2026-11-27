@@ -18,7 +18,7 @@ vi.mock('@/features/auth/api', () => ({
   register: vi.fn(),
   resendVerification: vi.fn(),
 }))
-vi.mock('./api', () => ({ fetchPractitioners: vi.fn(), fetchPractitionerAgenda: vi.fn() }))
+vi.mock('./api', () => ({ fetchPractitioners: vi.fn(), fetchPractitionerAgenda: vi.fn(), fetchClinics: vi.fn(), fetchClinicActivity: vi.fn() }))
 const fetchMe = vi.mocked(authApi.fetchMe)
 const fetchPractitioners = vi.mocked(supervisionApi.fetchPractitioners)
 
@@ -39,6 +39,7 @@ function renderAt(path: string) {
 beforeEach(() => {
   vi.resetAllMocks()
   fetchMe.mockRejectedValue(new ApiError(401, 'UNAUTHENTICATED', 'Non connecté.'))
+  vi.mocked(supervisionApi.fetchClinics).mockResolvedValue([])
   fetchPractitioners.mockResolvedValue([])
 })
 

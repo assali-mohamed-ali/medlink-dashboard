@@ -27,6 +27,7 @@ export type AuditFilters = {
   from?: string
   to?: string
   userId?: string
+  patientId?: string
   action?: string
 }
 

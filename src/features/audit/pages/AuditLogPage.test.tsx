@@ -1,11 +1,13 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, expect, test, vi } from 'vitest'
+import { searchPatients } from '@/features/documents'
 import { ApiError } from '@/shared/api/apiClient'
 import * as api from '../api'
 import type { AuditEntry, AuditPage } from '../types'
 import AuditLogPage from './AuditLogPage'
 
+vi.mock('@/features/documents', () => ({ searchPatients: vi.fn() }))
 vi.mock('../api', () => ({ fetchAuditEntries: vi.fn() }))
 const fetchAuditEntries = vi.mocked(api.fetchAuditEntries)
 
@@ -270,4 +272,19 @@ test('the chosen filters stay when changing page', async () => {
   await waitFor(() =>
     expect(fetchAuditEntries).toHaveBeenLastCalledWith({ page: 1, size: 50, action: 'LOGIN' }),
   )
+})
+
+test('finds a patient by name and applies the selected ID to the audit query', async () => {
+  vi.mocked(searchPatients).mockResolvedValue([
+    { id: USER_ID, firstName: 'Amel', lastName: 'Ben Ali', email: 'amel@example.com' },
+  ])
+  fetchAuditEntries.mockResolvedValue(pageOf([]))
+  const user = userEvent.setup()
+  render(<AuditLogPage />)
+
+  await user.type(screen.getByRole('searchbox', { name: 'Rechercher un patient' }), 'Amel')
+  const picker = await screen.findByRole('combobox', { name: 'Patient' })
+  await user.selectOptions(picker, USER_ID)
+  await user.click(screen.getByRole('button', { name: 'Filtrer' }))
+  expect(fetchAuditEntries).toHaveBeenLastCalledWith({ patientId: USER_ID, page: 0, size: 50 })
 })

@@ -17,6 +17,7 @@ import {
   weekPeriod,
   weekTitle,
 } from '../week'
+import ClinicCards from '../components/ClinicCards'
 import styles from './ClinicActivityPage.module.css'
 
 const STATUS_WORDS: Record<SlotStatus, string> = { OPEN: 'libre', BOOKED: 'réservé', CLOSED: 'fermé' }
@@ -329,6 +330,8 @@ export default function ClinicActivityPage() {
           Lecture seule
         </span>
       </header>
+
+      <ClinicCards monday={monday} />
 
       <div className={styles.layout}>
         <aside className={styles.card} aria-label="Choix du praticien">

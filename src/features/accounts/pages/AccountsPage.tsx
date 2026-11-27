@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { KeyRound, Search, ShieldCheck, ShieldOff, UserCog, UserPlus, Users } from 'lucide-react'
+import { KeyRound, Pencil, Search, ShieldCheck, ShieldOff, UserCog, UserPlus, Users } from 'lucide-react'
 import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '@/features/auth'
 import StatusBadge from '@/shared/components/StatusBadge'
@@ -10,6 +10,7 @@ import { PAGE_SIZE, fetchAccounts, forcePasswordReset, setAccountEnabled } from 
 import ConfirmDialog from '../components/ConfirmDialog'
 import RowMenu, { type RowAction } from '../components/RowMenu'
 import CreateAccountDialog from '../components/CreateAccountDialog'
+import NameDialog from '../components/NameDialog'
 import RoleDialog from '../components/RoleDialog'
 import { ROLE_LABELS } from '../components/roleLabels'
 import type { Account, AccountPage } from '../types'
@@ -25,6 +26,7 @@ const ROLE_TONES = { PRACTITIONER: '1', ADMINISTRATIVE_STAFF: '3', PATIENT: '2' 
 type Notice = { tone: 'success' | 'error'; text: string }
 type Open =
   | { kind: 'create' }
+  | { kind: 'name'; account: Account }
   | { kind: 'role'; account: Account }
   | { kind: 'disable' | 'enable' | 'reset'; account: Account }
   | null
@@ -222,6 +224,13 @@ export default function AccountsPage() {
                     icon: <KeyRound size={18} />,
                     onSelect: () => setOpen({ kind: 'reset', account }),
                   })
+                  actions.push({
+                    key: 'name',
+                    label: 'Modifier le nom',
+                    hint: 'Prénom et nom',
+                    icon: <Pencil size={18} />,
+                    onSelect: () => setOpen({ kind: 'name', account }),
+                  })
                   if (!account.enabled) {
                     actions.push({
                       key: 'enable',
@@ -302,6 +311,17 @@ export default function AccountsPage() {
         )}
       </div>
 
+      {open?.kind === 'name' && (
+        <NameDialog
+          account={open.account}
+          onClose={() => setOpen(null)}
+          onSaved={() => {
+            setOpen(null)
+            setNotice({ tone: 'success', text: `Nom de ${fullName(open.account)} modifié.` })
+            reload()
+          }}
+        />
+      )}
       {open?.kind === 'create' && (
         <CreateAccountDialog
           onClose={() => setOpen(null)}

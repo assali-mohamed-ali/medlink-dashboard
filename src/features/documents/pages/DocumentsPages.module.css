@@ -1,0 +1,24 @@
+.intro {
+  margin: 0;
+  color: var(--on-surface-variant);
+  font-size: var(--text-md);
+  line-height: var(--leading-md);
+}
+
+.muted {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+}
+
+.searchRow {
+  margin-bottom: var(--space-4);
+}
+
+.failure {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+}

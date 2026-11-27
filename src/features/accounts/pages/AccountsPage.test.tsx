@@ -15,6 +15,7 @@ vi.mock('../api', () => ({
   fetchAccounts: vi.fn(),
   createAccount: vi.fn(),
   changeRole: vi.fn(),
+  updateName: vi.fn(),
   setAccountEnabled: vi.fn(),
   forcePasswordReset: vi.fn(),
   fetchProfileChoices: vi.fn(),
@@ -476,6 +477,7 @@ test('the "⋯" button opens a menu named after the person, with their e-mail, t
   expect(within(menu).getAllByRole('menuitem').map((item) => item.querySelector('[data-label]')?.textContent)).toEqual([
     'Changer le rôle',
     'Forcer un nouveau mot de passe',
+    'Modifier le nom',
     'Désactiver le compte',
   ])
   // The keyboard lands on the first action
@@ -490,10 +492,10 @@ test('the menu follows the arrow keys, and Escape closes it, the focus back on i
 
   await user.keyboard('{ArrowDown}')
   expect(items[1]).toHaveFocus()
-  await user.keyboard('{ArrowDown}{ArrowDown}')
+  await user.keyboard('{ArrowDown}{ArrowDown}{ArrowDown}')
   expect(items[0]).toHaveFocus()
   await user.keyboard('{ArrowUp}')
-  expect(items[2]).toHaveFocus()
+  expect(items[3]).toHaveFocus()
   await user.keyboard('{Escape}')
 
   expect(screen.queryByRole('menu')).toBeNull()
@@ -536,4 +538,23 @@ test('an action that fails says so, and the list stays as it was', async () => {
 
   expect(await screen.findByRole('alert')).toHaveTextContent('Le service de connexion ne répond pas.')
   expect(await rowOf('sami.dev@medlink.local')).toHaveTextContent('Actif')
+})
+
+test('edits the account name without changing the email and reloads the row', async () => {
+  const updateName = vi.mocked(api.updateName)
+  updateName.mockResolvedValue(undefined)
+  const user = renderPage()
+  const row = await rowOf('sami.dev@medlink.local')
+
+  await choose(user, row, 'Sami Dev', 'Modifier le nom')
+  const dialog = within(screen.getByRole('dialog', { name: 'Modifier le nom de Sami Dev' }))
+  const firstName = dialog.getByRole('textbox', { name: 'Prénom' })
+  await user.clear(firstName)
+  await user.type(firstName, '  Karim  ')
+  fetchAccounts.mockResolvedValue({ items: [{ ...SAMI, firstName: 'Karim' }], total: 1 })
+  await user.click(dialog.getByRole('button', { name: 'Enregistrer' }))
+
+  expect(updateName).toHaveBeenCalledExactlyOnceWith('u1', { firstName: 'Karim', lastName: 'Dev' })
+  await waitFor(async () => expect(await rowOf('sami.dev@medlink.local')).toHaveTextContent('Karim'))
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 })

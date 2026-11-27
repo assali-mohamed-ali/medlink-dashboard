@@ -17,16 +17,17 @@ import { Alert, Button, EmptyState, Select, Skeleton, TextField } from '@/shared
 import { fetchAuditEntries } from '../api'
 import { ACTION_LABELS, actionLabel, dayHeading, dayKey, ipLabel, outcomeView, resourceLabel, shortId } from '../format'
 import type { AuditEntry, AuditFilters, AuditPage, AuditQuery } from '../types'
+import AuditPatientPicker from './AuditPatientPicker'
 import styles from './AuditLogPage.module.css'
 
 const PAGE_SIZE = 50
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
-type Draft = { from: string; to: string; userId: string; action: string }
+type Draft = { from: string; to: string; userId: string; patientId: string; action: string }
 type Errors = Partial<Record<keyof Draft, string>>
 type Result = { request: AuditQuery; reloads: number; data?: AuditPage; message?: string }
 
-const EMPTY: Draft = { from: '', to: '', userId: '', action: '' }
+const EMPTY: Draft = { from: '', to: '', userId: '', patientId: '', action: '' }
 
 function dayStart(value: string): Date {
   const [y = 0, m = 1, d = 1] = value.split('-').map(Number)
@@ -46,6 +47,11 @@ function check(draft: Draft): { errors: Errors; filters: AuditFilters } {
   if (userId) {
     if (UUID.test(userId)) filters.userId = userId
     else errors.userId = 'Saisissez un identifiant valide (UUID).'
+  }
+  const patientId = draft.patientId.trim()
+  if (patientId) {
+    if (UUID.test(patientId)) filters.patientId = patientId
+    else errors.patientId = 'Saisissez un identifiant valide (UUID).'
   }
   if (draft.action) filters.action = draft.action
   const from = draft.from ? dayStart(draft.from) : null
@@ -130,6 +136,7 @@ export default function AuditLogPage() {
   const [errors, setErrors] = useState<Errors>({})
   const [applied, setApplied] = useState<AuditFilters>({})
   const [page, setPage] = useState(0)
+  const [patientPickerReset, resetPatientPicker] = useState(0)
   const [reloads, setReloads] = useState(0)
   const [result, setResult] = useState<Result | null>(null)
   const [copied, setCopied] = useState(false)
@@ -178,6 +185,7 @@ export default function AuditLogPage() {
 
   function reset() {
     setDraft(EMPTY)
+    resetPatientPicker((count) => count + 1)
     setErrors({})
     setApplied({})
     setPage(0)
@@ -354,6 +362,12 @@ export default function AuditLogPage() {
             value={draft.userId}
             onChange={(event) => setDraft({ ...draft, userId: event.target.value })}
             error={errors.userId}
+          />
+          <AuditPatientPicker
+            key={patientPickerReset}
+            value={draft.patientId}
+            error={errors.patientId}
+            onChange={(patientId) => setDraft((fields) => ({ ...fields, patientId }))}
           />
           <Select
             label="Action"
