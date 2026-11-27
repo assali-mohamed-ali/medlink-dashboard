@@ -1,0 +1,49 @@
+name: Frontend CodeQL
+
+on:
+  push:
+    branches: [master, main, develop, staging, prod]
+  pull_request:
+    branches: [master, main, develop, staging, prod]
+  schedule:
+    - cron: '23 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  analyze:
+    name: CodeQL JavaScript and TypeScript
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: github/codeql-action/init@v4
+        with:
+          languages: javascript-typescript
+          queries: security-extended,security-and-quality
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - uses: github/codeql-action/analyze@v4
+        with:
+          category: /language:javascript-typescript
+          output: codeql-results
+          upload: ${{ vars.CODE_SCANNING_ENABLED == 'true' && 'always' || 'never' }}
+      - name: Block high/critical CodeQL findings
+        if: success()
+        run: bash scripts/ci/sarif-gate.sh 7.0 codeql-results/*.sarif
+      - name: Preserve SARIF report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: codeql-sarif-${{ github.sha }}
+          path: codeql-results/
+          if-no-files-found: warn
+          retention-days: 14

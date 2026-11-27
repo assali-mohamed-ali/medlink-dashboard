@@ -1,0 +1,63 @@
+.ml-shell {
+  /* Colours come from tokens.css (the local copies froze the old greys here); --ok is the shell's own */
+  --ok: #0b5043;
+
+  position: relative;
+  min-height: 100vh;
+  background: var(--surface);
+  color: var(--on-surface);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+
+.ml-shell__bg {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 40% 35% at 0% 0%, rgba(177, 239, 221, 0.35), transparent 70%),
+    radial-gradient(ellipse 35% 40% at 100% 50%, rgba(222, 232, 255, 0.5), transparent 70%);
+  z-index: 0;
+}
+
+.ml-shell__inner {
+  position: relative;
+  z-index: 1;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.ml-shell__inner--centered {
+  min-height: 100vh;
+  justify-content: center;
+  align-items: center;
+  max-width: 560px;
+}
+
+.ml-shell__layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (min-width: 960px) {
+  .ml-shell__layout {
+    grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+    gap: 28px;
+  }
+}
+
+.ml-shell__main {
+  min-width: 0;
+}
+
+.ml-shell__side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
