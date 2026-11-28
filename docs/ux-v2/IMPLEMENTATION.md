@@ -36,3 +36,7 @@ The production bundle is served on loopback by `python scripts/ci/browser-smoke.
 - The prototype is a UX target, not a contract for invented functionality or data. Pixel-by-pixel parity and browser/live API acceptance require verification; the implementation does not invent appointment availability, counts, record data or compliance approvals.
 
 CI browser execution uses the explicit Ubuntu 24.04 runner, supported by the pinned Playwright version. The Ubuntu 26.04 `ubuntu-latest` image rejected the browser installer in run 46093825651; all 612 component/unit tests and the preceding build, lint, budget and contrast checks passed. Browser execution and dependency audit were skipped by that failure and must pass on the corrected head.
+
+## Screen-by-screen implementation pass
+
+See [SCREEN-INVENTORY.md](SCREEN-INVENTORY.md) for the 41 routes and their specific implementation changes. Added independent route matching coverage and appointment/navigation interaction tests. The source pass is committed; build, CI, rendered design comparison and live integration acceptance are deliberately not claimed as completed. No CI polling between screen groups.

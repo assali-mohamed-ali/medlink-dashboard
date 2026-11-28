@@ -139,3 +139,14 @@ test.each([
   const menu = await screen.findByRole('navigation', { name: 'Menu de l’espace' })
   expect(within(menu).getByRole('link', { name: 'Réaffectations' })).toHaveAttribute('href', destination)
 })
+
+test('patient booking is an independent route reachable from the menu and appointment section', async () => {
+  const router = renderAs('PATIENT', '/patient/rendez-vous')
+  const menu = await screen.findByRole('navigation', { name: 'Menu de l’espace' })
+  await userEvent.click(within(menu).getByRole('link', { name: 'Réserver une consultation' }))
+  expect(router.state.location.pathname).toBe('/patient/creneaux')
+  expect(within(menu).getByRole('link', { name: 'Réserver une consultation' })).toHaveAttribute('aria-current', 'page')
+  const section = screen.getByRole('navigation', { name: 'Gestion des rendez-vous' })
+  await userEvent.click(within(section).getByRole('link', { name: 'Mes consultations' }))
+  expect(router.state.location.pathname).toBe('/patient/rendez-vous')
+})

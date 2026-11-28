@@ -69,7 +69,7 @@ const inventory = [
 ] as const
 
 test('V2.3 inventory contains 41 unique screens', () => {
-  const paths = inventory.flatMap(([, entries]) => [...entries])
+  const paths = inventory.flatMap<string>(([, entries]) => [...entries])
   expect(paths).toHaveLength(41)
   expect(new Set(paths).size).toBe(41)
 })
