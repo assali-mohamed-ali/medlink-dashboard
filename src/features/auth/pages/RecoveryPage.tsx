@@ -1,8 +1,8 @@
+import AuthFrame from '@/shared/layout/AuthFrame'
 import { useState, type FormEvent } from 'react'
 import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import { messageFor } from '@/shared/api/errors'
 import { paths } from '@/shared/config/paths'
-import MedLinkShell from '@/shared/layout/MedLinkShell'
 import PublicHeader from '@/shared/layout/PublicHeader'
 import { Button, PasswordField, TextField } from '@/shared/ui'
 import { requestPasswordReset, resetPassword } from '../api'
@@ -44,7 +44,7 @@ export default function RecoveryPage() {
   return (
     <>
       <PublicHeader variant="signup" />
-      <MedLinkShell centered className="public-header-offset">
+      <AuthFrame context="Récupération du compte" description="Réinitialisez votre accès en suivant les instructions envoyées à votre adresse e-mail." header>
         <section className="signup__card signup__form">
           <h1>{reset ? 'Choisir un nouveau mot de passe' : 'Mot de passe oublié'}</h1>
           <p className="signup__recovery-intro">{reset ? 'Choisissez un mot de passe unique pour protéger votre compte.' : 'Saisissez votre adresse e-mail pour recevoir les instructions de réinitialisation.'}</p>
@@ -72,7 +72,7 @@ export default function RecoveryPage() {
           )}
           <Link to={paths.login}>Retour à la connexion</Link>
         </section>
-      </MedLinkShell>
+      </AuthFrame>
     </>
   )
 }

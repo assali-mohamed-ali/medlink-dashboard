@@ -1,3 +1,4 @@
+import AuthFrame from '@/shared/layout/AuthFrame'
 import { MailCheck } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { messageFor } from '@/shared/api/errors'
@@ -53,7 +54,7 @@ export default function VerifyEmailPage() {
   return (
     <>
       <PublicHeader variant="login" />
-      <main className={`${styles.page} public-header-offset`}>
+      <AuthFrame context="Vérification de l’e-mail" description="Confirmez votre adresse avant de vous connecter à votre compte." header>
         <div className={styles.card}>
           <span className={styles.icon} aria-hidden="true">
             <MailCheck size={28} />
@@ -61,7 +62,7 @@ export default function VerifyEmailPage() {
           <h1 className={styles.title}>Confirmation de votre adresse e-mail</h1>
           <div className={styles.stack}>{content}</div>
         </div>
-      </main>
+      </AuthFrame>
     </>
   )
 }

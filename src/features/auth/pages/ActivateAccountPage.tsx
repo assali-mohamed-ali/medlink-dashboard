@@ -1,3 +1,4 @@
+import AuthFrame from '@/shared/layout/AuthFrame'
 import { useState } from 'react'
 import { UserRoundCheck } from 'lucide-react'
 import { Link } from 'react-router-dom'
@@ -71,7 +72,7 @@ export default function ActivateAccountPage() {
   return (
     <>
       <PublicHeader variant="login" />
-      <main className={`${styles.page} public-header-offset`}>
+      <AuthFrame context="Activation du compte" description="Choisissez votre mot de passe pour activer votre accès professionnel." header>
         <div className={styles.card}>
           <span className={styles.icon} aria-hidden="true">
             <UserRoundCheck size={28} />
@@ -79,7 +80,7 @@ export default function ActivateAccountPage() {
           <h1 className={styles.title}>Activez votre compte</h1>
           <div className={styles.stack}>{content}</div>
         </div>
-      </main>
+      </AuthFrame>
     </>
   )
 }

@@ -210,7 +210,7 @@ export default function SignupPage() {
             <ul className="signup__success-list">
               <li>
                 <CheckCircle2 size={18} aria-hidden="true" />
-                Activation instantanée sans déplacement
+                Vérification de votre adresse e-mail
               </li>
               <li>
                 <Timer size={18} aria-hidden="true" />
@@ -273,11 +273,12 @@ export default function SignupPage() {
         intro={intro}
         sidebar={
           <>
-            <div className="signup-side__card">
+            <div className="signup-side__card signup-side__card--journey">
               <div className="signup-side__icon" aria-hidden="true">
                 <Mail size={24} />
               </div>
-              <h3 className="signup-side__title">Aperçu de l&apos;étape suivante</h3>
+              <h3 className="signup-side__title">Votre parcours d’inscription</h3>
+              <ol className="signup__journey"><li>Complétez votre identité et vos coordonnées.</li><li>Consultez le consentement applicable.</li><li>Vérifiez votre boîte e-mail.</li></ol>
               <p className="signup-side__text">
                 Après validation, un e-mail d&apos;activation sécurisé vous sera
                 adressé pour confirmer votre identité.
@@ -292,11 +293,11 @@ export default function SignupPage() {
               <ul className="signup-side__checks">
                 <li>
                   <CheckCircle2 size={16} aria-hidden="true" />
-                  Activation instantanée sans déplacement
+                  Vérification de votre adresse e-mail
                 </li>
                 <li>
                   <CheckCircle2 size={16} aria-hidden="true" />
-                  Accès immédiat aux créneaux en ligne
+                  Réservation après connexion et profil complet
                 </li>
                 <li>
                   <CheckCircle2 size={16} aria-hidden="true" />

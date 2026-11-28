@@ -1,0 +1,14 @@
+.frame{min-height:100dvh;background:var(--ux-cream);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 24px;gap:20px;color:var(--ux-ink);}
+.frame[data-header]{padding-top:100px;}
+.layout{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);width:min(100%,1000px);border-radius:20px;overflow:hidden;background:var(--surface-raised);border:1px solid var(--ux-line);}
+.intro{background:var(--ux-dark);color:var(--on-primary);padding:36px;display:flex;flex-direction:column;justify-content:space-between;gap:36px;position:relative;}
+.brand{display:flex;align-items:center;gap:10px;color:var(--on-primary);font-weight:750;font-size:1.5rem;text-decoration:none;letter-spacing:-.03em;}
+.brand span{display:grid;place-items:center;width:38px;height:38px;border-radius:10px;background:var(--surface-raised);color:var(--ux-dark);}
+.kicker{font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;font-weight:650;color:var(--ux-sage);}
+.headline{font-size:clamp(1.9rem,3.8vw,3.25rem);font-weight:750;letter-spacing:-.055em;line-height:1.1;margin:12px 0 20px;}
+.description{font-size:1rem;line-height:1.6;color:var(--ux-sage);max-width:32ch;}
+.note{font-size:.8125rem;display:flex;align-items:center;gap:10px;margin:0;color:var(--ux-sage);}
+.form{padding:clamp(20px,4vw,50px);display:flex;flex-direction:column;justify-content:center;min-width:0;}
+.form>div,.form>section{width:100%;max-width:none;padding:0;border:0;box-shadow:none;border-radius:0;min-width:0;}
+.footer{font-size:.8125rem;color:var(--ux-muted);margin:0;}
+@media(max-width:760px){.frame{padding:16px;justify-content:start;}.frame[data-header]{padding-top:88px;}.layout{grid-template-columns:1fr;border-radius:14px;}.intro{padding:20px;gap:14px;}.intro .brand{font-size:1.2rem;}.intro .brand span{width:32px;height:32px;}.headline{font-size:1.6rem;margin:6px 0;}.headline br{display:none;}.description{font-size:.875rem;margin:0;max-width:none;}.kicker{margin:0;font-size:.6875rem;}.note{display:none;}.form{padding:22px 18px;}}

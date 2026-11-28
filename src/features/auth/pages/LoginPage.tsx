@@ -1,3 +1,4 @@
+import AuthFrame from '@/shared/layout/AuthFrame'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -103,7 +104,7 @@ export default function LoginPage() {
   return (
     <>
       <PublicHeader variant="login" />
-      <main className="login public-header-offset">
+      <AuthFrame context="Connexion" description="Retrouvez vos rendez-vous et vos outils de travail depuis votre espace." header>
       <div className="login__card">
         <div className="login__brand">
           <span className="login__logo" aria-hidden="true">
@@ -192,11 +193,8 @@ export default function LoginPage() {
         </p>
       </div>
 
-      <p className="login__footer">
-        Réseau de cliniques MedLink · Données de santé hébergées en Tunisie
-      </p>
 
-    </main>
+    </AuthFrame>
     </>
   )
 }
