@@ -47,6 +47,7 @@ export default function RecoveryPage() {
       <MedLinkShell centered className="public-header-offset">
         <section className="signup__card signup__form">
           <h1>{reset ? 'Choisir un nouveau mot de passe' : 'Mot de passe oublié'}</h1>
+          <p className="signup__recovery-intro">{reset ? 'Choisissez un mot de passe unique pour protéger votre compte.' : 'Saisissez votre adresse e-mail pour recevoir les instructions de réinitialisation.'}</p>
           {error && <p role="alert">{error}</p>}
           {success ? (
             <p role="status">{reset ? 'Votre mot de passe a été modifié.' :

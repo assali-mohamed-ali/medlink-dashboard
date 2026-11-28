@@ -1,6 +1,7 @@
+import styles from '@/shared/ui/WorkflowPage.module.css'
 import { useEffect, useState, type FormEvent } from 'react'
 import { messageFor } from '@/shared/api/errors'
-import { Button, Card, TextField } from '@/shared/ui'
+import { Button, Card, Select, TextField } from '@/shared/ui'
 import { decideDeletion, fetchDeletionRequests, type PendingDeletion } from '../api'
 
 export default function DeletionRequestsPage() {
@@ -48,14 +49,16 @@ export default function DeletionRequestsPage() {
 
   return (
     <Card title="Demandes de suppression">
+      <div className={styles.feedback}><p>Les demandes sont examinées au regard des obligations de conservation. Aucune destruction automatique de données médicales.</p></div>
       {error && <p role="alert">{error}</p>}
       {notice && <p role="status">{notice}</p>}
       {!requests && !error && <p role="status">Chargement des demandes…</p>}
       {requests?.length === 0 && <p>Aucune demande en attente.</p>}
       {requests && !selected && (
-        <ul>{requests.map((request) => (
-          <li key={request.patientId}>
-            <Button onClick={() => {
+        <ul className={styles.rows} aria-label="Demandes à examiner">{requests.map((request) => (
+          <li key={request.patientId} className={styles.requestRow}>
+            <div><strong>À examiner</strong><p>Réponse avant le {new Date(request.dueAt).toLocaleDateString('fr-TN')}</p>{request.retainedUntil && <p>Conservation jusqu’au {new Date(request.retainedUntil).toLocaleDateString('fr-TN')}</p>}</div>
+            <Button variant="secondary" onClick={() => {
               setSelected(request)
               setNotice('')
             }}>{request.firstName} {request.lastName}</Button>
@@ -63,14 +66,14 @@ export default function DeletionRequestsPage() {
         ))}</ul>
       )}
       {selected && (
-        <form className="grid gap-3" onSubmit={submit}>
+        <form className={styles.impact} onSubmit={submit}>
           <h3>{selected.firstName} {selected.lastName}</h3>
           <p>Réponse attendue avant le {new Date(selected.dueAt).toLocaleDateString('fr-TN')}.</p>
           {selected.retainedUntil && <p>Conservation prévue jusqu’au {new Date(selected.retainedUntil).toLocaleDateString('fr-TN')}.</p>}
-          <label>Décision <select name="decision">
+          <Select label="Décision" name="decision" disabled={busy}>
             <option value="REJECTED">Refuser</option>
             <option value="APPROVED">Approuver la demande</option>
-          </select></label>
+          </Select>
           <p>
             Approuver clôture le compte du patient et ferme ses sessions ; son dossier médical et le journal d’audit sont
             conservés. L’anonymisation et la purge ne sont pas réalisées tant que la politique de conservation n’est pas
@@ -78,7 +81,7 @@ export default function DeletionRequestsPage() {
           </p>
           <TextField id="deletion-note" label="Motif transmis au patient" name="note" maxLength={500} />
           <Button type="submit" disabled={busy}>Confirmer la décision</Button>
-          <Button type="button" disabled={busy} onClick={() => setSelected(undefined)}>Annuler</Button>
+          <Button variant="secondary" type="button" disabled={busy} onClick={() => setSelected(undefined)}>Annuler</Button>
         </form>
       )}
     </Card>

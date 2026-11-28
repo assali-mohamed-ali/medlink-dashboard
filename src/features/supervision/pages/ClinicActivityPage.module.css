@@ -108,3 +108,5 @@
 @media (max-width: 1023px) {
   .layout { grid-template-columns: minmax(0, 1fr); }
 }
+
+.page,.card{min-width:0;}.card{border:1px solid var(--ux-line);border-radius:12px;box-shadow:none;}.table th{background:var(--surface-sunken);}.tableWrap,.scroll{max-width:100%;overflow-x:auto;}

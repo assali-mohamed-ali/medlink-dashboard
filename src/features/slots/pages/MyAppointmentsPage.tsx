@@ -114,6 +114,10 @@ export default function MyAppointmentsPage() {
         </Link>
       </header>
 
+      {!loading && !error && result && result.total > 0 && <nav className={styles.sectionLinks} aria-label="Sections des consultations">
+        <a href="#rendez-vous-a-venir">À venir</a>
+        <a href="#rendez-vous-historique">Historique</a>
+      </nav>}
       {notice && <Alert tone="success">{notice}</Alert>}
       {error && <><Alert tone="error">{error}</Alert><Button variant="secondary" onClick={() => setReload(n => n + 1)}>Réessayer</Button></>}
       {loading && (
@@ -155,7 +159,7 @@ export default function MyAppointmentsPage() {
             )}
           </div>
 
-          <section className={styles.card} aria-labelledby={`${ids}-to-come`}>
+          <section id="rendez-vous-a-venir" className={styles.card} aria-labelledby={`${ids}-to-come`}>
             {/* The count stays out of the heading: the section is named "À venir" */}
             <div className={styles.titleRow}>
               <h3 id={`${ids}-to-come`} className={styles.cardTitle}>
@@ -180,7 +184,7 @@ export default function MyAppointmentsPage() {
             )}
           </section>
 
-          <section className={styles.card} aria-labelledby={`${ids}-history`}>
+          <section id="rendez-vous-historique" className={styles.card} aria-labelledby={`${ids}-history`}>
             <div className={styles.cardHead}>
               <div className={styles.titleRow}>
                 <h3 id={`${ids}-history`} className={styles.cardTitle}>

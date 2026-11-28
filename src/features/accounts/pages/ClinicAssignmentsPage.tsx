@@ -1,8 +1,9 @@
+import styles from '@/shared/ui/WorkflowPage.module.css'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { paths } from '@/shared/config/paths'
 import { messageFor } from '@/shared/api/errors'
-import { Button, Card } from '@/shared/ui'
+import { Alert, Button, Card, Select, WorkflowSteps } from '@/shared/ui'
 import { fetchClinicAssignments, fetchProfileChoices, saveClinicAssignment, type ClinicAssignment } from '../api'
 import type { ProfileChoices } from '../types'
 
@@ -57,14 +58,15 @@ export default function ClinicAssignmentsPage() {
 
   return (
     <Card title="Affectations aux cliniques">
-      <p>Les créneaux futurs ouverts ou réservés bloquent un retrait. Fermez les créneaux libres et proposez les transferts nécessaires.</p>
+      <WorkflowSteps steps={['Praticien', 'Cliniques', 'Vérification']} current={review ? 2 : practitioner ? 1 : 0} />
+      <Alert tone="info">Les créneaux futurs ouverts ou réservés bloquent un retrait. Fermez les créneaux libres et proposez les transferts nécessaires.</Alert>
       <Link to={paths.staff.reassignments}>Gérer les réaffectations de rendez-vous</Link>
       {error && <p role="alert">{error}</p>}
       {saved && <p role="status">Affectations enregistrées.</p>}
       {!data && !error && <p role="status">Chargement des affectations…</p>}
       {data && (data.practitioners.length ? (
         <>
-          <label>Praticien <select value={selected} disabled={busy} onChange={(event) => {
+          <Select label="Praticien" value={selected} disabled={busy} onChange={(event) => {
             setSelected(event.target.value)
             setReview(undefined)
             setSaved(false)
@@ -72,19 +74,21 @@ export default function ClinicAssignmentsPage() {
           }}>
             <option value="">Choisir un praticien</option>
             {data.practitioners.map((row) => <option key={row.id} value={row.id}>{row.firstName} {row.lastName}</option>)}
-          </select></label>
+          </Select>
           {practitioner && (review ? (
-            <div>
+            <div className={styles.impact}>
+              <h3>Vérifiez l’affectation</h3>
+              <p>Cliniques actuelles · {practitioner.clinics.map(clinic => clinic.name).join(', ') || 'Aucune'}</p>
               <p>Cliniques après modification · {data.choices.clinics.filter((clinic) => review.includes(clinic.id)).map((clinic) => clinic.name).join(', ')}</p>
               <Button disabled={busy} onClick={() => void save()}>Confirmer les affectations</Button>
-              <Button disabled={busy} onClick={() => setReview(undefined)}>Annuler</Button>
+              <Button variant="secondary" disabled={busy} onClick={() => setReview(undefined)}>Annuler</Button>
             </div>
           ) : (
-            <form key={practitioner.id} onSubmit={prepare}>
-              <fieldset>
+            <form key={practitioner.id} className={styles.impact} onSubmit={prepare}>
+              <fieldset className={styles.checklist}>
                 <legend>Cliniques attribuées</legend>
                 {data.choices.clinics.map((clinic) => (
-                  <label className="block" key={clinic.id}>
+                  <label key={clinic.id}>
                     <input type="checkbox" name="clinic" value={clinic.id}
                       defaultChecked={practitioner.clinics.some((assignment) => assignment.id === clinic.id)} />
                     {' '}{clinic.name}

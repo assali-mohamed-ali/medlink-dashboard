@@ -29,3 +29,5 @@
 @media (max-width: 640px) {
   .date { margin-left: 0; flex-basis: 100%; }
 }
+
+.report{border:1px solid var(--ux-line);border-radius:12px;box-shadow:none;min-width:0;}.meta{flex-wrap:wrap;}.more{min-height:44px;color:var(--ux-green);}.text{overflow-wrap:anywhere;}

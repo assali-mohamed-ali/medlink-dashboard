@@ -6,6 +6,7 @@ import { useAuth, type Role } from '@/features/auth'
 import UserAvatar from '@/shared/components/UserAvatar'
 import { paths } from '@/shared/config/paths'
 import { Button, Skeleton } from '@/shared/ui'
+import SectionNavigation from '@/shared/ui/SectionNavigation'
 import { SPACES } from './spaces'
 import styles from './SpaceLayout.module.css'
 
@@ -25,6 +26,20 @@ export default function SpaceLayout({ role }: { role: Role }) {
   const active = space.menu.find(entry => entry.to === path)
     ?? space.menu.find(entry => entry.also?.includes(path))
     ?? [...space.menu].sort((a, b) => b.to.length - a.to.length).find(entry => entry.to !== space.menu[0].to && path.startsWith(entry.to + '/'))
+  const dossier = [
+    { to: paths.patient.results, label: 'Résultats' },
+    { to: paths.patient.reports, label: 'Comptes-rendus du dossier' },
+    { to: paths.patient.documents, label: 'Documents' },
+  ]
+  const appointments = [
+    { to: paths.patient.appointments, label: 'Mes consultations' },
+    { to: paths.patient.reassignments, label: 'Propositions de transfert' },
+  ]
+  const sectionNav = role === 'PATIENT'
+    ? dossier.some(item => item.to === path) ? { label: 'Dossier médical', items: dossier }
+      : appointments.some(item => item.to === path) ? { label: 'Gestion des rendez-vous', items: appointments }
+      : null
+    : null
   const groups = [...new Set(space.menu.map(entry => entry.group ?? 'Navigation'))]
   const titleRef = useRef<HTMLHeadingElement>(null)
   const shownPath = useRef(pathname)
@@ -104,6 +119,7 @@ export default function SpaceLayout({ role }: { role: Role }) {
         </header>
         <main id="contenu" tabIndex={-1} className={styles.main}>
           <div className={styles.content}>
+            {sectionNav && <SectionNavigation label={sectionNav.label} items={sectionNav.items} />}
             {/* A space page is its own chunk: the frame stays while it loads */}
             <Suspense fallback={<Skeleton label="Chargement de la page" />}>
               <Outlet />

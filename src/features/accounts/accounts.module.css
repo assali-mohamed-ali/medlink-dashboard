@@ -131,3 +131,5 @@
 .legend { margin-bottom: var(--space-2); padding: 0; font-size: var(--text-sm); line-height: var(--leading-sm); font-weight: 600; }
 .fieldError { margin: 0; color: var(--error); font-size: var(--text-sm); line-height: var(--leading-sm); }
 .muted { margin: 0; color: var(--text-muted); font-size: var(--text-sm); line-height: var(--leading-sm); }
+
+.newAccount{background:var(--ux-green);color:var(--on-primary);border-radius:9px;box-shadow:none;}.newAccount:hover{background:var(--ux-dark);}.card{border:1px solid var(--ux-line);border-radius:12px;box-shadow:none;min-width:0;}.tableWrap{max-width:100%;overflow-x:auto;}.toolbar{flex-wrap:wrap;}.table th{background:var(--surface-sunken);}.searchBox{border-radius:9px;}.page{min-width:0;}.roleFilter{min-width:min(100%,180px);}

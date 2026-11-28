@@ -231,6 +231,9 @@ export default function SlotSearchPage() {
   /** Counts only once the week is read, and never for the group that is filtered. */
   const counted = result !== null && !loading
   const specialtyName = (id: string) => filters.specialties.find((s) => s.id === id)?.name
+  const chosenPractitioner = filters.practitioners.find(item => item.id === practitionerId)
+  const chosenClinic = filters.clinics.find(item => item.id === clinicId)
+  const chosenSpecialty = specialtyId ? specialtyName(specialtyId) : undefined
 
   return (
     <div className={styles.page} data-width="wide">
@@ -249,6 +252,12 @@ export default function SlotSearchPage() {
       </header>
 
       <WorkflowSteps steps={['Recherche', 'Choix du créneau', 'Vérification', 'Confirmation']} current={booked ? 3 : choice ? 2 : loading || !result ? 0 : 1} />
+      <div className={styles.selectionBar} aria-label="Votre sélection">
+        <div><span>Spécialité</span><strong>{chosenSpecialty ?? 'Toutes'}</strong></div>
+        <div><span>Clinique</span><strong>{chosenClinic?.name ?? 'Toutes'}</strong></div>
+        <div><span>Praticien</span><strong>{chosenPractitioner ? `Dr ${chosenPractitioner.firstName} ${chosenPractitioner.lastName}` : 'Tous'}</strong></div>
+        <Button variant="secondary" size="sm" disabled={!clinicId && !specialtyId && !practitionerId} onClick={() => { setClinicId(undefined); setSpecialtyId(undefined); setPractitionerId(undefined) }}>Réinitialiser les filtres</Button>
+      </div>
       <div className={styles.layout}>
         <aside className={styles.filters} aria-label="Filtres de la recherche">
           <Link to={paths.patient.appointments} className={styles.mine}>
@@ -424,7 +433,7 @@ export default function SlotSearchPage() {
           </div>
 
           {periodError && <FieldError message={periodError} />}
-          {error && <Alert tone="error">{error}</Alert>}
+          {error && <><Alert tone="error">{error}</Alert><Button variant="secondary" onClick={() => setReload(n => n + 1)}>Réessayer</Button></>}
           {notice && <Alert tone="error">{notice}</Alert>}
           {loading && (
             <div className={styles.loading}>
@@ -526,6 +535,7 @@ export default function SlotSearchPage() {
             who={`Dr ${choice.practitioner.firstName} ${choice.practitioner.lastName} · ${choice.specialty}`}
             clinic={choice.clinic.name}
           />
+          <p className={styles.reviewNote}>La disponibilité du créneau sera vérifiée à nouveau lors de la confirmation.</p>
           {bookingError && <FieldError message={bookingError} />}
           <DialogActions>
             <Button variant="secondary" onClick={() => setChoice(null)} disabled={booking}>
@@ -555,9 +565,10 @@ export default function SlotSearchPage() {
                 Voir mes rendez-vous
               </Button>
             ) : (
-              <Button onClick={backToSlots} autoFocus>
-                Retour aux créneaux
-              </Button>
+              <>
+                <Button variant="secondary" onClick={backToSlots}>Retour aux créneaux</Button>
+                <Button onClick={() => navigate(paths.patient.appointments)} autoFocus>Voir mes rendez-vous</Button>
+              </>
             )}
           </DialogActions>
         </Dialog>

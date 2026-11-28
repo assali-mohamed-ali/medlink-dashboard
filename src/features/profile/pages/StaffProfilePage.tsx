@@ -37,14 +37,15 @@ export default function StaffProfilePage() {
         }
       />
 
-      <div className={styles.layout}>
-        <AccountCard
+      <nav aria-label="Rubriques du profil" className={styles.sectionLinks}><a href="#compte-identite">Informations</a><a href="#compte-securite">Sécurité</a></nav>
+      <div className={styles.settings}>
+        <div id="compte-identite" className={styles.settingGroup}><AccountCard
           name={fullName}
           email={user?.email ?? ''}
           role="Personnel administratif"
           whom="un autre membre du personnel administratif"
-        />
-        <SecurityCard passwordPath={paths.staff.password} onLogout={onLogout}>
+        /></div>
+        <div id="compte-securite" className={styles.settingGroup}><SecurityCard passwordPath={paths.staff.password} onLogout={onLogout}>
           <Protection
             icon={<ShieldCheck size={20} />}
             title="Connexion en deux étapes"
@@ -54,7 +55,7 @@ export default function StaffProfilePage() {
               Un code à 6 chiffres de votre application d’authentification, après le mot de passe.
             </p>
           </Protection>
-        </SecurityCard>
+        </SecurityCard></div>
       </div>
     </div>
   )

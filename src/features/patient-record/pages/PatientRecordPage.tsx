@@ -88,7 +88,7 @@ export default function PatientRecordPage() {
           Retour à l’agenda
         </Link>
         <span aria-hidden="true">/</span>
-        <span>Espace praticien</span>
+        <Link to={paths.practitioner.patients}>Mes patients</Link>
         <span aria-hidden="true">/</span>
         <span aria-current="page" className={styles.crumbHere}>
           Dossier patient
@@ -157,7 +157,7 @@ function Record({ titleId, patientId, patient, canWrite }: RecordProps) {
               <span className={styles.attachedDot} aria-hidden="true" />
               Rattaché à votre agenda</span>
           </div>
-          <p className={styles.subtitle}>{`${age} · né(e) le ${date}`}</p>
+          <p className={styles.subtitle}>{patient.recordNumber ? `${patient.recordNumber} · ` : ''}{`${age} · né(e) le ${date}`}</p>
         </div>
         <button
           ref={newButton}

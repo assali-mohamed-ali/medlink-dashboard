@@ -64,3 +64,5 @@
 
 /* V2: common auth surface, including activation, recovery, password and MFA routes. */
 .ml-shell{background:var(--ux-cream);}.ml-shell__bg{background:none;}.ml-shell__inner{gap:24px;}.ml-shell__inner--centered{min-height:calc(100vh - 80px);}.ml-shell__main,.ml-shell__side{min-width:0;}
+
+.ml-shell__inner{max-width:1200px;}.ml-shell__inner--centered{max-width:560px;padding-inline:20px;}.ml-shell__main,.ml-shell__side{min-width:0;}@media(max-width:480px){.ml-shell__inner--centered{padding-inline:12px;}}

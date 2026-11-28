@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { Info, Plus } from 'lucide-react'
+import { paths } from '@/shared/config/paths'
 import styles from './StatusPage.module.css'
 
 type Props = {
@@ -19,8 +21,10 @@ export default function StatusPage({ title, children, action, inLayout = false }
   const Frame = inLayout ? 'div' : 'main'
   const Title = inLayout ? 'h2' : 'h1'
   return (
-    <Frame className={styles.page}>
+    <Frame className={styles.page} data-standalone={!inLayout || undefined}>
       <div className={styles.card}>
+        {!inLayout && <Link className={styles.brand} to={paths.home}><span><Plus size={22} aria-hidden="true" /></span>MedLink</Link>}
+        <div className={styles.symbol}><Info size={25} aria-hidden="true" /></div>
         <Title className={styles.title}>{title}</Title>
         <div className={styles.text}>{children}</div>
         <Link className={styles.action} to={action.to}>

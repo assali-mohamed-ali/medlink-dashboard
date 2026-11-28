@@ -159,8 +159,22 @@ export default function StatsExportPage() {
         Un seul indicateur est publié par mois civil terminé, pour limiter les recoupements. Le premier export
         fixe définitivement l’indicateur et son résultat pour ce mois.
       </p>
+      <div className={styles.workspace}>
       <Card title="Période et indicateurs" headingLevel={3}>
         <form onSubmit={submit} noValidate aria-label="Export des statistiques">
+          <TextField label="Mois civil terminé" type="month"
+            max={new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 0)).toISOString().slice(0, 7)}
+            value={validMonth(draft.from, draft.to) ? draft.from.slice(0, 7) : ''}
+            onChange={event => {
+              const value = event.target.value
+              const [year = 0, month = 0] = value.split('-').map(Number)
+              if (!value || !year || month < 1 || month > 12) {
+                setDraft(current => ({ ...current, from: '', to: '' }))
+                return
+              }
+              setDraft(current => ({ ...current, from: `${value}-01`, to: new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10) }))
+              setErrors({})
+            }} />
           <div className={styles.dates}>
             <TextField
               label="Date de début"
@@ -203,9 +217,13 @@ export default function StatsExportPage() {
           </div>
         </form>
       </Card>
-      <Card title="Résultat" headingLevel={3}>
-        {result}
-      </Card>
+      <div className={styles.stack}>
+        <Card title="Règles de confidentialité" headingLevel={3}>
+          <dl className={styles.rules}><div><dt>Mois terminé</dt><dd>Aucune période partielle.</dd></div><div><dt>Publication immuable</dt><dd>Un seul indicateur, résultat figé.</dd></div><div><dt>Petits groupes</dt><dd>La publication est refusée si l’anonymisation est impossible.</dd></div></dl>
+        </Card>
+        <Card title="Résultat" headingLevel={3}>{result}</Card>
+      </div>
+      </div>
     </>
   )
 }

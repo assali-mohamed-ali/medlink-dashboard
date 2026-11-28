@@ -25,3 +25,12 @@ Preserve all existing API contracts, route guards, consent, MFA, session revocat
 
 ## Browser smoke coverage
 The production bundle is served on loopback by `python scripts/ci/browser-smoke.py` (Python Playwright 1.57.0 with Chromium). The CI check covers desktop (1440px) and mobile (390px), the anonymous homepage FAQ keyboard interaction and protected-route login redirect, all three authenticated homes, navigation, mobile disclosure and Escape focus restoration, page-level overflow and uncaught JavaScript errors. Fixtures are synthetic and read-only; external requests are blocked. The check is not an exact visual comparison with the prototype or a live API test.
+
+## Consolidated V2.3 implementation batch
+
+- Public/authentication/error views: approved homepage, consistent recovery and status surfaces; existing account activation, MFA and password flows preserved.
+- Patient: unified dossier and appointment navigation, API-derived booking selection, filter reset, confirmation destination, prioritized next visit and direct settings/proposal shortcuts.
+- Practitioner: daily/weekly agenda, availability and absence actions, patient record identity, directory and report/result/document workflows.
+- Staff: operations home, clinic activity, booking, reassignment, account management with explicitly page-scoped role filter, assignment review, patient documents, retention review, audit and completed-calendar-month selector with privacy rules.
+- All routes remain on the original guard and API implementation; semantic clinical/status colours, validation and permission checks are preserved. Existing pages that already support a workflow are restyled, not replaced with demo data.
+- The prototype is a UX target, not a contract for invented functionality or data. Pixel-by-pixel parity and browser/live API acceptance require verification; the implementation does not invent appointment availability, counts, record data or compliance approvals.

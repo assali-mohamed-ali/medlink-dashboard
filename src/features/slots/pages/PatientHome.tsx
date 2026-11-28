@@ -211,6 +211,7 @@ export default function PatientHome({ firstName }: { firstName?: string }) {
         </section>
 
         <div className={styles.side}>
+          <Part icon={<CalendarDays size={20} aria-hidden="true" />} title="Réaffectations" text="Consultez les propositions qui nécessitent votre décision" link={{ to: paths.patient.reassignments, label: 'Examiner les propositions' }} />
           <Part
             icon={<FileText size={20} aria-hidden="true" />}
             title="Comptes-rendus"
@@ -219,6 +220,7 @@ export default function PatientHome({ firstName }: { firstName?: string }) {
           />
           <Part icon={<FileText size={20} aria-hidden="true" />} title="Mes résultats" text="Les résultats transmis par vos praticiens" link={{ to: paths.patient.results, label: 'Consulter mes résultats' }} />
           <Part icon={<FileText size={20} aria-hidden="true" />} title="Mes documents" text="Vos documents médicaux disponibles" link={{ to: paths.patient.documents, label: 'Ouvrir mes documents' }} />
+          <Part icon={<FileText size={20} aria-hidden="true" />} title="Mes paramètres" text="Informations personnelles, sécurité et notifications" link={{ to: paths.patient.profile, label: 'Ouvrir mes paramètres' }} />
           <Soon icon={<MessageSquare size={20} aria-hidden="true" />} title="Messages" text="Vos échanges avec vos soignants" />
           <aside className={styles.help} aria-label="Un empêchement ?">
             <strong>Un empêchement ?</strong>

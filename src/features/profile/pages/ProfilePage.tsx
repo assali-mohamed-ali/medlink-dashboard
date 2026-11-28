@@ -80,8 +80,9 @@ export default function ProfilePage() {
         </ul>
       )}
 
-      <div className={styles.layout}>
-        <AccountCard name={fullName} email={user?.email ?? ''} role="Praticien" whom="l’administration de votre clinique">
+      <nav aria-label="Rubriques du profil" className={styles.sectionLinks}><a href="#compte-identite">Informations</a><a href="#compte-securite">Sécurité</a></nav>
+      <div className={styles.settings}>
+        <div id="compte-identite" className={styles.settingGroup}><AccountCard name={fullName} email={user?.email ?? ''} role="Praticien" whom="l’administration de votre clinique">
           <div>
             <p className={styles.sub}>Cliniques de rattachement</p>
             {week.status === 'loading' && <p className={styles.muted}>Chargement…</p>}
@@ -99,9 +100,8 @@ export default function ProfilePage() {
               </ul>
             )}
           </div>
-        </AccountCard>
-
-        <SecurityCard passwordPath={paths.practitioner.password} onLogout={onLogout}>
+        </AccountCard></div>
+        <div id="compte-securite" className={styles.settingGroup}><SecurityCard passwordPath={paths.practitioner.password} onLogout={onLogout}>
           <Protection
             icon={<ShieldCheck size={20} />}
             title="Connexion en deux étapes"
@@ -111,7 +111,7 @@ export default function ProfilePage() {
               Un code à 6 chiffres de votre application d’authentification, après le mot de passe.
             </p>
           </Protection>
-        </SecurityCard>
+        </SecurityCard></div>
       </div>
     </div>
   )

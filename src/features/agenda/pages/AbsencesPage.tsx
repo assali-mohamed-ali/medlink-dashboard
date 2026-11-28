@@ -1,5 +1,7 @@
 import styles from '@/shared/ui/WorkflowPage.module.css'
 import { useEffect, useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
+import { paths } from '@/shared/config/paths'
 import { messageFor } from '@/shared/api/errors'
 import { Button, Card, TextField } from '@/shared/ui'
 import {
@@ -73,7 +75,7 @@ export default function AbsencesPage() {
     <Card title="Mes absences">
       {error && <p role="alert">{error}</p>}
       {notice && <p role="status">{notice}</p>}
-      <p>Les créneaux libres de vos cliniques seront fermés pendant cette période. Examinez les rendez-vous concernés.</p>
+      <div className={styles.feedback}><strong>Disponibilités et absences</strong><p>Les créneaux libres de vos cliniques seront fermés pendant cette période. Examinez les rendez-vous concernés.</p><Link to={`${paths.practitioner.agenda}?ajouter`}>Ajouter une disponibilité depuis l’agenda</Link></div>
       <form className={styles.fields} onSubmit={submit}>
         <TextField id="absence-start" name="start" label="Début (heure de Tunisie)" type="datetime-local" required />
         <TextField id="absence-end" name="end" label="Fin (heure de Tunisie)" type="datetime-local" required />
