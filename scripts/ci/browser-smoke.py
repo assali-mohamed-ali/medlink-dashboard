@@ -23,6 +23,7 @@ APPOINTMENT = {
 PATIENT = {
     "id": "synthetic-patient", "email": "patient@example.invalid", "firstName": "Patient",
     "lastName": "Synthétique", "roles": ["PATIENT"], "role": "PATIENT", "enabled": True, "emailVerified": True,
+    "hasPatientProfile": True,
 }
 
 
@@ -64,7 +65,9 @@ def install_fixtures(context, origin, role):
         elif path == "/appointments/me":
             data = {**EMPTY_PAGE, "items": [APPOINTMENT], "total": 1}
         elif path == "/admin/users":
-            data = {**EMPTY_PAGE, "items": [PATIENT], "total": 1}
+            identity_only = {**PATIENT, "id": "identity-only", "email": "identity@example.invalid",
+                             "hasPatientProfile": False}
+            data = {**EMPTY_PAGE, "items": [PATIENT, identity_only], "total": 2}
         elif path == "/reports/me":
             data = []
         elif path in ("/slots", "/results/me", "/patients/me/reassignments",
@@ -191,8 +194,10 @@ def exercise_space(page, origin, role, mobile):
 
         if role == "ADMINISTRATIVE_STAFF":
             expect(page.get_by_role("heading", name="Aucun patient sélectionné")).to_be_visible()
+            picker = page.get_by_label("Patient", exact=True)
+            expect(picker.locator("option")).to_have_count(2)
             with page.expect_request(lambda request: urlsplit(request.url).path.endswith("/synthetic-patient/documents")):
-                page.get_by_label("Patient", exact=True).select_option("synthetic-patient")
+                picker.select_option("synthetic-patient")
             expect(page.get_by_role("heading", name="Aucun document", exact=True)).to_be_visible()
     assert_layout(page)
 

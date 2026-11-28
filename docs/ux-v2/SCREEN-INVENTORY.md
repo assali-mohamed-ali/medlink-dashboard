@@ -1,6 +1,6 @@
 # V2.3 — 41-screen implementation inventory
 
-Source implementation pass; not visual acceptance or a CI attestation. The approved homepage and patient homepage work from earlier commits are retained. New screen-specific changes use existing API contracts. The wildcard is the not-found screen, not an additional route.
+Source implementation and local acceptance inventory. The approved homepage and patient homepage work from earlier commits are retained. New screen-specific changes use existing API contracts. The wildcard is the not-found screen, not an additional route.
 
 ## Public (12)
 
@@ -63,8 +63,10 @@ Source implementation pass; not visual acceptance or a CI attestation. The appro
 | `/admin/profil` | Profile sections |
 | `/admin/mot-de-passe` | Own password and guidance |
 
-## Acceptance still required
+## Local acceptance
 
-- Build and run regression tests, including the independent route inventory. No CI polling during this implementation pass, at the owner's request.
-- Compare desktop/mobile rendered screens to the approved reference; exercise navigation, deep links, keyboard access, error/loading/empty states and live synthetic-account workflows on a non-production stack.
-- No fake availability, clinical data, statistics, compliance claims, or unsupported API capabilities. Preserve consent, role guards, MFA, retention, dual approvals, immutable monthly releases and all review/security gates. No production deployment or merge.
+- Chromium rendered the 41 inventory screens against the local Vite and Spring Boot stack. Checks at 1440px and 390px covered route loading, a single main landmark and primary heading, horizontal overflow and JavaScript errors. The forced-password screen was reached through a real staff login after an administrative reset.
+- Synthetic accounts exercised consent registration and verification, recovery, verified email change, session revocation, staff activation and MFA, self-service and staff booking, rescheduling and cancellation, document upload and download, examination-result publication, notification preferences, a two-party transfer, an absence decision, clinic assignment and retention review.
+- The running development realm needed the branch’s existing admin-only profile settings before verified email change worked. Keycloak’s direct registration remained off.
+- Live report checks covered the pre-consultation guard and patient visibility after a completed synthetic appointment. Live statistics suppressed a small cohort and released a CSV for a dedicated five-patient local cohort. The CSV replay was identical, and a second indicator for the same month was refused.
+- Render checks and workflow sampling complement screen-by-screen visual review and CI.

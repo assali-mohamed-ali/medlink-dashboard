@@ -31,10 +31,11 @@ test('downloads a document as a blob', async () => {
   expect(apiFetchBlob).toHaveBeenCalledWith('/patients/p1/documents/d1')
 })
 
-test('searches the accounts and keeps only single-role patients', async () => {
+test('searches the accounts and omits ambiguous accounts and patients without a profile', async () => {
   vi.mocked(apiFetch).mockResolvedValue({
     items: [
-      { id: 'p1', firstName: 'Amel', lastName: 'Ben Salah', email: 'amel@example.com', role: 'PATIENT', roles: ['PATIENT'] },
+      { id: 'p1', firstName: 'Amel', lastName: 'Ben Salah', email: 'amel@example.com', role: 'PATIENT', roles: ['PATIENT'], hasPatientProfile: true },
+      { id: 'dev', firstName: 'Patient', lastName: 'Dev', email: 'dev@medlink.local', role: 'PATIENT', roles: ['PATIENT'], hasPatientProfile: false },
       { id: 's1', firstName: 'Sami', lastName: 'Dev', email: 'sami@medlink.local', role: 'PRACTITIONER', roles: ['PRACTITIONER'] },
       { id: 'x1', firstName: 'Odd', lastName: 'Role', email: 'odd@medlink.local', role: null, roles: ['PATIENT', 'PRACTITIONER'] },
     ],

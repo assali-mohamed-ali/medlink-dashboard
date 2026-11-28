@@ -47,13 +47,14 @@ type BookingPatient = {
   email: string
   enabled: boolean
   emailVerified: boolean
+  hasPatientProfile?: boolean
   role: string | null
 }
 
 export async function searchBookingPatients(search: string, page: number) {
   const query = new URLSearchParams({ search, page: String(page), size: '20' })
   const result = await apiFetch<{ items: BookingPatient[]; total: number }>(`/admin/users?${query}`)
-  return { ...result, items: result.items.filter((user) => user.role === 'PATIENT' && user.enabled && user.emailVerified) }
+  return { ...result, items: result.items.filter((user) => user.role === 'PATIENT' && user.enabled && user.emailVerified && user.hasPatientProfile !== false) }
 }
 
 export function fetchStaffSlotFilters() {
