@@ -186,7 +186,7 @@ export default function StaffHome({ firstName }: { firstName?: string }) {
         </div>
         <div className={styles.quick}>
           <Link to={paths.staff.booking} className={styles.add}><CalendarDays size={18} aria-hidden="true" /> Nouveau rendez-vous</Link>
-          <Link to={`${paths.staff.accounts}?nouveau`} className={styles.add}>
+          <Link to={`${paths.staff.accounts}?nouveau`} className={styles.open}>
             <UserPlus size={18} aria-hidden="true" />
             Nouveau compte
           </Link>

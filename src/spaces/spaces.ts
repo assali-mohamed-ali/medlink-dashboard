@@ -16,9 +16,11 @@ import { paths } from '@/shared/config/paths'
 export type MenuEntry = {
   label: string
   to: string
-  /** A lucide icon: alone in the icon rail (768–1023 px), above the label in the phone's bottom bar. */
+  /** A lucide icon for the task menu and mobile shortcuts. */
   icon: LucideIcon
   group?: string
+  mobileLabel?: string
+  mobileParent?: string
   /** Pages reached from this entry's page, with no entry of their own: on them, this entry stays marked current. */
   also?: readonly string[]
 }
@@ -37,7 +39,7 @@ export type Space = {
   title: string
   /** The person's role in French, shown under their name in the top bar. */
   roleLabel: string
-  /** The ordered, labeled menu, grouped by task. The same links are available on mobile. */
+  /** The ordered task menu. Mobile labels identify the shortcuts in the bottom bar. */
   menu: readonly MenuEntry[]
   /** The home: one sentence under the greeting, then the 1–3 parts that matter for the role. */
   home: { intro: string; parts: readonly HomePart[] }
@@ -49,20 +51,20 @@ export const SPACES: Record<Role, Space> = {
     title: 'Espace patient',
     roleLabel: 'Patient',
     menu: [
-      { label: 'Accueil', to: paths.patient.root, group: 'Mon espace', icon: House },
+      { label: 'Accueil', to: paths.patient.root, mobileLabel: 'Accueil', group: 'Mon espace', icon: House },
       {
         label: 'Rendez-vous',
-        to: paths.patient.appointments, group: 'Mon espace',
+        to: paths.patient.appointments, mobileLabel: 'Mes rendez-vous', group: 'Mon espace',
         icon: CalendarDays,
         also: [paths.patient.slots],
       },
-      { label: 'Réaffectations', to: paths.patient.reassignments, group: 'Mon espace', icon: CalendarDays },
-      { label: 'Mes résultats', to: paths.patient.results, group: 'Dossier médical', icon: FileText },
-      { label: 'Mes documents', to: paths.patient.documents, group: 'Dossier médical', icon: FileText },
+      { label: 'Réaffectations', to: paths.patient.reassignments, mobileParent: paths.patient.appointments, group: 'Mon espace', icon: CalendarDays },
+      { label: 'Mes résultats', to: paths.patient.results, mobileLabel: 'Mon dossier', group: 'Dossier médical', icon: FileText },
+      { label: 'Mes documents', to: paths.patient.documents, mobileParent: paths.patient.results, group: 'Dossier médical', icon: FileText },
       // MLink-32 follow-up: the consultation reports written about the patient
-      { label: 'Comptes-rendus', to: paths.patient.reports, group: 'Dossier médical', icon: FileText },
+      { label: 'Comptes-rendus', to: paths.patient.reports, mobileParent: paths.patient.results, group: 'Dossier médical', icon: FileText },
       // The password page opens from the profile ("Modifier le mot de passe"), as for the practitioner
-      { label: 'Profil', to: paths.patient.profile, group: 'Compte', icon: UserRound, also: [paths.patient.password] },
+      { label: 'Profil', to: paths.patient.profile, mobileLabel: 'Profil', group: 'Compte', icon: UserRound, also: [paths.patient.password] },
     ],
     home: {
       intro: 'Vos rendez-vous, vos documents et vos échanges avec vos soignants, au même endroit.',
@@ -87,9 +89,9 @@ export const SPACES: Record<Role, Space> = {
     title: 'Espace praticien',
     roleLabel: 'Praticien',
     menu: [
-      { label: 'Accueil', to: paths.practitioner.root, group: 'Consultations', icon: House },
-      { label: 'Mes patients', to: paths.practitioner.patients, group: 'Consultations', icon: Users },
-      { label: 'Agenda', to: paths.practitioner.agenda, group: 'Consultations', icon: CalendarDays },
+      { label: 'Accueil', to: paths.practitioner.root, mobileLabel: 'Accueil', group: 'Consultations', icon: House },
+      { label: 'Agenda', to: paths.practitioner.agenda, mobileLabel: 'Agenda', group: 'Consultations', icon: CalendarDays },
+      { label: 'Mes patients', to: paths.practitioner.patients, mobileLabel: 'Patients', group: 'Consultations', icon: Users },
       { label: 'Absences', to: paths.practitioner.absences, group: 'Planning', icon: CalendarDays },
       { label: 'Réaffectations', to: paths.practitioner.reassignments, group: 'Planning', icon: CalendarDays },
       // The password page opens from the profile ("Modifier le mot de passe"), not from the menu
@@ -113,9 +115,9 @@ export const SPACES: Record<Role, Space> = {
     title: 'Espace administratif',
     roleLabel: 'Personnel administratif',
     menu: [
-      { label: 'Accueil', to: paths.staff.root, group: 'Pilotage', icon: House },
-      { label: 'Rendez-vous des cliniques', to: paths.staff.activity, group: 'Pilotage', icon: CalendarDays },
-      { label: 'Réserver pour un patient', to: paths.staff.booking, group: 'Opérations', icon: CalendarDays },
+      { label: 'Accueil', to: paths.staff.root, mobileLabel: 'Accueil', group: 'Pilotage', icon: House },
+      { label: 'Rendez-vous des cliniques', to: paths.staff.activity, mobileLabel: 'Cliniques', group: 'Pilotage', icon: CalendarDays },
+      { label: 'Réserver pour un patient', to: paths.staff.booking, mobileLabel: 'Réserver', group: 'Opérations', icon: CalendarDays },
       { label: 'Réaffectations', to: paths.staff.reassignments, group: 'Opérations', icon: CalendarDays },
       { label: 'Gestion des comptes', to: paths.staff.accounts, group: 'Opérations', icon: Users },
       { label: 'Affectations des praticiens', to: paths.staff.clinicAssignments, group: 'Opérations', icon: Users },

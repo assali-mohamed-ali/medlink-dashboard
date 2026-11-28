@@ -133,13 +133,13 @@ export default function PractitionerHome({ firstName }: { firstName?: string }) 
           )}
         </div>
         <div className={styles.quick}>
-          <Link to={`${paths.practitioner.agenda}?ajouter`} className={styles.add}>
-            <CalendarPlus size={18} aria-hidden="true" />
-            Ajouter un créneau
-          </Link>
-          <Link to={paths.practitioner.agenda} className={styles.open}>
+          <Link to={paths.practitioner.agenda} className={styles.add}>
             <CalendarDays size={18} aria-hidden="true" />
             Ouvrir l’agenda
+          </Link>
+          <Link to={`${paths.practitioner.agenda}?ajouter`} className={styles.open}>
+            <CalendarPlus size={18} aria-hidden="true" />
+            Ajouter un créneau
           </Link>
         </div>
       </section>

@@ -3,6 +3,7 @@
 Not a live API, security certification or visual approval. Runs only against loopback.
 """
 import json
+from datetime import datetime, timedelta, timezone
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from threading import Thread
@@ -13,6 +14,16 @@ from playwright.sync_api import expect, sync_playwright
 DIST = Path(__file__).resolve().parents[2] / "dist"
 EMPTY_PAGE = {"items": [], "page": 0, "size": 20, "total": 0, "unseen": 0}
 CLINIC = {"id": "synthetic-clinic", "name": "Clinique de test"}
+START = datetime.now(timezone.utc) + timedelta(days=2)
+APPOINTMENT = {
+    "id": "synthetic-appointment", "status": "BOOKED", "clinic": CLINIC,
+    "startsAt": START.isoformat(), "endsAt": (START + timedelta(minutes=30)).isoformat(),
+    "practitioner": {"id": "synthetic-doctor", "firstName": "Médecin", "lastName": "Synthétique"},
+}
+PATIENT = {
+    "id": "synthetic-patient", "email": "patient@example.invalid", "firstName": "Patient",
+    "lastName": "Synthétique", "roles": ["PATIENT"], "role": "PATIENT", "enabled": True, "emailVerified": True,
+}
 
 
 class StaticApp(SimpleHTTPRequestHandler):
@@ -50,7 +61,14 @@ def install_fixtures(context, origin, role):
             data = []
         elif path == "/admin/audit-entries":
             data = {"items": [], "page": 0, "size": 20, "totalElements": 0, "totalPages": 0}
-        elif path in ("/appointments/me", "/admin/users", "/slots"):
+        elif path == "/appointments/me":
+            data = {**EMPTY_PAGE, "items": [APPOINTMENT], "total": 1}
+        elif path == "/admin/users":
+            data = {**EMPTY_PAGE, "items": [PATIENT], "total": 1}
+        elif path == "/reports/me":
+            data = []
+        elif path in ("/slots", "/results/me", "/patients/me/reassignments",
+                       "/patients/synthetic-user/documents", "/patients/synthetic-patient/documents"):
             data = EMPTY_PAGE
         else:
             route.fulfill(status=404, json={"code": "NOT_FOUND", "message": "Fixture non définie"})
@@ -90,31 +108,92 @@ def exercise_public(page, origin):
     assert_layout(page)
 
 
-def exercise_space(page, origin, root, title, link, destination, heading, mobile):
+def open_more(page):
+    mobile_nav = page.get_by_role("navigation", name="Navigation mobile")
+    more = mobile_nav.get_by_role("button", name="Plus", exact=True)
+    expect(more).to_have_attribute("aria-expanded", "false")
+    more.click()
+    expect(more).to_have_attribute("aria-expanded", "true")
+    menu = page.get_by_role("navigation", name="Menu de l’espace")
+    expect(menu).to_be_visible()
+    return more, menu
+
+
+def exercise_space(page, origin, role, mobile):
+    root, title = {
+        "PATIENT": ("/patient", "Espace patient"),
+        "PRACTITIONER": ("/praticien", "Espace praticien"),
+        "ADMINISTRATIVE_STAFF": ("/admin", "Espace administratif"),
+    }[role]
     page.goto(origin + root)
     expect(page.get_by_role("heading", level=1, name=title)).to_be_visible()
-    expect(page.get_by_role("heading", name="Bonjour Test")).to_be_visible()
+    expect(page.get_by_role("heading", name="Bonjour, Test" if role == "PATIENT" else "Bonjour Test")).to_be_visible()
     assert_layout(page)
+    mobile_nav = page.get_by_role("navigation", name="Navigation mobile")
     menu = page.get_by_role("navigation", name="Menu de l’espace")
-    if mobile:
-        toggle = page.get_by_role("button", name="Menu", exact=True)
-        expect(toggle).to_have_attribute("aria-expanded", "false")
-        toggle.click()
-        expect(menu).to_be_visible()
-        menu.get_by_role("link", name="Accueil", exact=True).focus()
-        page.keyboard.press("Escape")
-        expect(toggle).to_have_attribute("aria-expanded", "false")
-        expect(toggle).to_be_focused()
-        toggle.click()
-    item = menu.get_by_role("link", name=link, exact=True)
-    expect(item).to_have_attribute("href", destination)
-    item.click()
-    expect(page.get_by_role("heading", name=heading, exact=True)).to_be_visible()
-    if mobile:
-        expect(toggle).to_have_attribute("aria-expanded", "false")
-        expect(menu).not_to_be_visible()
+    expect(mobile_nav if mobile else menu).to_be_visible()
+    expect(menu if mobile else mobile_nav).not_to_be_visible()
+
+    if role == "PATIENT":
+        visit = page.get_by_role("region", name="Prochain rendez-vous")
+        expect(visit.get_by_text("Dr Médecin Synthétique")).to_be_visible()
+        visit.get_by_role("button", name="Annuler", exact=True).click()
+        dialog = page.get_by_role("dialog", name="Annuler ce rendez-vous ?")
+        expect(dialog).to_be_visible()
+        dialog.get_by_role("button", name="Garder mon rendez-vous").click()
+        expect(dialog).not_to_be_visible()
+
+        if mobile:
+            expect(mobile_nav.get_by_role("link")).to_have_count(4)
+            dossier = mobile_nav.get_by_role("link", name="Mon dossier", exact=True)
+            dossier.click()
+        else:
+            page.get_by_role("main").get_by_role("link", name="Mon dossier médical", exact=False).click()
+        expect(page.get_by_text("Aucun résultat publié.")).to_be_visible()
+        sections = page.get_by_role("navigation", name="Dossier médical", exact=True)
+        sections.get_by_role("link", name="Comptes-rendus du dossier").click()
+        expect(page.get_by_text("Aucun compte-rendu pour l’instant")).to_be_visible()
+        if mobile:
+            expect(dossier).to_have_attribute("aria-current", "page")
+        assert_layout(page)
+
+        appointments_label = "Mes rendez-vous" if mobile else "Rendez-vous"
+        (mobile_nav if mobile else menu).get_by_role("link", name=appointments_label, exact=True).click()
+        expect(page.get_by_role("heading", name="Mes rendez-vous", exact=True)).to_be_visible()
+        sections = page.get_by_role("navigation", name="Gestion des rendez-vous")
+        sections.get_by_role("link", name="Propositions de transfert").click()
+        expect(page.get_by_text("Aucune proposition.")).to_be_visible()
+        if mobile:
+            expect(mobile_nav.get_by_role("link", name="Mes rendez-vous")).to_have_attribute("aria-current", "page")
     else:
-        expect(item).to_have_attribute("aria-current", "page")
+        label = "Absences" if role == "PRACTITIONER" else "Documents patients"
+        if mobile:
+            expect(mobile_nav.get_by_role("link")).to_have_count(3)
+            more, menu = open_more(page)
+            item = menu.get_by_role("link", name=label, exact=True)
+            first = menu.get_by_role("link").first
+            more.press("Tab")
+            expect(first).to_be_focused()
+            first.press("Escape")
+            expect(more).to_have_attribute("aria-expanded", "false")
+            expect(more).to_be_focused()
+            expect(menu).not_to_be_visible()
+            open_more(page)
+        item = menu.get_by_role("link", name=label, exact=True)
+        item.click()
+        title = "Mes absences" if role == "PRACTITIONER" else "Documents patients"
+        expect(page.get_by_role("heading", name=title, exact=True)).to_be_visible()
+        if mobile:
+            expect(more).to_have_attribute("aria-expanded", "false")
+            expect(menu).not_to_be_visible()
+        else:
+            expect(item).to_have_attribute("aria-current", "page")
+
+        if role == "ADMINISTRATIVE_STAFF":
+            expect(page.get_by_role("heading", name="Aucun patient sélectionné")).to_be_visible()
+            with page.expect_request(lambda request: urlsplit(request.url).path.endswith("/synthetic-patient/documents")):
+                page.get_by_label("Patient", exact=True).select_option("synthetic-patient")
+            expect(page.get_by_role("heading", name="Aucun document", exact=True)).to_be_visible()
     assert_layout(page)
 
 
@@ -123,28 +202,22 @@ def main():
     server = ThreadingHTTPServer(("127.0.0.1", 0), StaticApp)
     Thread(target=server.serve_forever, daemon=True).start()
     origin = f"http://127.0.0.1:{server.server_port}"
-    scenarios = [
-        (None, None),
-        ("PATIENT", ("/patient", "Espace patient", "Rendez-vous", "/patient/rendez-vous", "Mes rendez-vous")),
-        ("PRACTITIONER", ("/praticien", "Espace praticien", "Absences", "/praticien/absences", "Mes absences")),
-        ("ADMINISTRATIVE_STAFF", ("/admin", "Espace administratif", "Réserver pour un patient",
-                                  "/admin/reservation", "Réserver pour un patient")),
-    ]
+    roles = [None, "PATIENT", "PRACTITIONER", "ADMINISTRATIVE_STAFF"]
     try:
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch()
             for width in (1440, 390):
-                for role, scenario in scenarios:
+                for role in roles:
                     context = browser.new_context(viewport={"width": width, "height": 900}, reduced_motion="reduce")
                     install_fixtures(context, origin, role)
                     page = context.new_page()
                     errors = []
                     page.on("pageerror", lambda error: errors.append(str(error)))
                     try:
-                        if scenario is None:
+                        if role is None:
                             exercise_public(page, origin)
                         else:
-                            exercise_space(page, origin, *scenario, mobile=width < 760)
+                            exercise_space(page, origin, role, mobile=width <= 760)
                         assert not errors, json.dumps(errors, ensure_ascii=False)
                         print(f"PASS {role or 'PUBLIC'} {width}px")
                     finally:

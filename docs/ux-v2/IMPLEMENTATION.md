@@ -11,7 +11,7 @@ Design reference: user-approved public homepage V2.3 (28 November 2026); the HTM
 - Automated tests for navigation, FAQ and signed-in role behavior. Browser visual acceptance still required.
 
 ## Integrated implementation
-- Responsive authenticated navigation, grouped by role and task, with active page state and mobile menu.
+- Responsive authenticated navigation, grouped by role and task, with a desktop sidebar, role-specific mobile shortcuts and a keyboard-accessible “Plus” menu for practitioner and staff tasks.
 - Patient: booking calendar/list and progress, appointments, results/documents shortcuts, results retry, profile sections.
 - Practitioner: daily/weekly schedule, absences, patient directory, medical record section links and publication review.
 - Staff: operational dashboard shortcuts, guided patient booking, reassignment selection and review.
@@ -24,7 +24,7 @@ Run repository pre-commit, lint, unit/component tests, TypeScript/build, bundle 
 Preserve all existing API contracts, route guards, consent, MFA, session revocation, authorization and validation. No new production signup, irreversible deletion, data exposure or deployment. Keep work on feat/ux-v2, with reviewed commits and full frontend CI.
 
 ## Browser smoke coverage
-The production bundle is served on loopback by `python scripts/ci/browser-smoke.py` (Python Playwright 1.57.0 with Chromium). The CI check covers desktop (1440px) and mobile (390px), the anonymous homepage FAQ keyboard interaction and protected-route login redirect, all three authenticated homes, navigation, mobile disclosure and Escape focus restoration, page-level overflow and uncaught JavaScript errors. Fixtures are synthetic and read-only; external requests are blocked. The check is not an exact visual comparison with the prototype or a live API test.
+The production bundle is served on loopback by `python scripts/ci/browser-smoke.py` (Python Playwright 1.57.0 with Chromium). The CI check covers desktop (1440px) and mobile (390px), the anonymous homepage FAQ keyboard interaction and protected-route login redirect, all three authenticated homes, patient appointment and dossier links, staff document selection, mobile disclosure and Escape focus restoration, page-level overflow and uncaught JavaScript errors. Fixtures are synthetic and read-only; external requests are blocked. The check is not an exact visual comparison with the prototype or a live API test.
 
 ## Consolidated V2.3 implementation batch
 

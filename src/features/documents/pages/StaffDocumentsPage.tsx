@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Search, Users } from 'lucide-react'
+import { FolderLock, Search, Users } from 'lucide-react'
 import { messageFor } from '@/shared/api/errors'
 import { Alert, Button, Card, EmptyState, Select, Skeleton, TextField } from '@/shared/ui'
 import { searchPatients } from '../api'
@@ -84,30 +84,40 @@ export default function StaffDocumentsPage() {
   }
 
   return (
-    <>
-      <h2>Documents patients</h2>
-      <p className={styles.intro}>
-        Ajoutez un compte rendu, une ordonnance ou un résultat à un patient, puis consultez ses documents.
-      </p>
-      <Card title="Choisir un patient" headingLevel={3}>
-        <div className={styles.searchRow}>
-          <TextField
-            label="Rechercher un patient"
-            type="search"
-            autoComplete="off"
-            placeholder="Nom, prénom ou adresse e-mail"
-            value={typed}
-            onChange={(event) => setTyped(event.target.value)}
-            endAdornment={<Search size={18} aria-hidden="true" />}
-          />
+    <div className={styles.workspace} data-width="wide">
+      <header>
+        <h2 className={styles.title}>Documents patients</h2>
+        <p className={styles.intro}>
+          Identifiez le patient avant de consulter ou d’ajouter un document à son dossier.
+        </p>
+      </header>
+      <div className={styles.split}>
+        <Card title="Choisir un patient" headingLevel={3}>
+          <div className={styles.searchRow}>
+            <TextField
+              label="Rechercher un patient"
+              type="search"
+              autoComplete="off"
+              placeholder="Nom, prénom ou adresse e-mail"
+              value={typed}
+              onChange={(event) => setTyped(event.target.value)}
+              endAdornment={<Search size={18} aria-hidden="true" />}
+            />
+          </div>
+          {picker}
+        </Card>
+        <div className={styles.documentStack}>
+          {selected ? (
+            <DocumentsPanel key={selected} patientId={selected} canUpload />
+          ) : (
+            <Card title="Documents du patient" headingLevel={3}>
+              <EmptyState icon={FolderLock} title="Aucun patient sélectionné" headingLevel={4} compact>
+                Choisissez un patient pour voir et ajouter ses documents.
+              </EmptyState>
+            </Card>
+          )}
         </div>
-        {picker}
-      </Card>
-      {selected ? (
-        <DocumentsPanel key={selected} patientId={selected} canUpload />
-      ) : (
-        <p className={styles.muted}>Choisissez un patient pour voir et ajouter ses documents.</p>
-      )}
-    </>
+      </div>
+    </div>
   )
 }

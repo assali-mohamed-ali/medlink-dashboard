@@ -11,9 +11,8 @@ import { SPACES } from './spaces'
 import styles from './SpaceLayout.module.css'
 
 /**
- * The frame of a role's space (docs/ui-refresh/PLAN.md §4.5): a skip link, the space's menu (sidebar, icon rail from
- * 768 to 1023 px, bottom bar on phones: one <nav>, restyled), a top bar (the page title, who is logged in, logout in
- * one click) and the current page (<Outlet />). The route's guard has already checked the role.
+ * The frame of a role's space: a skip link, task navigation, account controls and the current page.
+ * On phones, the bottom bar exposes the primary tasks and opens the remaining links on demand.
  */
 export default function SpaceLayout({ role }: { role: Role }) {
   const { user, logout } = useAuth()
@@ -41,6 +40,9 @@ export default function SpaceLayout({ role }: { role: Role }) {
       : null
     : null
   const groups = [...new Set(space.menu.map(entry => entry.group ?? 'Navigation'))]
+  const shortcuts = space.menu.filter(entry => entry.mobileLabel)
+  const mobileCurrent = active?.mobileParent ?? (active?.mobileLabel ? active.to : undefined)
+  const hasMore = space.menu.some(entry => !entry.mobileLabel && !entry.mobileParent)
   const titleRef = useRef<HTMLHeadingElement>(null)
   const shownPath = useRef(pathname)
 
@@ -49,6 +51,7 @@ export default function SpaceLayout({ role }: { role: Role }) {
   useEffect(() => {
     if (shownPath.current === pathname) return
     shownPath.current = pathname
+    setMenuOpen(false)
     titleRef.current?.focus()
   }, [pathname])
 
@@ -62,33 +65,61 @@ export default function SpaceLayout({ role }: { role: Role }) {
       <a href="#contenu" className={styles.skip}>
         Aller au contenu
       </a>
-      <button ref={menuToggle} type="button" className={styles.menuToggle} aria-expanded={menuOpen} aria-controls="space-menu" onClick={() => setMenuOpen(open => !open)}><Menu size={20} aria-hidden="true" /> Menu <span aria-hidden="true" className={styles.mobileBrand}>MedLink</span></button>
-      <nav id="space-menu" data-open={menuOpen} className={styles.nav} aria-label="Menu de l’espace" onKeyDown={(event) => {
-        if (event.key === 'Escape' && menuOpen) { setMenuOpen(false); menuToggle.current?.focus() }
+      <div className={styles.navigation} onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) setMenuOpen(false)
+      }} onKeyDown={(event) => {
+        if (event.key === 'Escape' && menuOpen) {
+          setMenuOpen(false)
+          menuToggle.current?.focus()
+        }
       }}>
-        <span className={styles.brand}>
-          <span className={styles.logo} aria-hidden="true">
-            <Plus size={20} strokeWidth={3} />
+        <nav className={styles.shortcuts} aria-label="Navigation mobile">
+          {shortcuts.map(({ to, mobileLabel, icon: Icon }) => (
+            <Link key={to} to={to} aria-current={mobileCurrent === to ? 'page' : undefined}
+              className={styles.shortcut} onClick={() => setMenuOpen(false)}>
+              <Icon size={20} aria-hidden="true" />
+              <span>{mobileLabel}</span>
+            </Link>
+          ))}
+          {hasMore && (
+            <button ref={menuToggle} type="button" className={styles.shortcut}
+              aria-expanded={menuOpen} aria-controls="space-menu" data-current={Boolean(active && !mobileCurrent)}
+              onClick={() => setMenuOpen(open => !open)}>
+              <Menu size={20} aria-hidden="true" />
+              <span>Plus</span>
+            </button>
+          )}
+        </nav>
+        <nav id="space-menu" data-open={menuOpen} className={styles.nav} aria-label="Menu de l’espace">
+          <span className={styles.brand}>
+            <span className={styles.logo} aria-hidden="true">
+              <Plus size={20} strokeWidth={3} />
+            </span>
+            <strong>MedLink</strong>
           </span>
-          <strong className={styles.brandName}>MedLink</strong>
-        </span>
-        {groups.map(group => (
-          <div key={group} className={styles.group}>
-            <p className={styles.groupLabel}>{group}</p>
-            <ul className={styles.entries}>
-              {space.menu.filter(entry => (entry.group ?? 'Navigation') === group).map(({ label, to, icon: Icon }) => (
-                <li key={to}>
-                  <Link to={to} title={label} aria-current={active?.to === to ? 'page' : undefined}
-                    className={active?.to === to ? `${styles.link} ${styles.active}` : styles.link}
-                    onClick={() => setMenuOpen(false)}>
-                    <Icon size={19} aria-hidden="true" /><span className={styles.label}>{label}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </nav>
+          {groups.map(group => {
+            const entries = space.menu.filter(entry => (entry.group ?? 'Navigation') === group)
+            return (
+              <div key={group} className={styles.group} data-desktop-only={entries.every(entry => entry.mobileLabel || entry.mobileParent)}>
+                <p className={styles.groupLabel}>{group}</p>
+                <ul className={styles.entries}>
+                  {entries.map(({ label, to, icon: Icon, mobileLabel, mobileParent }) => (
+                    <li key={to} data-desktop-only={Boolean(mobileLabel || mobileParent)}>
+                      <Link to={to} aria-current={active?.to === to ? 'page' : undefined} className={styles.link}
+                        onClick={() => {
+                          setMenuOpen(false)
+                          if (menuOpen && to === path) menuToggle.current?.focus()
+                        }}>
+                        <Icon size={19} aria-hidden="true" /><span>{label}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )
+          })}
+        </nav>
+      </div>
       <div className={styles.page}>
         <header className={styles.topbar}>
           <div className={styles.topbarStart}>

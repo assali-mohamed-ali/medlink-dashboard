@@ -118,7 +118,9 @@ test('staff search a patient, then see and upload that patient documents', async
 
   const picker = await screen.findByLabelText('Patient')
   expect(within(picker).getByRole('option', { name: 'Ben Salah Amel · amel@example.com' })).toBeInTheDocument()
-  expect(screen.getByText('Choisissez un patient pour voir et ajouter ses documents.')).toBeInTheDocument()
+  const documents = screen.getByRole('region', { name: 'Documents du patient' })
+  expect(within(documents).getByRole('heading', { name: 'Aucun patient sélectionné' })).toBeInTheDocument()
+  expect(fetchDocuments).not.toHaveBeenCalled()
 
   await user.selectOptions(picker, 'p1')
   expect(fetchDocuments).toHaveBeenCalledWith('p1', 0)

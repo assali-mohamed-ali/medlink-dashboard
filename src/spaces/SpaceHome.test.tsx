@@ -53,7 +53,7 @@ beforeEach(() => {
 test('the patient has their own home: the greeting, then booking and their appointments in one click', async () => {
   renderHome('PATIENT', '/patient')
   const main = within(await screen.findByRole('main'))
-  await main.findByRole('heading', { level: 2, name: 'Bonjour Amel' })
+  await main.findByRole('heading', { level: 2, name: 'Bonjour, Amel' })
   expect(main.getByRole('link', { name: 'Prendre rendez-vous' })).toHaveAttribute('href', '/patient/creneaux')
   expect(main.getByRole('link', { name: /^Mes rendez-vous/ })).toHaveAttribute('href', '/patient/rendez-vous')
   expect(await main.findByRole('region', { name: 'Prochain rendez-vous' })).toBeInTheDocument()

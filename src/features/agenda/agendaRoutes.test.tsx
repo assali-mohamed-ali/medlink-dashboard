@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { RouterProvider, createMemoryRouter } from 'react-router-dom'
 import { beforeEach, expect, test, vi } from 'vitest'
@@ -42,7 +42,8 @@ test('a practitioner opens the agenda from the menu of their space', async () =>
   loggedInAs('PRACTITIONER')
   const router = renderAt('/praticien')
 
-  await user.click(await screen.findByRole('link', { name: 'Agenda' }))
+  const menu = await screen.findByRole('navigation', { name: 'Menu de l’espace' })
+  await user.click(within(menu).getByRole('link', { name: 'Agenda' }))
 
   expect(await screen.findByRole('heading', { name: TITLE, level: 2 })).toBeInTheDocument()
   expect(router.state.location.pathname).toBe('/praticien/agenda')
