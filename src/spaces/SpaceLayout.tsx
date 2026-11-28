@@ -1,5 +1,5 @@
-import { Suspense, useEffect, useRef } from 'react'
-import { LogOut, Plus } from 'lucide-react'
+import { Suspense, useEffect, useRef, useState } from 'react'
+import { LogOut, Menu, Plus } from 'lucide-react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { NotificationBell } from '@/features/alerts'
 import { useAuth, type Role } from '@/features/auth'
@@ -19,6 +19,11 @@ export default function SpaceLayout({ role }: { role: Role }) {
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const space = SPACES[role]
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuToggle = useRef<HTMLButtonElement>(null)
+  const path = pathname.replace(/\/+$/, '') || '/'
+  const active = space.menu.find(entry => entry.to === path) ?? space.menu.find(entry => entry.also?.includes(path) || (entry.to !== space.menu[0].to && path.startsWith(entry.to + '/')))
+  const groups = [...new Set(space.menu.map(entry => entry.group ?? 'Navigation'))]
   const titleRef = useRef<HTMLHeadingElement>(null)
   const shownPath = useRef(pathname)
 
@@ -40,33 +45,32 @@ export default function SpaceLayout({ role }: { role: Role }) {
       <a href="#contenu" className={styles.skip}>
         Aller au contenu
       </a>
-      <nav className={styles.nav} aria-label="Menu de l’espace">
+      <button ref={menuToggle} type="button" className={styles.menuToggle} aria-expanded={menuOpen} aria-controls="space-menu" onClick={() => setMenuOpen(open => !open)}><Menu size={20} aria-hidden="true" /> Menu</button>
+      <nav id="space-menu" data-open={menuOpen} className={styles.nav} aria-label="Menu de l’espace" onKeyDown={(event) => {
+        if (event.key === 'Escape' && menuOpen) { setMenuOpen(false); menuToggle.current?.focus() }
+      }}>
         <span className={styles.brand}>
           <span className={styles.logo} aria-hidden="true">
             <Plus size={20} strokeWidth={3} />
           </span>
           <strong className={styles.brandName}>MedLink</strong>
         </span>
-        <ul className={styles.entries}>
-          {space.menu.map(({ label, to, icon: Icon, also }) => {
-            // The entry of this page, or of the page it was reached from (e.g. the password page from "Profil")
-            const path = pathname.replace(/\/+$/, '') || '/'
-            const current = path === to || also?.includes(path)
-            return (
-              <li key={to}>
-                <Link
-                  to={to}
-                  title={label}
-                  aria-current={current ? 'page' : undefined}
-                  className={current ? `${styles.link} ${styles.active}` : styles.link}
-                >
-                  <Icon size={20} aria-hidden="true" />
-                  <span className={styles.label}>{label}</span>
-                </Link>
-              </li>
-            )
-          })}
-        </ul>
+        {groups.map(group => (
+          <div key={group} className={styles.group}>
+            <p className={styles.groupLabel}>{group}</p>
+            <ul className={styles.entries}>
+              {space.menu.filter(entry => (entry.group ?? 'Navigation') === group).map(({ label, to, icon: Icon }) => (
+                <li key={to}>
+                  <Link to={to} title={label} aria-current={active?.to === to ? 'page' : undefined}
+                    className={active?.to === to ? `${styles.link} ${styles.active}` : styles.link}
+                    onClick={() => setMenuOpen(false)}>
+                    <Icon size={19} aria-hidden="true" /><span className={styles.label}>{label}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </nav>
       <div className={styles.page}>
         <header className={styles.topbar}>
@@ -81,6 +85,7 @@ export default function SpaceLayout({ role }: { role: Role }) {
             <h1 ref={titleRef} tabIndex={-1} className={styles.title}>
               {space.title}
             </h1>
+            {active && <span className={styles.context}>{active.label}</span>}
           </div>
           <div className={styles.account}>
             {/* MLink-37: the practitioner's alerts (cancelled appointments) */}

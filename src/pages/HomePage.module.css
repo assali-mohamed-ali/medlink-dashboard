@@ -141,3 +141,11 @@
   .ticket { width: 82%; }
   .nav a { font-size: .6875rem; }
 }
+
+.question { border-bottom: 1px solid var(--ux-line); }
+.question:first-child { border-top: 1px solid var(--ux-line); }
+.question button { display:flex; justify-content:space-between; align-items:center; gap:16px; width:100%; border:0; background:transparent; padding:17px 0; color:var(--ux-ink); font:inherit; font-size:.9375rem; font-weight:680; text-align:left; cursor:pointer; }
+.question button span { color:var(--ux-green); font-size:1.375rem; flex:none; }
+.question p { color:var(--ux-muted); font-size:.875rem; margin:0 24px 17px 0; }
+.question p[hidden] { display:none; }
+.question button:focus-visible { outline:3px solid var(--ux-green); outline-offset:4px; }

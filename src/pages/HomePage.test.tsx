@@ -38,12 +38,19 @@ test('FAQ is keyboard operable and public navigation anchors exist', async () =>
   for (const link of nav.getAllByRole('link')) {
     expect(document.getElementById(link.getAttribute('href')!.slice(1))).not.toBeNull()
   }
-  const summary = screen.getByText('Ai-je besoin d’un compte pour réserver ?')
+  const summary = screen.getByRole('button', { name: 'Ai-je besoin d’un compte pour réserver ?' })
+  const answer = document.getElementById(summary.getAttribute('aria-controls')!)!
+  expect(summary).toHaveAttribute('aria-expanded', 'false')
+  expect(answer).not.toBeVisible()
   summary.focus()
   await keyboard.keyboard('[Enter]')
-  expect(summary.parentElement).toHaveAttribute('open')
-  await keyboard.keyboard('[Enter]')
-  expect(summary.parentElement).not.toHaveAttribute('open')
+  expect(summary).toHaveAttribute('aria-expanded', 'true')
+  expect(answer).toBeVisible()
+  await keyboard.keyboard('[Space]')
+  expect(summary).toHaveAttribute('aria-expanded', 'false')
+  expect(answer).not.toBeVisible()
+  await keyboard.click(summary)
+  expect(answer).toBeVisible()
 })
 test('signed-in practitioners return to their own workspace', () => {
   user = { id: 'synthetic', firstName: 'Test', lastName: 'User', email: 'test@example.com', roles: ['PRACTITIONER'] }

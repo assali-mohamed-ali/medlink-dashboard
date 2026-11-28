@@ -1,3 +1,4 @@
+import { useId, useState } from 'react'
 import { ArrowRight, CalendarDays, Check, FlaskConical, FolderOpen, Lock, Plus, UserRound } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { roleHome, useAuth } from '@/features/auth'
@@ -22,6 +23,15 @@ const questions = [
   ['Où retrouver mes documents et résultats ?', 'Les informations mises à votre disposition sont consultables depuis votre espace patient après connexion.'],
   ['MedLink est-il un service d’urgence ?', 'Non. En cas d’urgence médicale, contactez les services d’urgence ou votre établissement de santé.'],
 ] as const
+
+function Question({ question, answer }: { question: string; answer: string }) {
+  const [open, setOpen] = useState(false)
+  const id = useId()
+  return <div className={styles.question}>
+    <button type="button" aria-expanded={open} aria-controls={id} onClick={() => setOpen(value => !value)}>{question}<span aria-hidden="true">{open ? '−' : '+'}</span></button>
+    <p id={id} hidden={!open}>{answer}</p>
+  </div>
+}
 
 function Brand() {
   return <Link to={paths.home} className={styles.brand} aria-label="MedLink, accueil"><span className={styles.mark}><Plus size={25} strokeWidth={2.6} aria-hidden="true" /></span>MedLink</Link>
@@ -101,7 +111,7 @@ export default function HomePage() {
           <div className={styles.wrap}><div className={styles.accessInner}><div><h2 id="professional-title">Vous êtes praticien ou membre du personnel ?</h2><p>Retrouvez votre espace de travail avec votre compte professionnel.</p></div><Link to={ownSpace} className={`${styles.button} ${styles.white}`}>Accès professionnel <ArrowRight size={18} aria-hidden="true" /></Link></div></div>
         </section>
         <section id="aide" className={styles.faq} aria-labelledby="faq-title">
-          <div className={styles.wrap}><div className={styles.intro}><p className={styles.eyebrow}>Assistance</p><h2 id="faq-title">On vous accompagne.</h2><p>Une question sur votre compte ou votre rendez-vous ?</p><Link to={paths.forgotPassword} className={styles.textLink}>Mot de passe oublié ? <ArrowRight size={18} aria-hidden="true" /></Link></div><div>{questions.map(([q, a]) => <details key={q}><summary>{q}</summary><p>{a}</p></details>)}</div></div>
+          <div className={styles.wrap}><div className={styles.intro}><p className={styles.eyebrow}>Assistance</p><h2 id="faq-title">On vous accompagne.</h2><p>Une question sur votre compte ou votre rendez-vous ?</p><Link to={paths.forgotPassword} className={styles.textLink}>Mot de passe oublié ? <ArrowRight size={18} aria-hidden="true" /></Link></div><div>{questions.map(([q, a]) => <Question key={q} question={q} answer={a} />)}</div></div>
         </section>
       </main>
       <footer className={styles.footer}><div className={styles.wrap}><Brand /><nav className={styles.footLinks} aria-label="Pied de page"><Link to={ownSpace}>{user ? 'Mon espace' : 'Connexion'}</Link>{!user && <Link to={paths.signup}>Inscription</Link>}<a href="#aide">Aide</a></nav><p className={styles.footnote}>MedLink · Réseau de cliniques</p></div></footer>

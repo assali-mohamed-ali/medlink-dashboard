@@ -120,3 +120,12 @@ test('MLink-37 (37.6): a practitioner who logs in finds the alerts received whil
   expect(within(panel).getByText(/Ahmed Kacem/)).toBeInTheDocument()
   expect(within(panel).getByText('Reçues pendant votre absence')).toBeInTheDocument()
 })
+
+test('administrative tasks have labeled groups and preserve route navigation', async () => {
+  renderAs('ADMINISTRATIVE_STAFF', '/admin/comptes')
+  const menu = await screen.findByRole('navigation', { name: 'Menu de l’espace' })
+  expect(within(menu).getByText('Pilotage')).toBeInTheDocument()
+  expect(within(menu).getByText('Opérations')).toBeInTheDocument()
+  expect(within(menu).getByText('Confidentialité')).toBeInTheDocument()
+  expect(within(menu).getByRole('link', { name: 'Rendez-vous des cliniques' })).toHaveAttribute('href', '/admin/rendez-vous')
+})

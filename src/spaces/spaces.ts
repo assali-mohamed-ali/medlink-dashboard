@@ -18,6 +18,7 @@ export type MenuEntry = {
   to: string
   /** A lucide icon: alone in the icon rail (768–1023 px), above the label in the phone's bottom bar. */
   icon: LucideIcon
+  group?: string
   /** Pages reached from this entry's page, with no entry of their own: on them, this entry stays marked current. */
   also?: readonly string[]
 }
@@ -36,10 +37,7 @@ export type Space = {
   title: string
   /** The person's role in French, shown under their name in the top bar. */
   roleLabel: string
-  /**
-   * The menu, in order: a sidebar on a computer, a bottom bar on a phone (so at most 5 entries).
-   * A new page of a space = one entry here + one route in app/routes.tsx.
-   */
+  /** The ordered, labeled menu, grouped by task. The same links are available on mobile. */
   menu: readonly MenuEntry[]
   /** The home: one sentence under the greeting, then the 1–3 parts that matter for the role. */
   home: { intro: string; parts: readonly HomePart[] }
@@ -51,19 +49,19 @@ export const SPACES: Record<Role, Space> = {
     title: 'Espace patient',
     roleLabel: 'Patient',
     menu: [
-      { label: 'Accueil', to: paths.patient.root, icon: House },
+      { label: 'Accueil', to: paths.patient.root, group: 'Mon espace', icon: House },
       {
         label: 'Rendez-vous',
-        to: paths.patient.appointments,
+        to: paths.patient.appointments, group: 'Mon espace',
         icon: CalendarDays,
         also: [paths.patient.slots, paths.patient.reassignments],
       },
-      { label: 'Mes résultats', to: paths.patient.results, icon: FileText },
-      { label: 'Mes documents', to: paths.patient.documents, icon: FileText },
+      { label: 'Mes résultats', to: paths.patient.results, group: 'Dossier médical', icon: FileText },
+      { label: 'Mes documents', to: paths.patient.documents, group: 'Dossier médical', icon: FileText },
       // MLink-32 follow-up: the consultation reports written about the patient
-      { label: 'Comptes-rendus', to: paths.patient.reports, icon: FileText },
+      { label: 'Comptes-rendus', to: paths.patient.reports, group: 'Dossier médical', icon: FileText },
       // The password page opens from the profile ("Modifier le mot de passe"), as for the practitioner
-      { label: 'Profil', to: paths.patient.profile, icon: UserRound, also: [paths.patient.password] },
+      { label: 'Profil', to: paths.patient.profile, group: 'Compte', icon: UserRound, also: [paths.patient.password] },
     ],
     home: {
       intro: 'Vos rendez-vous, vos documents et vos échanges avec vos soignants, au même endroit.',
@@ -88,12 +86,12 @@ export const SPACES: Record<Role, Space> = {
     title: 'Espace praticien',
     roleLabel: 'Praticien',
     menu: [
-      { label: 'Accueil', to: paths.practitioner.root, icon: House },
-      { label: 'Mes patients', to: paths.practitioner.patients, icon: Users },
-      { label: 'Absences', to: paths.practitioner.absences, icon: CalendarDays },
-      { label: 'Agenda', to: paths.practitioner.agenda, icon: CalendarDays, also: [paths.practitioner.reassignments] },
+      { label: 'Accueil', to: paths.practitioner.root, group: 'Consultations', icon: House },
+      { label: 'Mes patients', to: paths.practitioner.patients, group: 'Consultations', icon: Users },
+      { label: 'Agenda', to: paths.practitioner.agenda, group: 'Consultations', icon: CalendarDays, also: [paths.practitioner.reassignments] },
+      { label: 'Absences', to: paths.practitioner.absences, group: 'Planning', icon: CalendarDays },
       // The password page opens from the profile ("Modifier le mot de passe"), not from the menu
-      { label: 'Profil', to: paths.practitioner.profile, icon: UserRound, also: [paths.practitioner.password] },
+      { label: 'Profil', to: paths.practitioner.profile, group: 'Compte', icon: UserRound, also: [paths.practitioner.password] },
     ],
     home: {
       intro: 'Votre journée en un coup d’œil.',
@@ -113,17 +111,17 @@ export const SPACES: Record<Role, Space> = {
     title: 'Espace administratif',
     roleLabel: 'Personnel administratif',
     menu: [
-      { label: 'Accueil', to: paths.staff.root, icon: House },
-      { label: 'Réserver pour un patient', to: paths.staff.booking, icon: CalendarDays },
-      { label: 'Demandes de suppression', to: paths.staff.deletionRequests, icon: Users },
-      { label: 'Gestion des comptes', to: paths.staff.accounts, icon: Users },
-      { label: 'Affectations des praticiens', to: paths.staff.clinicAssignments, icon: Users, also: [paths.staff.reassignments] },
-      { label: 'Documents patients', to: paths.staff.documents, icon: FileText },
-      { label: 'Journal d’audit', to: paths.staff.audit, icon: ScrollText },
-      { label: 'Statistiques', to: paths.staff.stats, icon: ChartColumn },
-      { label: 'Rendez-vous des cliniques', to: paths.staff.activity, icon: CalendarDays },
+      { label: 'Accueil', to: paths.staff.root, group: 'Pilotage', icon: House },
+      { label: 'Rendez-vous des cliniques', to: paths.staff.activity, group: 'Pilotage', icon: CalendarDays },
+      { label: 'Réserver pour un patient', to: paths.staff.booking, group: 'Opérations', icon: CalendarDays },
+      { label: 'Gestion des comptes', to: paths.staff.accounts, group: 'Opérations', icon: Users },
+      { label: 'Affectations des praticiens', to: paths.staff.clinicAssignments, group: 'Opérations', icon: Users, also: [paths.staff.reassignments] },
+      { label: 'Documents patients', to: paths.staff.documents, group: 'Opérations', icon: FileText },
+      { label: 'Journal d’audit', to: paths.staff.audit, group: 'Confidentialité', icon: ScrollText },
+      { label: 'Statistiques', to: paths.staff.stats, group: 'Confidentialité', icon: ChartColumn },
+      { label: 'Demandes de suppression', to: paths.staff.deletionRequests, group: 'Confidentialité', icon: Users },
       // The password page opens from the profile ("Modifier le mot de passe"), as for the other spaces
-      { label: 'Profil', to: paths.staff.profile, icon: UserRound, also: [paths.staff.password] },
+      { label: 'Profil', to: paths.staff.profile, group: 'Compte', icon: UserRound, also: [paths.staff.password] },
     ],
     home: {
       intro: 'Les comptes et l’organisation des trois cliniques.',
