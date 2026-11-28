@@ -1,0 +1,143 @@
+/* Accueil public — approved UX V2.3. Scoped to this route; no auth or workspace style changes. */
+.home { background: var(--surface-raised); color: var(--ux-ink); font-size: 1rem; line-height: 1.6; min-height: 100vh; }
+.wrap { max-width: 1240px; width: 100%; padding-inline: 40px; margin-inline: auto; }
+.home a { text-decoration: none; }
+.home h1, .home h2, .home h3, .home p { margin-top: 0; }
+.skip { position: absolute; top: -160px; left: 16px; z-index: 100; background: var(--surface-raised); color: var(--ux-ink); padding: 12px 20px; }
+.skip:focus { top: 12px; }
+.header { border-bottom: 1px solid var(--ux-line); }
+.header .wrap { min-height: 77px; display: flex; align-items: center; justify-content: space-between; gap: 22px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ux-dark); font-weight: 800; font-size: 26px; letter-spacing: -1.5px; white-space: nowrap; }
+.mark { background: var(--ux-green); color: var(--on-primary); width: 37px; height: 37px; border-radius: 11px; display: grid; place-items: center; }
+.nav, .account { display: flex; align-items: center; gap: 24px; }
+.nav a, .textLink { color: var(--ux-ink); font-size: .875rem; font-weight: 650; padding-block: 10px; }
+.textLink { display: inline-flex; align-items: center; gap: 8px; }
+.nav a:hover, .textLink:hover, .footLinks a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.button { display: inline-flex; align-items: center; justify-content: center; gap: 11px; border-radius: 9px; border: 1px solid var(--ux-green); background: var(--ux-green); color: var(--on-primary); min-height: 49px; padding: 12px 19px; font-size: .9375rem; font-weight: 700; line-height: 1.35; transition: background var(--duration-fast); }
+.button:hover { background: var(--ux-dark); }
+.outline { background: transparent; color: var(--ux-dark); border-color: var(--border-strong); }
+.outline:hover { background: var(--ux-sage); }
+.white { background: var(--surface-raised); color: var(--ux-dark); border-color: var(--surface-raised); }
+.white:hover { background: var(--ux-sage); }
+.hero { background: var(--ux-cream); border-bottom: 1px solid var(--ux-line); }
+.hero .wrap { padding-block: 54px 58px; display: grid; grid-template-columns: minmax(0,1.02fr) minmax(0,.98fr); gap: 52px; align-items: center; }
+.eyebrow { display: inline-flex; align-items: center; gap: 8px; color: var(--ux-green); font-size: .75rem; letter-spacing: .105em; text-transform: uppercase; font-weight: 750; margin: 0 0 20px; }
+.eyebrow::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--ux-green); }
+.home h1 { font-family: var(--font-sans); font-size: clamp(2.5rem,4.65vw,4.1875rem); line-height: 1.06; letter-spacing: -.059em; font-weight: 760; margin: 0 0 21px; max-width: 690px; color: var(--ux-ink); }
+.home h1 em { font-style: normal; color: var(--ux-green); }
+.lead { font-size: 1.125rem; line-height: 1.65; color: var(--ux-muted); max-width: 490px; margin-bottom: 28px; }
+.ctas { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.ctas .button { min-height: 54px; padding: 15px 22px; }
+.note { font-size: .8125rem; color: var(--ux-muted); margin: 16px 0 0; display: flex; align-items: flex-start; gap: 8px; }
+.note svg { flex: none; color: var(--ux-green); margin-top: 2px; }
+.visual { height: 382px; position: relative; border-radius: 26px; isolation: isolate; overflow: hidden; background: var(--ux-visual); display: grid; place-items: center; }
+.visual::before { content: ''; position: absolute; width: 480px; height: 480px; border: 1px solid var(--ux-line); border-radius: 50%; top: -135px; right: -190px; z-index: -1; box-shadow: 0 0 0 44px var(--ux-sage),0 0 0 92px var(--surface-sunken); }
+.visual::after { content: ''; position: absolute; bottom: -145px; left: -150px; width: 340px; height: 340px; border-radius: 50%; background: var(--ux-visual-accent); z-index: -1; }
+.figureCaption { position: absolute; top: 15px; left: 17px; font-size: .6875rem; font-weight: 650; color: var(--ux-dark); letter-spacing: .02em; }
+.calendar { width: min(76%,340px); border: 1px solid var(--ux-line); background: var(--surface-raised); border-radius: 18px; padding: 22px 23px 24px; box-shadow: var(--elev-2); transform: rotate(-4deg) translate(-13px,0); }
+.calendarHead { display: flex; align-items: center; gap: 10px; font-size: .875rem; font-weight: 700; margin-bottom: 20px; }
+.calendarHead > span { width: 37px; height: 37px; display: grid; place-items: center; background: var(--ux-sage); border-radius: 10px; color: var(--ux-green); flex: none; }
+.calendarHead small, .ticket small { display: block; font-size: .75rem; color: var(--ux-muted); font-weight: 500; }
+.calendarGrid { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap: 4px; text-align: center; }
+.calendarGrid span { display: grid; place-items: center; font-size: .75rem; height: 30px; border-radius: 7px; color: var(--ux-ink); }
+.calendarGrid .weekday { color: var(--ux-muted); font-size: .6875rem; font-weight: 650; height: 23px; }
+.calendarGrid .picked { background: var(--ux-green); color: var(--on-primary); font-weight: 800; }
+.calendarGrid .other { color: var(--ux-muted); }
+.calendarGrid .available { background: var(--ux-sage); color: var(--ux-dark); font-weight: 700; }
+.ticket { position: absolute; right: 22px; bottom: 25px; width: min(86%,310px); background: var(--surface-raised); border: 1px solid var(--ux-line); border-radius: 15px; padding: 15px 17px; display: flex; align-items: center; gap: 13px; box-shadow: var(--elev-2); }
+.tick { background: var(--ux-sage); color: var(--ux-green); display: grid; place-items: center; border-radius: 50%; width: 42px; height: 42px; flex: none; }
+.ticket strong { display: block; font-size: .875rem; }
+.services { padding-block: 42px 48px; }
+.sectionHead { margin-bottom: 22px; }
+.sectionHead h2, .steps h2, .faq h2 { font-size: clamp(1.6875rem,3vw,2.375rem); letter-spacing: -.038em; line-height: 1.15; font-weight: 750; margin: 0; }
+.sectionHead p { font-size: .875rem; color: var(--ux-muted); margin: 5px 0 0; }
+.cards { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; }
+.service { border: 1px solid var(--ux-line); border-radius: 13px; padding: 22px 21px; display: flex; gap: 16px; flex-direction: column; min-width: 0; color: var(--ux-ink); }
+.service:hover { border-color: var(--ux-green); background: var(--surface-sunken); }
+.cardTop { display: flex; align-items: center; justify-content: space-between; color: var(--ux-green); }
+.cardIcon { width: 44px; height: 44px; border-radius: 10px; display: grid; place-items: center; background: var(--ux-sage); color: var(--ux-green); }
+.service strong { font-size: 1.125rem; line-height: 1.3; font-weight: 720; letter-spacing: -.015em; }
+.service small { font-size: .875rem; line-height: 1.55; color: var(--ux-muted); display: block; margin-top: 4px; }
+.steps { background: var(--surface-sunken); padding-block: 55px; }
+.steps .wrap { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.5fr); gap: 64px; align-items: start; }
+.intro > p:not(.eyebrow) { color: var(--ux-muted); margin: 13px 0 22px; }
+.stepList { list-style: none; margin: 0; padding: 0; display: grid; gap: 22px; }
+.stepList li { display: grid; grid-template-columns: 42px minmax(0,1fr); gap: 14px; align-items: start; }
+.number { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--ux-line); background: var(--surface-raised); color: var(--ux-green); display: grid; place-items: center; font-size: .875rem; font-weight: 750; }
+.stepList h3 { margin: 1px 0 4px; font-size: 1.0625rem; font-weight: 750; letter-spacing: -.02em; }
+.stepList p { font-size: .875rem; color: var(--ux-muted); margin: 0; }
+.access { padding-block: 36px; }
+.accessInner { background: var(--ux-dark); border-radius: 17px; padding: 25px 30px; display: flex; align-items: center; justify-content: space-between; gap: 24px; color: var(--on-primary); }
+.accessInner h2 { font-size: 1.4375rem; letter-spacing: -.025em; margin: 0 0 4px; }
+.accessInner p { font-size: .875rem; color: var(--ux-sage); margin: 0; }
+.accessInner .button { flex-shrink: 0; }
+.faq { padding-block: 26px 55px; }
+.faq .wrap { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.6fr); gap: 64px; align-items: start; }
+.faq details { border-bottom: 1px solid var(--ux-line); }
+.faq details:first-child { border-top: 1px solid var(--ux-line); }
+.faq summary { padding: 17px 28px 17px 0; cursor: pointer; font-weight: 680; font-size: .9375rem; list-style: none; position: relative; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: '+'; font-size: 1.375rem; position: absolute; right: 3px; top: 11px; color: var(--ux-green); }
+.faq details[open] summary::after { content: '−'; }
+.faq details p { font-size: .875rem; color: var(--ux-muted); margin: 0 24px 17px 0; }
+.footer { background: var(--surface-sunken); border-top: 1px solid var(--ux-line); padding-block: 26px 20px; }
+.footer .wrap { display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; align-items: center; }
+.footer .brand { font-size: 21px; }
+.footer .mark { width: 30px; height: 30px; border-radius: 8px; }
+.footLinks { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; }
+.footLinks a { color: var(--ux-ink); font-size: .875rem; font-weight: 650; padding-block: 10px; }
+.footnote { border-top: 1px solid var(--ux-line); width: 100%; font-size: .75rem; color: var(--ux-muted); padding-top: 14px; margin: 0; }
+.home :is(a, summary):focus-visible { outline: 3px solid var(--ux-green); outline-offset: 4px; }
+.accessInner a:focus-visible { outline-color: var(--on-primary); }
+@media(max-width: 1000px) {
+  .wrap { padding-inline: 28px; }
+  .header .wrap, .account { gap: 12px; }
+  .nav { gap: 16px; }
+  .hero .wrap { gap: 30px; }
+  .visual { height: 350px; }
+  .steps .wrap, .faq .wrap { gap: 35px; }
+  .service { padding: 18px; }
+}
+@media(max-width: 760px) {
+  .wrap { padding-inline: 20px; }
+  .header .wrap { min-height: 64px; flex-wrap: wrap; gap: 12px; padding-block: 10px; }
+  .nav { order: 3; width: 100%; justify-content: space-between; border-top: 1px solid var(--ux-line); padding-top: 5px; gap: 7px; }
+  .nav a { font-size: .75rem; padding-block: 8px; }
+  .brand { font-size: 23px; }
+  .mark { width: 32px; height: 32px; }
+  .account .textLink { display: none; }
+  .account .button { min-height: 44px; padding: 9px 13px; font-size: .8125rem; }
+  .hero .wrap { grid-template-columns: 1fr; gap: 28px; padding-block: 33px 30px; }
+  .home h1 { font-size: clamp(2.3125rem,8.9vw,3.375rem); letter-spacing: -.05em; line-height: 1.08; margin-bottom: 15px; }
+  .eyebrow { font-size: .6875rem; margin-bottom: 16px; }
+  .lead { font-size: 1rem; margin-bottom: 22px; }
+  .ctas { gap: 10px; }
+  .ctas .button { min-height: 48px; padding: 12px 15px; font-size: .875rem; }
+  .visual { height: 280px; }
+  .calendar { width: 70%; padding: 17px; max-width: 290px; transform: rotate(-4deg) translate(-10px,3px); }
+  .calendarHead { margin-bottom: 8px; }
+  .calendarGrid span { height: 23px; }
+  .calendarGrid .weekday { height: 16px; }
+  .ticket { right: 12px; bottom: 16px; padding: 12px; width: 75%; max-width: 280px; }
+  .services { padding-block: 30px; }
+  .cards { grid-template-columns: 1fr; gap: 10px; }
+  .service { display: grid; grid-template-columns: minmax(0,1fr) 44px; gap: 10px; padding: 17px; }
+  .cardTop { grid-column: 2; grid-row: 1; justify-content: end; }
+  .cardTop > svg { display: none; }
+  .cardCopy { grid-column: 1; grid-row: 1; }
+  .sectionHead { margin-bottom: 16px; }
+  .steps { padding-block: 32px; }
+  .steps .wrap, .faq .wrap { grid-template-columns: 1fr; gap: 20px; }
+  .access { padding-block: 22px; }
+  .accessInner { display: block; padding: 22px; }
+  .accessInner .button { margin-top: 15px; width: 100%; }
+  .faq { padding-block: 15px 36px; }
+  .footer .wrap { gap: 14px; }
+  .footLinks { gap: 18px; }
+}
+@media(max-width: 375px) {
+  .ctas .button { width: 100%; }
+  .visual { height: 285px; }
+  .ticket { width: 82%; }
+  .nav a { font-size: .6875rem; }
+}
