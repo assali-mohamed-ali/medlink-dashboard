@@ -23,3 +23,5 @@
 @media (max-width: 639px) {
   .card { padding: var(--space-4); }
 }
+
+.card{border-color:var(--ux-line);border-radius:12px;box-shadow:none;min-width:0;}.header{flex-wrap:wrap;}.title{color:var(--ux-ink);font-weight:700;}.body>form{min-width:0;}.body>ul{overflow-wrap:anywhere;}

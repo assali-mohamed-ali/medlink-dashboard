@@ -133,3 +133,6 @@
 }
 .login__notice p { text-align: left; }
 .login__notice-text { margin: 0; }
+
+/* V2 login — align with the public site while leaving authentication untouched. */
+.login{background:var(--ux-cream);padding-top:100px;}.login__card{max-width:460px;border-radius:16px;border:1px solid var(--ux-line);box-shadow:var(--elev-1);padding:32px;}.login__brand{justify-content:start;}.login__logo{background:var(--ux-green);color:var(--on-primary);}.login__title{text-align:left;color:var(--ux-ink);font-size:1.875rem;letter-spacing:-.035em;}.login__subtitle{text-align:left;color:var(--ux-muted);}.login__notice{background:var(--ux-sage);border-radius:10px;}.login__notice-icon{background:var(--surface-raised);color:var(--ux-green);}.login__signup{text-align:left;}@media(max-width:480px){.login{padding-top:88px;justify-content:start;}.login__card{padding:23px 18px;}.login__title{font-size:1.5rem;}}

@@ -860,3 +860,6 @@
 .ml-shell.public-header-offset {
   background: #eef2ed;
 }
+
+/* V2 signup — more compact, with readable consent and explicit action. */
+.signup__page-title,.signup__title{font-family:var(--font-sans);letter-spacing:-.035em;color:var(--ux-ink);}.signup__card,.signup-side__card{border:1px solid var(--ux-line);border-radius:14px;box-shadow:none;}.signup__card-head{gap:12px;}.signup__input{border-color:var(--border-strong);border-radius:9px;}.signup__submit{background:var(--ux-green);border-radius:9px;box-shadow:none;}.signup__submit:hover:not(:disabled){background:var(--ux-dark);}.signup__policy{background:var(--surface-sunken);border:1px solid var(--ux-line);padding:14px;border-radius:10px;overflow-wrap:anywhere;}.signup__policy p{white-space:pre-wrap;margin:0;line-height:1.65;font-size:.875rem;color:var(--ux-ink);}.signup__policy-choice{display:flex;align-items:start;gap:12px;min-height:44px;padding:12px 0;font-weight:600;}.signup__policy-choice input{width:20px;height:20px;flex:none;accent-color:var(--ux-green);}
