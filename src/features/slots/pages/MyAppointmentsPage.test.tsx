@@ -218,3 +218,15 @@ test('more appointments than one page: the counts say they are those of the page
 
   expect(await screen.findByText('Comptés sur les 3 rendez-vous de cette page.')).toBeInTheDocument()
 })
+
+test('US-30: only staff-assisted appointments are labelled, including history', async () => {
+  fetchMyAppointments.mockResolvedValue({
+    items: [{ ...UPCOMING, bookedByStaff: true }, { ...CANCELLED, bookedByStaff: true }, PAST],
+    total: 3,
+  })
+  renderPage()
+  const upcoming = await screen.findByRole('listitem', { name: 'Rendez-vous du vendredi 13 novembre 2026' })
+  expect(within(upcoming).getByText('Pris par l’accueil')).toBeInTheDocument()
+  expect(within(card('jeudi 12 novembre 2026')).getByText('Pris par l’accueil')).toBeInTheDocument()
+  expect(within(card('lundi 2 novembre 2026')).queryByText('Pris par l’accueil')).toBeNull()
+})

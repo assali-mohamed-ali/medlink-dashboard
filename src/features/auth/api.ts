@@ -56,3 +56,15 @@ export function activateAccount(token: string, password: string) {
 export function resendActivation(email: string) {
   return apiFetch<{ message?: string }>('/auth/account/activate/resend', { method: 'POST', body: { email } })
 }
+
+export function currentConsent() {
+  return apiFetch<{ version: string; text: string; required: boolean }>('/auth/consent')
+}
+
+export function requestPasswordReset(email: string) {
+  return apiFetch('/auth/password/forgot', { method: 'POST', body: { email } })
+}
+
+export function resetPassword(token: string, newPassword: string) {
+  return apiFetch('/auth/password/reset', { method: 'POST', body: { token, newPassword } })
+}

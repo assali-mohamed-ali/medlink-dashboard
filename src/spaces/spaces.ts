@@ -56,8 +56,9 @@ export const SPACES: Record<Role, Space> = {
         label: 'Rendez-vous',
         to: paths.patient.appointments,
         icon: CalendarDays,
-        also: [paths.patient.slots],
+        also: [paths.patient.slots, paths.patient.reassignments],
       },
+      { label: 'Mes résultats', to: paths.patient.results, icon: FileText },
       { label: 'Mes documents', to: paths.patient.documents, icon: FileText },
       // MLink-32 follow-up: the consultation reports written about the patient
       { label: 'Comptes-rendus', to: paths.patient.reports, icon: FileText },
@@ -88,7 +89,9 @@ export const SPACES: Record<Role, Space> = {
     roleLabel: 'Praticien',
     menu: [
       { label: 'Accueil', to: paths.practitioner.root, icon: House },
-      { label: 'Agenda', to: paths.practitioner.agenda, icon: CalendarDays },
+      { label: 'Mes patients', to: paths.practitioner.patients, icon: Users },
+      { label: 'Absences', to: paths.practitioner.absences, icon: CalendarDays },
+      { label: 'Agenda', to: paths.practitioner.agenda, icon: CalendarDays, also: [paths.practitioner.reassignments] },
       // The password page opens from the profile ("Modifier le mot de passe"), not from the menu
       { label: 'Profil', to: paths.practitioner.profile, icon: UserRound, also: [paths.practitioner.password] },
     ],
@@ -111,7 +114,10 @@ export const SPACES: Record<Role, Space> = {
     roleLabel: 'Personnel administratif',
     menu: [
       { label: 'Accueil', to: paths.staff.root, icon: House },
+      { label: 'Réserver pour un patient', to: paths.staff.booking, icon: CalendarDays },
+      { label: 'Demandes de suppression', to: paths.staff.deletionRequests, icon: Users },
       { label: 'Gestion des comptes', to: paths.staff.accounts, icon: Users },
+      { label: 'Affectations des praticiens', to: paths.staff.clinicAssignments, icon: Users, also: [paths.staff.reassignments] },
       { label: 'Documents patients', to: paths.staff.documents, icon: FileText },
       { label: 'Journal d’audit', to: paths.staff.audit, icon: ScrollText },
       { label: 'Statistiques', to: paths.staff.stats, icon: ChartColumn },

@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { CalendarPlus, ChevronLeft, ChevronRight } from 'lucide-react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { ApiError } from '@/shared/api/apiClient'
 import { messageFor } from '@/shared/api/errors'
-import { Alert, Button, Skeleton } from '@/shared/ui'
+import { Alert, Button, Card, Skeleton } from '@/shared/ui'
+import { paths } from '@/shared/config/paths'
 import { onNewAlerts } from '@/shared/lib/alertEvents'
-import { changeSlotStatus, fetchAgenda } from '../api'
+import { changeSlotStatus, fetchAgenda, fetchAbsences, type Absence } from '../api'
 import { shortName, sortedClinics, toneOf } from '../clinicTones'
 import ClinicFilter from '../components/ClinicFilter'
 import MonthCalendar from '../components/MonthCalendar'
@@ -20,6 +21,7 @@ type Load = { status: 'loading' } | { status: 'ready'; agenda: Agenda } | { stat
 
 /** What the last answer was for: a week and an attempt. Another key means that answer is not the current one. */
 type Answer = { key: string; load: Load }
+type AbsenceAnswer = { key: string; items: Absence[] } | { key: string; error: string }
 
 /** The last thing done on a slot, said under the header. */
 type Notice = { tone: 'success' | 'error'; text: string }
@@ -51,6 +53,7 @@ export default function AgendaPage() {
   const [month, setMonth] = useState(monthOf(today))
   const [attempt, setAttempt] = useState(0)
   const [answer, setAnswer] = useState<Answer | null>(null)
+  const [absenceAnswer, setAbsenceAnswer] = useState<AbsenceAnswer | null>(null)
   const [hidden, setHidden] = useState<ReadonlySet<string>>(new Set())
   const formId = useId()
   // "?ajouter" (the practitioner's home, "Ajouter un créneau"): the form opens at once
@@ -84,6 +87,15 @@ export default function AgendaPage() {
         setKnownClinics(agenda.clinics)
       },
       (error) => current && setAnswer({ key, load: { status: 'error', message: messageFor(error) } }),
+    )
+    fetchAbsences().then(
+      (items) => {
+        if (!current) return
+        const overlapping = items.filter((item) => Date.parse(item.startsAt) < Date.parse(to)
+          && Date.parse(item.endsAt) > Date.parse(from))
+        setAbsenceAnswer({ key, items: overlapping.sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt)) })
+      },
+      (error) => current && setAbsenceAnswer({ key, error: messageFor(error) }),
     )
     return () => {
       current = false
@@ -156,6 +168,7 @@ export default function AgendaPage() {
   }
 
   const title = weekTitle(monday)
+  const weekAbsences = absenceAnswer?.key === key ? absenceAnswer : null
 
   return (
     <section aria-labelledby={titleId} className={styles.page} data-width="wide">
@@ -172,6 +185,7 @@ export default function AgendaPage() {
             Agenda praticien — Consultations multi-cliniques
           </h2>
           <p className={styles.subtitle}>Supervision hebdomadaire de vos consultations réparties sur le réseau MedLink</p>
+          <Link to={paths.practitioner.reassignments}>Propositions de réaffectation</Link>
         </div>
         <div className={styles.headerSide}>
           <button
@@ -257,6 +271,27 @@ export default function AgendaPage() {
                 Réessayer
               </Button>
             </div>
+          )}
+          {load.status === 'ready' && weekAbsences && (
+            'error' in weekAbsences ? (
+              <Card title="Absences de la semaine" headingLevel={3}>
+                <Alert tone="error">{weekAbsences.error}</Alert>
+                <Button variant="secondary" size="sm" onClick={reload}>Réessayer les absences</Button>
+              </Card>
+            ) : weekAbsences.items.length > 0 && (
+              <Card title="Absences de la semaine" headingLevel={3}>
+                <Alert tone="warning">Les créneaux couverts ne sont pas disponibles à la réservation.</Alert>
+                <ul aria-label="Périodes d’absence">
+                  {weekAbsences.items.map((absence) => (
+                    <li key={absence.id}>
+                      {longDayLabel(tunisDay(absence.startsAt))}, {timeLabel(absence.startsAt)} –{' '}
+                      {longDayLabel(tunisDay(absence.endsAt))}, {timeLabel(absence.endsAt)}
+                    </li>
+                  ))}
+                </ul>
+                <Link to={paths.practitioner.absences}>Gérer mes absences</Link>
+              </Card>
+            )
           )}
           {load.status === 'ready' && (
             <WeekTable

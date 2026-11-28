@@ -9,7 +9,7 @@ import PatientRecordPage from './PatientRecordPage'
 
 // MLink-32 (32.5, 32.6): the practitioner writes a consultation report from the patient record; a failed save never
 // loses the text. The API is mocked at the feature's api.ts; dates are shown in Tunis time.
-vi.mock('../api', () => ({ fetchPatientRecord: vi.fn(), fetchReports: vi.fn(), createReport: vi.fn() }))
+vi.mock('../api', () => ({ fetchPatientRecord: vi.fn(), fetchReports: vi.fn(), createReport: vi.fn(), fetchPublishedResults: vi.fn(async () => ({ items: [], page: 0, size: 20, total: 0, unseen: 0 })), fetchPatientFiles: vi.fn(async () => ({ items: [], total: 0 })) }))
 const fetchReports = vi.mocked(api.fetchReports)
 const createReport = vi.mocked(api.createReport)
 
@@ -50,7 +50,7 @@ beforeEach(() => {
   fetchReports.mockResolvedValue([OLD])
 })
 
-test('before the consultation has started, no report can be written: the button is off and says why', async () => {
+test('before the consultation has ended, no report can be written: the button is off and says why', async () => {
   vi.mocked(api.fetchPatientRecord).mockResolvedValue({
     patient: { id: 'p1', firstName: 'Ahmed', lastName: 'Kacem', birthDate: '1985-03-12', phone: null },
     reports: [],
@@ -61,7 +61,7 @@ test('before the consultation has started, no report can be written: the button 
   const region = await reportsRegion()
   const button = screen.getByRole('button', { name: 'Nouveau compte-rendu' })
   expect(button).toBeDisabled()
-  expect(button).toHaveAccessibleDescription('Vous pourrez écrire le compte-rendu une fois la consultation commencée.')
+  expect(button).toHaveAccessibleDescription('Vous pourrez écrire le compte-rendu une fois la consultation terminée.')
   // The earlier reports stay readable, to prepare the consultation
   expect(await within(region).findByText('Bilan annuel sans particularité.')).toBeInTheDocument()
   expect(within(region).queryByRole('form', { name: 'Nouveau compte-rendu' })).toBeNull()

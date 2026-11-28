@@ -5,19 +5,18 @@ import { practitionerAgendaPages } from '@/features/agenda'
 import { staffAuditPages } from '@/features/audit'
 import { patientDocumentPages, staffDocumentPages } from '@/features/documents'
 import { patientReportPages } from '@/features/my-reports'
-import { practitionerRecordPages } from '@/features/patient-record'
+import { patientReassignmentPages, practitionerReassignmentPages, staffReassignmentPages } from '@/features/reassignments'
+import { patientResultPages, practitionerRecordPages } from '@/features/patient-record'
 import { patientProfilePages, practitionerProfilePages, staffProfilePages } from '@/features/profile'
 import { staffStatsPages } from '@/features/stats'
 import { staffSupervisionPages } from '@/features/supervision'
 import { RequireAuth, authRoutes, ownPasswordRoute, type Role } from '@/features/auth'
 import { mfaRoutes } from '@/features/mfa'
-import { patientSlotPages } from '@/features/slots'
-import AccessDeniedPage from '@/pages/AccessDeniedPage'
-import NotFoundPage from '@/pages/NotFoundPage'
+import { patientSlotPages, staffBookingPages } from '@/features/slots'
 import RouteErrorPage from '@/pages/RouteErrorPage'
 import { paths } from '@/shared/config/paths'
 import { lazyPage } from '@/shared/lib/lazyPage'
-import { PageLoader } from '@/shared/ui'
+import PageLoader from '@/shared/ui/PageLoader'
 import { SpaceHome, SpaceLayout } from './spaceChunks'
 
 /**
@@ -49,24 +48,29 @@ export const routes: RouteObject[] = [
       { path: paths.home, lazy: lazyPage(() => import('@/pages/HomePage')) },
       ...authRoutes,
       ...mfaRoutes,
-      { path: paths.accessDenied, element: <AccessDeniedPage /> },
+      { path: paths.accessDenied, lazy: lazyPage(() => import('@/pages/AccessDeniedPage')) },
 
       // Each space has its own password page (MLink-89), so the change happens inside the space
       space('PATIENT', paths.patient.root, [
         ...patientSlotPages,
+        ...patientReassignmentPages,
         ...patientDocumentPages,
         ...patientProfilePages,
         ...patientReportPages,
+        ...patientResultPages,
         ownPasswordRoute(paths.patient.password),
       ]),
       space('PRACTITIONER', paths.practitioner.root, [
         ...practitionerAgendaPages,
+        ...practitionerReassignmentPages,
         ...practitionerRecordPages,
         ...practitionerProfilePages,
         ownPasswordRoute(paths.practitioner.password),
       ]),
       space('ADMINISTRATIVE_STAFF', paths.staff.root, [
         ...staffAccountsPages,
+        ...staffReassignmentPages,
+        ...staffBookingPages,
         ...staffDocumentPages,
         ...staffAuditPages,
         ...staffStatsPages,
@@ -81,7 +85,7 @@ export const routes: RouteObject[] = [
         ? [{ path: paths.specimen, lazy: lazyPage(() => import('@/pages/specimen/SpecimenPage')) }]
         : []),
 
-      { path: '*', element: <NotFoundPage /> },
+      { path: '*', lazy: lazyPage(() => import('@/pages/NotFoundPage')) },
     ],
   },
 ]

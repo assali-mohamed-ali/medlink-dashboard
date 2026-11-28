@@ -1,3 +1,4 @@
+import PublishResultForm from "../components/PublishResultForm"
 import { useEffect, useId, useRef, useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { ArrowLeft, Cake, IdCard, Clock, FileText, Lock, Plus, ShieldCheck } from 'lucide-react'
@@ -163,7 +164,7 @@ function Record({ titleId, patientId, patient, canWrite }: RecordProps) {
           type="button"
           className={styles.newReport}
           aria-expanded={canWrite ? writing : undefined}
-          // MLink-32 follow-up: no report before the consultation has started (the API refuses it too)
+          // MLink-32 follow-up: no report before the consultation has ended (the API refuses it too)
           disabled={!canWrite}
           aria-describedby={canWrite ? undefined : notYetId}
           onClick={() => {
@@ -176,7 +177,7 @@ function Record({ titleId, patientId, patient, canWrite }: RecordProps) {
         </button>
         {!canWrite && (
           <p id={notYetId} className={styles.notYet}>
-            Vous pourrez écrire le compte-rendu une fois la consultation commencée.
+            Vous pourrez écrire le compte-rendu une fois la consultation terminée.
           </p>
         )}
       </header>
@@ -221,6 +222,12 @@ function Record({ titleId, patientId, patient, canWrite }: RecordProps) {
               <dt>Téléphone</dt>
               <dd>{patient.phone || 'Non renseigné'}</dd>
             </div>
+            {patient.recordNumber && (
+              <div className={styles.fact}>
+                <dt>N° de dossier</dt>
+                <dd>{patient.recordNumber}</dd>
+              </div>
+            )}
           </dl>
           <p className={styles.shield}>
             <ShieldCheck size={18} aria-hidden="true" />
@@ -228,6 +235,7 @@ function Record({ titleId, patientId, patient, canWrite }: RecordProps) {
           </p>
         </section>
 
+        <PublishResultForm key={patientId} patientId={patientId} />
         <ReportsPanel
           patientId={patientId}
           load={reports.load}

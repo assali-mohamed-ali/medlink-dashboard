@@ -16,6 +16,7 @@ vi.mock('@/features/auth/api', () => ({
   login: vi.fn(),
   logout: vi.fn(),
   register: vi.fn(),
+  currentConsent: vi.fn(async () => ({ version: 'test-policy', text: 'Texte de test', required: false })),
   resendActivation: vi.fn(),
   resendVerification: vi.fn(),
 }))
@@ -167,4 +168,39 @@ test('the activation link of the mail opens the activation page, without a sessi
   expect(await screen.findByRole('heading', { level: 1, name: 'Activez votre compte' })).toBeInTheDocument()
   expect(screen.getByRole('button', { name: 'Activer mon compte' })).toBeInTheDocument()
   expect(screen.queryByText('Activation du compte')).toBeNull()
+})
+
+const BACKLOG_PAGES = [
+  ['PATIENT', '/patient/resultats', 'Mes résultats d’examens'],
+  ['PRACTITIONER', '/praticien/patients', 'Mes patients'],
+  ['PRACTITIONER', '/praticien/absences', 'Mes absences'],
+  ['ADMINISTRATIVE_STAFF', '/admin/reservation', 'Réserver pour un patient'],
+  ['ADMINISTRATIVE_STAFF', '/admin/comptes/affectations', 'Affectations aux cliniques'],
+  ['ADMINISTRATIVE_STAFF', '/admin/demandes-suppression', 'Demandes de suppression'],
+] as const
+
+test.each(BACKLOG_PAGES)('the %s can open %s', async (role, path, title) => {
+  loggedInAs(role)
+  const http = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+    const url = String(input)
+    const body = url.endsWith('/filters') || url.endsWith('/profile-choices')
+      ? { clinics: [], specialties: [], practitioners: [] }
+      : url.includes('/practitioner/patients') || url.includes('/results/me')
+        ? { items: [], page: 0, size: 20, total: 0, unseen: 0 }
+        : []
+    return new Response(JSON.stringify(body), { headers: { 'Content-Type': 'application/json' } })
+  })
+  try {
+    renderAt(path)
+    expect(await screen.findByRole('heading', { name: title })).toBeVisible()
+  } finally {
+    http.mockRestore()
+  }
+})
+
+test.each(BACKLOG_PAGES)('another role cannot open a %s backlog page at %s', async (role, path, title) => {
+  loggedInAs(role === 'PATIENT' ? 'PRACTITIONER' : 'PATIENT')
+  renderAt(path)
+  expect(await screen.findByRole('heading', { name: 'Accès refusé' })).toBeVisible()
+  expect(screen.queryByRole('heading', { name: title })).toBeNull()
 })

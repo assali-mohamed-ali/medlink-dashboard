@@ -18,6 +18,7 @@ export type LoginResponse = {
 }
 
 export type RegisterPayload = {
+  consentVersion?: string
   email: string
   password: string
   firstName: string

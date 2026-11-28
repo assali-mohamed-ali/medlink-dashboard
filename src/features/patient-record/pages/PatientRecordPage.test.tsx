@@ -9,7 +9,7 @@ import PatientRecordPage from './PatientRecordPage'
 
 // MLink-31 (31.4): the record of a patient the practitioner has an appointment with. The API is mocked at the
 // feature's api.ts; "now" is fixed (11 November 2026) so the age holds.
-vi.mock('../api', () => ({ fetchPatientRecord: vi.fn(), fetchReports: vi.fn(), createReport: vi.fn() }))
+vi.mock('../api', () => ({ fetchPatientRecord: vi.fn(), fetchReports: vi.fn(), createReport: vi.fn(), fetchPublishedResults: vi.fn(async () => ({ items: [], page: 0, size: 20, total: 0, unseen: 0 })), fetchPatientFiles: vi.fn(async () => ({ items: [], total: 0 })) }))
 const fetchPatientRecord = vi.mocked(api.fetchPatientRecord)
 
 const RECORD: PatientRecord = {

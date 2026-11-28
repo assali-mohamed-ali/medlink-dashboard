@@ -204,3 +204,15 @@ test('a failed clinic leaves the other clinic available and can be retried indep
   expect(await screen.findByText('9')).toBeInTheDocument()
   expect(activity.mock.calls.filter(([id]) => id === TUNIS.id)).toHaveLength(1)
 })
+
+
+test('shows actual clinic capacity and occupancy, without inventing a rate when it is unavailable', async () => {
+  vi.mocked(api.fetchClinics).mockResolvedValue([{ ...SOUSSE, city: 'Sousse' }, { ...TUNIS, city: 'Tunis' }])
+  vi.mocked(api.fetchClinicActivity).mockImplementation((id) => Promise.resolve(id === SOUSSE.id
+    ? { BOOKED: 4, CANCELLED: 1, OPEN_SLOTS: 4, BOOKED_SLOTS: 4, CLOSED_SLOTS: 2, OCCUPANCY_PERCENT: 50 }
+    : { BOOKED: 0, CANCELLED: 0 }))
+  renderPage()
+  expect(await screen.findByText('50 %')).toBeInTheDocument()
+  expect(screen.getByText('Créneaux libres')).toBeInTheDocument()
+  expect(screen.getByText('Indisponible')).toBeInTheDocument()
+})

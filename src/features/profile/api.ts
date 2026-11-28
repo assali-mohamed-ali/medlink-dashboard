@@ -1,4 +1,4 @@
-import { apiFetch } from '@/shared/api/apiClient'
+import { apiFetch, apiFetchBlob } from '@/shared/api/apiClient'
 
 // One function per endpoint (api-MedLink, MLink-26). The profile reads the practitioner's week from the agenda route
 // itself, so the agenda feature's code does not have to load with the app's first page (npm run check:budget).
@@ -32,4 +32,51 @@ export type MyAppointments = { items: MyAppointment[]; total: number }
 /** The patient's appointments, latest first (the API's largest page is 50). Read here for the same reason as the week. */
 export function fetchMyAppointments(page: number, size: number) {
   return apiFetch<MyAppointments>(`/appointments/me?page=${page}&size=${size}`)
+}
+
+export type ContactDetails = { phone: string | null; address: string | null }
+export type DeletionRequest = {
+  requested: boolean
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | null
+  requestedAt?: string | null
+  dueAt: string | null
+  decisionNote: string | null
+  decidedAt?: string | null
+  /** When an approval closed the account (api-MedLink V30). */
+  accountClosedAt?: string | null
+}
+
+/** US-15: the optional mails (GET/PUT /api/patients/me/notification-preferences). E-mail is the only channel. */
+export type NotificationPreferences = { appointmentReminders: boolean; examResults: boolean }
+
+export function fetchContactDetails() {
+  return apiFetch<ContactDetails>('/patients/me')
+}
+
+export function saveContactDetails(phone: string, address: string) {
+  return apiFetch<ContactDetails>('/patients/me', { method: 'PUT', body: { phone, address } })
+}
+
+export function fetchNotificationPreferences() {
+  return apiFetch<NotificationPreferences>('/patients/me/notification-preferences')
+}
+
+export function saveNotificationPreferences(preferences: NotificationPreferences) {
+  return apiFetch<NotificationPreferences>('/patients/me/notification-preferences', { method: 'PUT', body: preferences })
+}
+
+export function deletionRequest(method = 'GET') {
+  return apiFetch<DeletionRequest>('/patients/me/deletion-request', { method })
+}
+
+export function exportPatientData() {
+  return apiFetchBlob('/patients/me/export')
+}
+
+/** US-15: password proof and single-use mailbox confirmation. */
+export function requestEmailChange(email: string, currentPassword: string) {
+  return apiFetch('/patients/me/email-change', { method: 'POST', body: { email, currentPassword } })
+}
+export function confirmEmailChange(code: string) {
+  return apiFetch<{ status: 'ACCEPTED' }>('/patients/me/email-change/confirm', { method: 'POST', body: { code } })
 }

@@ -8,6 +8,8 @@
 export const paths = {
   home: '/',
   login: '/connexion',
+  forgotPassword: '/mot-de-passe-oublie',
+  resetPassword: '/reinitialiser-mot-de-passe',
   signup: '/inscription',
   verifyEmail: '/verifier-email', // mailed by the API
   mfa: '/double-authentification',
@@ -19,6 +21,8 @@ export const paths = {
     root: '/patient',
     slots: '/patient/creneaux',
     appointments: '/patient/rendez-vous',
+    reassignments: '/patient/rendez-vous/reaffectations',
+    results: '/patient/resultats',
     reports: '/patient/comptes-rendus',
     documents: '/patient/documents',
     profile: '/patient/profil',
@@ -27,14 +31,20 @@ export const paths = {
   // A patient's record: patients/:id (MLink-31)
   practitioner: {
     root: '/praticien',
+    absences: '/praticien/absences',
     agenda: '/praticien/agenda',
+    reassignments: '/praticien/agenda/reaffectations',
     patients: '/praticien/patients',
     profile: '/praticien/profil',
     password: '/praticien/mot-de-passe',
   },
   staff: {
     root: '/admin',
+    booking: '/admin/reservation',
+    deletionRequests: '/admin/demandes-suppression',
     accounts: '/admin/comptes',
+    clinicAssignments: '/admin/comptes/affectations',
+    reassignments: '/admin/comptes/affectations/reaffectations',
     documents: '/admin/documents',
     audit: '/admin/journal-audit',
     stats: '/admin/statistiques',
