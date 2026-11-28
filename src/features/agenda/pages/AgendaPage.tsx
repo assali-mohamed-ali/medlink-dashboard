@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { CalendarPlus, ChevronLeft, ChevronRight } from 'lucide-react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { ApiError } from '@/shared/api/apiClient'
 import { messageFor } from '@/shared/api/errors'
-import { Alert, Button, Skeleton } from '@/shared/ui'
+import { Alert, Button, Card, Skeleton } from '@/shared/ui'
+import { paths } from '@/shared/config/paths'
 import { onNewAlerts } from '@/shared/lib/alertEvents'
-import { changeSlotStatus, fetchAgenda } from '../api'
+import { changeSlotStatus, fetchAgenda, fetchAbsences, type Absence } from '../api'
 import { shortName, sortedClinics, toneOf } from '../clinicTones'
 import ClinicFilter from '../components/ClinicFilter'
 import MonthCalendar from '../components/MonthCalendar'
@@ -13,13 +14,14 @@ import Occupancy from '../components/Occupancy'
 import OpenSlotForm from '../components/OpenSlotForm'
 import WeekTable from '../components/WeekTable'
 import type { Agenda, AgendaItem, ClinicRef } from '../types'
-import { addDays, isoWeek, longDayLabel, mondayOf, monthOf, timeLabel, tunisDay, weekPeriod, weekTitle } from '../week'
+import { addDays, isoWeek, longDayLabel, mondayOf, monthOf, timeLabel, tunisDay, weekDays, weekPeriod, weekTitle } from '../week'
 import styles from '../agenda.module.css'
 
 type Load = { status: 'loading' } | { status: 'ready'; agenda: Agenda } | { status: 'error'; message: string }
 
 /** What the last answer was for: a week and an attempt. Another key means that answer is not the current one. */
 type Answer = { key: string; load: Load }
+type AbsenceAnswer = { key: string; items: Absence[] } | { key: string; error: string }
 
 /** The last thing done on a slot, said under the header. */
 type Notice = { tone: 'success' | 'error'; text: string }
@@ -48,9 +50,12 @@ export default function AgendaPage() {
   const today = tunisDay(new Date(now))
   const thisMonday = mondayOf(today)
   const [monday, setMonday] = useState(thisMonday)
+  const [view, setView] = useState<'week' | 'day'>(() => typeof window !== 'undefined' && window.matchMedia?.('(max-width: 760px)').matches ? 'day' : 'week')
+  const [selectedDay, setSelectedDay] = useState(today)
   const [month, setMonth] = useState(monthOf(today))
   const [attempt, setAttempt] = useState(0)
   const [answer, setAnswer] = useState<Answer | null>(null)
+  const [absenceAnswer, setAbsenceAnswer] = useState<AbsenceAnswer | null>(null)
   const [hidden, setHidden] = useState<ReadonlySet<string>>(new Set())
   const formId = useId()
   // "?ajouter" (the practitioner's home, "Ajouter un créneau"): the form opens at once
@@ -85,6 +90,15 @@ export default function AgendaPage() {
       },
       (error) => current && setAnswer({ key, load: { status: 'error', message: messageFor(error) } }),
     )
+    fetchAbsences().then(
+      (items) => {
+        if (!current) return
+        const overlapping = items.filter((item) => Date.parse(item.startsAt) < Date.parse(to)
+          && Date.parse(item.endsAt) > Date.parse(from))
+        setAbsenceAnswer({ key, items: overlapping.sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt)) })
+      },
+      (error) => current && setAbsenceAnswer({ key, error: messageFor(error) }),
+    )
     return () => {
       current = false
     }
@@ -94,6 +108,7 @@ export default function AgendaPage() {
   function showWeek(day: string) {
     const next = mondayOf(day)
     setMonday(next)
+    setSelectedDay(weekDays(next).includes(day) ? day : next)
     setMonth(monthOf(day))
   }
 
@@ -156,6 +171,9 @@ export default function AgendaPage() {
   }
 
   const title = weekTitle(monday)
+  const days = weekDays(monday)
+  const activeDay = days.includes(selectedDay) ? selectedDay : days[0] ?? monday
+  const weekAbsences = absenceAnswer?.key === key ? absenceAnswer : null
 
   return (
     <section aria-labelledby={titleId} className={styles.page} data-width="wide">
@@ -172,8 +190,10 @@ export default function AgendaPage() {
             Agenda praticien — Consultations multi-cliniques
           </h2>
           <p className={styles.subtitle}>Supervision hebdomadaire de vos consultations réparties sur le réseau MedLink</p>
+          <Link to={paths.practitioner.reassignments}>Propositions de réaffectation</Link>
         </div>
         <div className={styles.headerSide}>
+          <Link to={paths.practitioner.absences} className={styles.secondaryAction}>Mes absences</Link>
           <button
             ref={addButton}
             type="button"
@@ -204,7 +224,7 @@ export default function AgendaPage() {
       {notice && <Alert tone={notice.tone}>{notice.text}</Alert>}
 
       <div className={styles.layout}>
-        <aside className={styles.side}>
+        <aside className={styles.side} aria-label="Calendrier et filtres">
           <MonthCalendar month={month} monday={monday} today={today} onMonth={setMonth} onDay={showWeek} />
           {load.status === 'ready' && (
             <>
@@ -249,6 +269,16 @@ export default function AgendaPage() {
             </Button>
           </div>
 
+          <div className={styles.viewControls}>
+            <span className={styles.viewLabel}>Mode de consultation</span>
+            <div className={styles.viewSwitch} role="group" aria-label="Affichage de l’agenda">
+              <Button size="sm" variant="secondary" aria-pressed={view === 'week'} onClick={() => setView('week')}>Semaine</Button>
+              <Button size="sm" variant="secondary" aria-pressed={view === 'day'} onClick={() => setView('day')}>Jour</Button>
+            </div>
+            {view === 'day' && <div className={styles.dayPicker} role="group" aria-label="Jour de l’agenda">
+              {days.map(day => <Button key={day} size="sm" variant="secondary" aria-pressed={activeDay === day} onClick={() => setSelectedDay(day)}>{longDayLabel(day)}</Button>)}
+            </div>}
+          </div>
           {load.status === 'loading' && <Skeleton lines={6} label="Chargement de l’agenda…" />}
           {load.status === 'error' && (
             <div className={styles.error}>
@@ -258,9 +288,31 @@ export default function AgendaPage() {
               </Button>
             </div>
           )}
+          {load.status === 'ready' && weekAbsences && (
+            'error' in weekAbsences ? (
+              <Card title="Absences de la semaine" headingLevel={3}>
+                <Alert tone="error">{weekAbsences.error}</Alert>
+                <Button variant="secondary" size="sm" onClick={reload}>Réessayer les absences</Button>
+              </Card>
+            ) : weekAbsences.items.length > 0 && (
+              <Card title="Absences de la semaine" headingLevel={3}>
+                <Alert tone="warning">Les créneaux couverts ne sont pas disponibles à la réservation.</Alert>
+                <ul aria-label="Périodes d’absence">
+                  {weekAbsences.items.map((absence) => (
+                    <li key={absence.id}>
+                      {longDayLabel(tunisDay(absence.startsAt))}, {timeLabel(absence.startsAt)} –{' '}
+                      {longDayLabel(tunisDay(absence.endsAt))}, {timeLabel(absence.endsAt)}
+                    </li>
+                  ))}
+                </ul>
+                <Link to={paths.practitioner.absences}>Gérer mes absences</Link>
+              </Card>
+            )
+          )}
           {load.status === 'ready' && (
             <WeekTable
-              title={title}
+              title={view === 'day' ? longDayLabel(activeDay) : title}
+              selectedDay={view === 'day' ? activeDay : undefined}
               monday={monday}
               today={today}
               agenda={load.agenda}

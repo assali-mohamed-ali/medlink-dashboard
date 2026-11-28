@@ -7,3 +7,7 @@ export const patientSlotPages: RouteObject[] = [
   { path: paths.patient.slots, lazy: lazyPage(() => import('./pages/SlotSearchPage')) },
   { path: paths.patient.appointments, lazy: lazyPage(() => import('./pages/MyAppointmentsPage')) },
 ]
+
+export const staffBookingPages: RouteObject[] = [
+  { path: paths.staff.booking, lazy: lazyPage(() => import('./pages/StaffBookingPage')) },
+]

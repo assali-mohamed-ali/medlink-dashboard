@@ -39,3 +39,36 @@ export function rescheduleAppointment(id: string, newSlotId: string) {
     body: { newSlotId },
   })
 }
+
+type BookingPatient = {
+  id: string
+  firstName: string
+  lastName: string
+  email: string
+  enabled: boolean
+  emailVerified: boolean
+  hasPatientProfile?: boolean
+  role: string | null
+}
+
+export async function searchBookingPatients(search: string, page: number) {
+  const query = new URLSearchParams({ search, page: String(page), size: '20' })
+  const result = await apiFetch<{ items: BookingPatient[]; total: number }>(`/admin/users?${query}`)
+  return { ...result, items: result.items.filter((user) => user.role === 'PATIENT' && user.enabled && user.emailVerified && user.hasPatientProfile !== false) }
+}
+
+export function fetchStaffSlotFilters() {
+  return apiFetch<SlotFilters>('/admin/slots/filters')
+}
+
+export function searchStaffSlots(search: SlotSearch) {
+  const query = new URLSearchParams()
+  for (const [key, value] of Object.entries(search)) {
+    if (value !== undefined) query.set(key, String(value))
+  }
+  return apiFetch<SlotPage>(`/admin/slots?${query}`)
+}
+
+export function bookForPatient(patientId: string, slotId: string) {
+  return apiFetch<Appointment>('/admin/appointments', { method: 'POST', body: { patientId, slotId } })
+}

@@ -39,3 +39,36 @@ export function forcePasswordReset(id: string) {
 export function fetchProfileChoices() {
   return apiFetch<ProfileChoices>('/admin/profile-choices')
 }
+
+/** MLink-20: 204; only the displayed first and last name may change, never the email. */
+export function updateName(id: string, name: { firstName: string; lastName: string }) {
+  return apiFetch<void>(`/admin/users/${encodeURIComponent(id)}/name`, { method: 'PUT', body: name })
+}
+
+export type ClinicAssignment = { id: string; firstName: string; lastName: string; clinics: { id: string; name: string }[] }
+export function fetchClinicAssignments() {
+  return apiFetch<ClinicAssignment[]>('/admin/practitioners')
+}
+export function saveClinicAssignment(id: string, clinicIds: string[]) {
+  return apiFetch<ClinicAssignment>(`/admin/practitioners/${encodeURIComponent(id)}/clinics`, {
+    method: 'PUT', body: { clinicIds },
+  })
+}
+
+export type PendingDeletion = {
+  patientId: string
+  firstName: string
+  lastName: string
+  dueAt: string
+  retainedUntil: string | null
+}
+export function fetchDeletionRequests() {
+  return apiFetch<PendingDeletion[]>('/admin/deletion-requests')
+}
+/** The request once decided: an approval closes the account (accountClosedAt), nothing is erased. */
+export type DecidedDeletion = { status: 'APPROVED' | 'REJECTED'; accountClosedAt: string | null }
+export function decideDeletion(id: string, decision: 'APPROVED' | 'REJECTED', note: string) {
+  return apiFetch<DecidedDeletion>(`/admin/deletion-requests/${encodeURIComponent(id)}/decision`, {
+    method: 'POST', body: { decision, note },
+  })
+}

@@ -7,9 +7,6 @@ import * as api from '../api'
 import type { Appointment } from '../types'
 import PatientHome from './PatientHome'
 
-// The patient's home (Stitch design): the greeting with today's date, the next appointment with its actions, the two
-// quick actions, and what is not built yet said plainly. Only the API's appointments, never fake data. Times are built
-// in local time, so the tests hold in any time zone.
 vi.mock('../api', () => ({ fetchMyAppointments: vi.fn(), cancelAppointment: vi.fn() }))
 const fetchMyAppointments = vi.mocked(api.fetchMyAppointments)
 const cancelAppointment = vi.mocked(api.cancelAppointment)
@@ -54,21 +51,20 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
-test('greets the patient by name, with today’s date', async () => {
+test('greets the patient by name and introduces the dashboard', async () => {
   renderHome()
 
-  expect(screen.getByRole('heading', { level: 2, name: 'Bonjour Amel' })).toBeInTheDocument()
-  expect(screen.getByText('mercredi 11 novembre 2026')).toBeInTheDocument()
+  expect(screen.getByRole('heading', { level: 2, name: 'Bonjour, Amel' })).toBeInTheDocument()
+  expect(screen.getByText('Votre santé, vos rendez-vous et vos documents.')).toBeInTheDocument()
   await screen.findByRole('region', { name: 'Prochain rendez-vous' })
 })
 
 test('says when the next appointment is, and shows it: practitioner, time, clinic, how soon', async () => {
   renderHome()
 
-  expect(await screen.findByText(/Votre prochain rendez-vous est/)).toHaveTextContent(
-    'Votre prochain rendez-vous est le vendredi 13 novembre à 09:00.',
-  )
+  await screen.findByText('Dr Rim Jaziri')
   const next = screen.getByRole('region', { name: 'Prochain rendez-vous' })
+  expect(within(next).getByText('vendredi 13 novembre 2026')).toBeInTheDocument()
   expect(within(next).getByText('Dr Rim Jaziri')).toBeInTheDocument()
   expect(within(next).getByText('09:00 – 09:30')).toBeInTheDocument()
   expect(within(next).getByText('Clinique MedLink Sfax')).toBeInTheDocument()
@@ -81,13 +77,11 @@ test('an appointment tomorrow says "demain"', async () => {
   fetchMyAppointments.mockResolvedValue({ items: [appointment('a5', new Date(2026, 10, 12, 8, 0))], total: 1 })
   renderHome()
 
-  expect(await screen.findByText(/Votre prochain rendez-vous est/)).toHaveTextContent(
-    'Votre prochain rendez-vous est demain à 08:00.',
-  )
-  expect(within(screen.getByRole('region', { name: 'Prochain rendez-vous' })).getByText('Demain')).toBeInTheDocument()
+  const next = screen.getByRole('region', { name: 'Prochain rendez-vous' })
+  expect(await within(next).findByText('Demain')).toBeInTheDocument()
 })
 
-test('the two quick actions: book a slot, and my appointments with how many are to come', async () => {
+test('offers booking and shows the upcoming count in the appointments shortcut', async () => {
   renderHome()
   await screen.findByRole('region', { name: 'Prochain rendez-vous' })
 
@@ -125,9 +119,8 @@ test('no appointment to come: says so, with nothing to count', async () => {
   fetchMyAppointments.mockResolvedValue({ items: [CANCELLED, PAST], total: 2 })
   renderHome()
 
-  expect(await screen.findByText('Vous n’avez pas de rendez-vous prévu.')).toBeInTheDocument()
   const next = screen.getByRole('region', { name: 'Prochain rendez-vous' })
-  expect(within(next).getByText('Aucun rendez-vous à venir.')).toBeInTheDocument()
+  expect(await within(next).findByText('Aucun rendez-vous à venir.')).toBeInTheDocument()
   expect(screen.getByRole('link', { name: /^Mes rendez-vous/ })).not.toHaveTextContent('à venir')
 })
 
@@ -139,13 +132,12 @@ test('the list that cannot be read says so; the quick actions stay', async () =>
   expect(screen.getByRole('link', { name: 'Prendre rendez-vous' })).toBeInTheDocument()
 })
 
-test('documents and messages are not built yet: they say so, with no link', async () => {
+test('groups clinical items and links to the dossier and settings', async () => {
   renderHome()
-  await screen.findByRole('region', { name: 'Prochain rendez-vous' })
 
-  for (const name of ['Documents', 'Messages']) {
-    const part = screen.getByRole('region', { name })
-    expect(within(part).getByText('Bientôt disponible')).toBeInTheDocument()
-    expect(within(part).queryByRole('link')).toBeNull()
-  }
+  const services = await screen.findByRole('region', { name: 'À consulter' })
+  expect(within(services).getByRole('link', { name: /^Résultats d’examens/ })).toHaveAttribute('href', '/patient/resultats')
+  expect(within(services).getByRole('link', { name: /^Propositions de réaffectation/ })).toHaveAttribute('href', '/patient/rendez-vous/reaffectations')
+  expect(screen.getByRole('link', { name: /^Mon dossier médical/ })).toHaveAttribute('href', '/patient/resultats')
+  expect(screen.getByRole('link', { name: /^Mes paramètres/ })).toHaveAttribute('href', '/patient/profil')
 })

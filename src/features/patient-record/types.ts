@@ -8,10 +8,15 @@ export type PatientIdentity = {
   /** yyyy-MM-dd */
   birthDate: string
   phone: string | null
+  /** US-22: MED-000042 (absent from an API older than V31). */
+  recordNumber?: string | null
 }
 
-/** The record: the identity and the consultation reports (typed by MLink-32; always empty until then). */
-export type PatientRecord = { patient: PatientIdentity; reports: unknown[] }
+/**
+ * The record: the identity and the consultation reports (typed by MLink-32; always empty until then).
+ * `canWriteReport`: a consultation with the patient has started, so a report may be written (MLink-32 follow-up).
+ */
+export type PatientRecord = { patient: PatientIdentity; reports: unknown[]; canWriteReport: boolean }
 
 /** A consultation report (MLink-32, GET/POST /api/patients/{id}/reports): the text is decrypted by the API. */
 export type Report = { id: string; createdAt: string; content: string }

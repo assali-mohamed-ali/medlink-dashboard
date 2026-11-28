@@ -28,10 +28,9 @@ export default function PublicHeader({ variant = 'home' }: PublicHeaderProps) {
 
           {showMarketingNav && (
             <nav className="public-header__nav" aria-label="Navigation principale">
-              <a href="#cliniques">Nos Cliniques</a>
-              <a href="#pourquoi">Spécialités</a>
-              <a href="#inscription">Téléconsultation</a>
-              <a href="#urgence">Urgence &amp; Contact</a>
+              <Link to={paths.home + '#services'}>Services patients</Link>
+              <Link to={paths.home + '#guide'}>Comment ça marche</Link>
+              <Link to={paths.home + '#aide'}>Aide</Link>
             </nav>
           )}
         </div>

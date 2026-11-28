@@ -1,3 +1,4 @@
+import AuthFrame from '@/shared/layout/AuthFrame'
 import { useState } from 'react'
 import { KeyRound } from 'lucide-react'
 import { Navigate, useLocation } from 'react-router-dom'
@@ -32,7 +33,7 @@ export default function PasswordPage() {
   return (
     <>
       <PublicHeader variant="login" />
-      <main className={`${styles.page} public-header-offset`}>
+      <AuthFrame context="Sécurité du compte" description="Remplacez votre mot de passe temporaire avant de continuer." header>
         <div className={styles.card}>
           <span className={styles.icon} aria-hidden="true">
             <KeyRound size={26} />
@@ -48,7 +49,7 @@ export default function PasswordPage() {
             onStepExpired={() => setExit({ stepExpired: true })}
           />
         </div>
-      </main>
+      </AuthFrame>
     </>
   )
 }

@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
-import { useRouteError } from 'react-router-dom'
+import { Link, useRouteError } from 'react-router-dom'
 import { paths } from '@/shared/config/paths'
-import StatusPage from '@/shared/components/StatusPage'
+import styles from '@/shared/components/StatusPage.module.css'
 import { reportError } from '@/shared/lib/errorReporting'
 
 /**
@@ -17,8 +17,12 @@ export default function RouteErrorPage() {
   }, [error])
 
   return (
-    <StatusPage title="Une erreur est survenue" action={{ label: "Retour à l'accueil", to: paths.home }}>
-      <p>La page n’a pas pu s’afficher. Réessayez dans un instant.</p>
-    </StatusPage>
+    <main className={styles.page} data-standalone>
+      <div className={styles.card}>
+        <h1 className={styles.title}>Une erreur est survenue</h1>
+        <p className={styles.text}>La page n’a pas pu s’afficher. Réessayez dans un instant.</p>
+        <Link className={styles.action} to={paths.home}>Retour à l'accueil</Link>
+      </div>
+    </main>
   )
 }

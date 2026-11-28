@@ -31,6 +31,8 @@ export type SlotPage = {
 /** 201 of POST /api/appointments (MLink-102): the patient's new appointment. */
 export type Appointment = {
   id: string
+  /** US-30: provenance only; never the staff account id. */
+  bookedByStaff?: boolean
   status: string
   clinic: { id: string; name: string }
   practitioner: { id: string; firstName: string; lastName: string }

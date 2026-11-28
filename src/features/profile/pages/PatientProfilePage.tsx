@@ -5,6 +5,10 @@ import { useAuth } from '@/features/auth'
 import { paths } from '@/shared/config/paths'
 import { type MyAppointments, fetchMyAppointments } from '../api'
 import { AccountCard, Badge, Count, ProfileHero, SecurityCard } from '../components/ProfileParts'
+import PatientDetails from '../components/PatientDetails'
+import EmailChange from '../components/EmailChange'
+import PatientData from '../components/PatientData'
+import NotificationPreferences from '../components/NotificationPreferences'
 import styles from '../profile.module.css'
 
 /** The API's largest page: the counts are those of the latest 50 appointments, and the page says so beyond. */
@@ -22,6 +26,7 @@ export default function PatientProfilePage() {
   const navigate = useNavigate()
   // Read once: "now" does not move while the page is open
   const [now] = useState(() => Date.now())
+  const [section, setSection] = useState<'all' | 'identity' | 'security' | 'notifications' | 'privacy'>('all')
   const [load, setLoad] = useState<Load>({ status: 'loading' })
 
   useEffect(() => {
@@ -89,9 +94,22 @@ export default function PatientProfilePage() {
         </div>
       )}
 
-      <div className={styles.layout}>
-        <AccountCard name={fullName} email={user?.email ?? ''} role="Patient" whom="l’accueil de votre clinique" />
-        <SecurityCard passwordPath={paths.patient.password} onLogout={onLogout} />
+      <nav aria-label="Rubriques du profil" className={styles.sectionLinks}>
+        {([['all', 'Vue d’ensemble'], ['identity', 'Informations personnelles'], ['security', 'Connexion et sécurité'], ['notifications', 'Notifications'], ['privacy', 'Confidentialité']] as const).map(([id, label]) => <button type="button" key={id} aria-pressed={section === id} onClick={() => setSection(id)}>{label}</button>)}
+      </nav>
+      <div className={styles.settings} data-single={section !== 'all' || undefined}>
+        <div hidden={section !== 'all' && section !== 'identity'} id="profil-identite" className={styles.settingGroup}>
+          <h3>Informations personnelles</h3>
+          <AccountCard name={fullName} email={user?.email ?? ''} role="Patient" whom="l’accueil de votre clinique" />
+          <PatientDetails />
+        </div>
+        <div hidden={section !== 'all' && section !== 'security'} id="profil-securite" className={styles.settingGroup}>
+          <h3>Connexion et sécurité</h3>
+          <SecurityCard passwordPath={paths.patient.password} onLogout={onLogout} />
+          <EmailChange onConfirmed={onLogout} />
+        </div>
+        <div hidden={section !== 'all' && section !== 'notifications'} id="profil-notifications" className={styles.settingGroup}><h3>Notifications</h3><NotificationPreferences /></div>
+        <div hidden={section !== 'all' && section !== 'privacy'} id="profil-confidentialite" className={styles.settingGroup}><h3>Confidentialité et données</h3><PatientData /></div>
       </div>
     </div>
   )

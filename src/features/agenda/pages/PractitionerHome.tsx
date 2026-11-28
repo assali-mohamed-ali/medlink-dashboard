@@ -133,13 +133,13 @@ export default function PractitionerHome({ firstName }: { firstName?: string }) 
           )}
         </div>
         <div className={styles.quick}>
-          <Link to={`${paths.practitioner.agenda}?ajouter`} className={styles.add}>
-            <CalendarPlus size={18} aria-hidden="true" />
-            Ajouter un créneau
-          </Link>
-          <Link to={paths.practitioner.agenda} className={styles.open}>
+          <Link to={paths.practitioner.agenda} className={styles.add}>
             <CalendarDays size={18} aria-hidden="true" />
             Ouvrir l’agenda
+          </Link>
+          <Link to={`${paths.practitioner.agenda}?ajouter`} className={styles.open}>
+            <CalendarPlus size={18} aria-hidden="true" />
+            Ajouter un créneau
           </Link>
         </div>
       </section>
@@ -176,7 +176,7 @@ export default function PractitionerHome({ firstName }: { firstName?: string }) 
           </div>
 
           {load.status === 'loading' && <Skeleton lines={4} label="Chargement de votre journée…" />}
-          {load.status === 'error' && <Alert tone="error">{load.message}</Alert>}
+          {load.status === 'error' && <><Alert tone="error">{load.message}</Alert><button type="button" className={styles.retry} onClick={() => setAttempt(n => n + 1)}>Réessayer</button></>}
           {agenda && day.length === 0 && <p className={styles.none}>Aucun créneau aujourd’hui.</p>}
 
           {next && (
@@ -251,6 +251,14 @@ export default function PractitionerHome({ firstName }: { firstName?: string }) 
             )}
           </section>
 
+          <section className={styles.card} aria-labelledby={`${ids}-actions`}>
+            <h3 id={`${ids}-actions`} className={styles.cardTitle}>Actions de planning</h3>
+            <div className={styles.taskLinks}>
+              <Link to={paths.practitioner.patients}>Rechercher un dossier patient <ArrowRight size={16} aria-hidden="true" /></Link>
+              <Link to={paths.practitioner.absences}>Gérer les absences <ArrowRight size={16} aria-hidden="true" /></Link>
+              <Link to={paths.practitioner.reassignments}>Consulter les réaffectations <ArrowRight size={16} aria-hidden="true" /></Link>
+            </div>
+          </section>
           <section className={styles.soon} aria-labelledby={`${ids}-messages`}>
             <span className={styles.soonIcon}>
               <MessageSquare size={20} aria-hidden="true" />

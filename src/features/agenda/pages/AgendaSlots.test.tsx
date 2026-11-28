@@ -9,7 +9,7 @@ import AgendaPage from './AgendaPage'
 
 // MLink-26 (26.8): open a slot, close a free one, reopen a closed one, from the agenda. The API is mocked at the
 // feature's api.ts; "now" is fixed (Wednesday 11 November 2026, 10:00 in Tunis) and every time typed is Tunis time.
-vi.mock('../api', () => ({ fetchAgenda: vi.fn(), openSlot: vi.fn(), changeSlotStatus: vi.fn() }))
+vi.mock('../api', () => ({ fetchAgenda: vi.fn(), fetchAbsences: vi.fn(), openSlot: vi.fn(), changeSlotStatus: vi.fn() }))
 vi.mock('@/features/auth', () => ({
   useAuth: () => ({ user: { id: 'u1', email: 'mehdi@example.com', firstName: 'Mehdi', lastName: 'Ben Salem', roles: ['PRACTITIONER'] } }),
 }))
@@ -51,6 +51,7 @@ beforeEach(() => {
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(NOW)
   fetchAgenda.mockResolvedValue(WEEK)
+  vi.mocked(api.fetchAbsences).mockResolvedValue([])
 })
 
 afterEach(() => {

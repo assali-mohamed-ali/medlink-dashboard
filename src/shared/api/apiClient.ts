@@ -109,8 +109,9 @@ export async function apiFetch<T = void>(
   { method = 'GET', body }: RequestOptions = {},
 ): Promise<T> {
   const headers: Record<string, string> = { Accept: 'application/json' }
+  const multipart = body instanceof FormData
 
-  if (body !== undefined) {
+  if (body !== undefined && !multipart) {
     headers['Content-Type'] = 'application/json'
   }
   if (WRITE_METHODS.has(method)) {
@@ -121,7 +122,7 @@ export async function apiFetch<T = void>(
   const response = await send(path, {
     method,
     headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+    body: body === undefined ? undefined : multipart ? body : JSON.stringify(body),
   })
 
   if (!response.ok) throw await failure(response)
@@ -132,6 +133,14 @@ export async function apiFetch<T = void>(
 
 /** The file name the API suggests in Content-Disposition (`attachment; filename="x.csv"`), if any. */
 function filenameOf(disposition: string | null): string | null {
+  const encoded = disposition?.match(/filename\*=UTF-8''([^;]+)/i)
+  if (encoded?.[1]) {
+    try {
+      return decodeURIComponent(encoded[1])
+    } catch {
+      // A malformed RFC 5987 value: fall back to the plain filename below.
+    }
+  }
   const match = disposition?.match(/filename="?([^";]+)"?/i)
   return match?.[1] ?? null
 }
@@ -146,4 +155,25 @@ export async function apiFetchText(path: string): Promise<{ text: string; filena
   if (!response.ok) throw await failure(response)
 
   return { text: await response.text(), filename: filenameOf(response.headers.get('Content-Disposition')) }
+}
+
+/**
+ * A GET whose answer is a binary file (a patient document): same cookies, timeout and errors as apiFetch.
+ * The API answers a refused download with JSON, so the error is still an ApiError.
+ */
+export async function apiFetchBlob(
+  path: string,
+): Promise<{ blob: Blob; filename: string | null; contentType: string | null }> {
+  const response = await send(path, {
+    method: 'GET',
+    headers: { Accept: 'application/pdf, image/png, image/jpeg, application/json' },
+  })
+
+  if (!response.ok) throw await failure(response)
+
+  return {
+    blob: await response.blob(),
+    filename: filenameOf(response.headers.get('Content-Disposition')),
+    contentType: response.headers.get('Content-Type'),
+  }
 }

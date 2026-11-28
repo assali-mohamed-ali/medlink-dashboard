@@ -8,6 +8,7 @@ import SignupPage from './SignupPage'
 
 vi.mock('../api', () => ({
   register: vi.fn(),
+  currentConsent: vi.fn(),
 }))
 
 const register = vi.mocked(authService.register)
@@ -43,6 +44,7 @@ async function fillValidForm(user: ReturnType<typeof userEvent.setup>) {
 
 beforeEach(() => {
   vi.resetAllMocks()
+  vi.mocked(authService.currentConsent).mockResolvedValue({ version: 'test-policy', text: 'Texte de test', required: false })
 })
 
 test('updates the password checklist as the user types', async () => {
@@ -195,4 +197,25 @@ test('shows the API message when the service is unavailable', async () => {
   expect(await screen.findByRole('alert')).toHaveTextContent(
     'Service momentanément indisponible.',
   )
+})
+
+
+test('requires explicit acceptance and sends the version returned by the API', async () => {
+  vi.mocked(authService.currentConsent).mockResolvedValue({
+    version: 'test-policy', text: 'Texte de test obligatoire', required: true,
+  })
+  register.mockResolvedValue({ message: 'Vérifiez votre boîte mail' })
+  const user = userEvent.setup()
+  renderPage()
+
+  const checkbox = await screen.findByRole('checkbox')
+  expect(checkbox).not.toBeChecked()
+  await fillValidForm(user)
+  expect(submitButton()).toBeDisabled()
+  expect(register).not.toHaveBeenCalled()
+
+  await user.click(checkbox)
+  await user.click(submitButton())
+  expect(register).toHaveBeenCalledWith(expect.objectContaining({ consentVersion: 'test-policy' }))
+  expect(await screen.findByRole('heading', { name: 'Vérifiez votre boîte mail' })).toBeVisible()
 })

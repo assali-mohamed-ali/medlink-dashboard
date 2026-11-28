@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { paths } from '@/shared/config/paths'
-import { PageLoader } from '@/shared/ui'
+import PageLoader from '@/shared/ui/PageLoader'
 import { roleHome, type Role } from './roles'
 import { useAuth } from './useAuth'
 

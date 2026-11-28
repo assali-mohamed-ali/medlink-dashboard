@@ -566,3 +566,31 @@ test('no promise the page cannot keep: no "Réservation en deux clics" line', as
 
   expect(screen.queryByText(/Réservation en deux clics/)).toBeNull()
 })
+
+test('switching to the list keeps the same bookable slots and does not refetch', async () => {
+  const user = userEvent.setup()
+  renderPage()
+  const tuesday = await screen.findByRole('region', { name: 'mardi 10 novembre' })
+  const calls = searchSlots.mock.calls.length
+  await user.click(screen.getByRole('button', { name: 'Liste' }))
+  expect(screen.getByRole('button', { name: 'Liste' })).toHaveAttribute('aria-pressed', 'true')
+  expect(within(tuesday).getByRole('button', { name: 'Réserver' })).toBeInTheDocument()
+  expect(searchSlots.mock.calls).toHaveLength(calls)
+})
+
+test('booking selection summary reflects the actual filters and can reset them', async () => {
+  const user = userEvent.setup()
+  renderPage()
+  await screen.findByText('2 créneaux libres')
+  const summary = screen.getByLabelText('Votre sélection')
+  await user.click(screen.getByRole('radio', { name: 'Cardiologie' }))
+  await user.click(screen.getByRole('radio', { name: 'Sfax' }))
+  await user.click(screen.getByRole('radio', { name: 'Dr Rim Jaziri' }))
+  expect(summary).toHaveTextContent('Cardiologie')
+  expect(summary).toHaveTextContent('Clinique MedLink Sfax')
+  expect(summary).toHaveTextContent('Dr Rim Jaziri')
+  await user.click(within(summary).getByRole('button', { name: 'Réinitialiser les filtres' }))
+  expect(screen.getByRole('radio', { name: 'Toutes les spécialités' })).toBeChecked()
+  expect(screen.getByRole('radio', { name: 'Toutes les cliniques' })).toBeChecked()
+  expect(screen.getByRole('radio', { name: 'Tous les praticiens' })).toBeChecked()
+})

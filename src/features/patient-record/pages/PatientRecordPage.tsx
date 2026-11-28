@@ -1,3 +1,4 @@
+import PublishResultForm from "../components/PublishResultForm"
 import { useEffect, useId, useRef, useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { ArrowLeft, Cake, IdCard, Clock, FileText, Lock, Plus, ShieldCheck } from 'lucide-react'
@@ -87,7 +88,7 @@ export default function PatientRecordPage() {
           Retour à l’agenda
         </Link>
         <span aria-hidden="true">/</span>
-        <span>Espace praticien</span>
+        <Link to={paths.practitioner.patients}>Mes patients</Link>
         <span aria-hidden="true">/</span>
         <span aria-current="page" className={styles.crumbHere}>
           Dossier patient
@@ -95,7 +96,13 @@ export default function PatientRecordPage() {
       </nav>
 
       {load.status === 'ready' ? (
-        <Record key={patientId} titleId={titleId} patientId={patientId} patient={load.record.patient} />
+        <Record
+          key={patientId}
+          titleId={titleId}
+          patientId={patientId}
+          patient={load.record.patient}
+          canWrite={load.record.canWriteReport}
+        />
       ) : (
         <>
           <h2 id={titleId} className={styles.title}>
@@ -116,13 +123,15 @@ export default function PatientRecordPage() {
   )
 }
 
-type RecordProps = { titleId: string; patientId: string; patient: PatientIdentity }
+type RecordProps = { titleId: string; patientId: string; patient: PatientIdentity; canWrite: boolean }
 
 /** The record once read: the header with the yellow action, the four facts, the identity and the reports. */
-function Record({ titleId, patientId, patient }: RecordProps) {
+function Record({ titleId, patientId, patient, canWrite }: RecordProps) {
   const identityId = useId()
+  const notYetId = useId()
   const [today] = useState(() => new Date())
   const reports = useReports(patientId)
+  const [section, setSection] = useState<'all' | 'identity' | 'reports' | 'results'>('all')
   const [writing, setWriting] = useState(false)
   const [saved, setSaved] = useState(false)
   const newButton = useRef<HTMLButtonElement>(null)
@@ -149,21 +158,30 @@ function Record({ titleId, patientId, patient }: RecordProps) {
               <span className={styles.attachedDot} aria-hidden="true" />
               Rattaché à votre agenda</span>
           </div>
-          <p className={styles.subtitle}>{`${age} · né(e) le ${date}`}</p>
+          <p className={styles.subtitle}>{patient.recordNumber ? `${patient.recordNumber} · ` : ''}{`${age} · né(e) le ${date}`}</p>
         </div>
         <button
           ref={newButton}
           type="button"
           className={styles.newReport}
-          aria-expanded={writing}
+          aria-expanded={canWrite ? writing : undefined}
+          // MLink-32 follow-up: no report before the consultation has ended (the API refuses it too)
+          disabled={!canWrite}
+          aria-describedby={canWrite ? undefined : notYetId}
           onClick={() => {
             setSaved(false)
+            setSection('reports')
             setWriting(true)
           }}
         >
           <Plus size={18} aria-hidden="true" />
           Nouveau compte-rendu
         </button>
+        {!canWrite && (
+          <p id={notYetId} className={styles.notYet}>
+            Vous pourrez écrire le compte-rendu une fois la consultation terminée.
+          </p>
+        )}
       </header>
 
       <ul aria-label="En bref" className={styles.glance}>
@@ -179,8 +197,11 @@ function Record({ titleId, patientId, patient }: RecordProps) {
         <Fact icon={Lock} tone={4} label="Confidentialité" value="Chiffré" note="AES-256" />
       </ul>
 
-      <div className={styles.layout}>
-        <section aria-labelledby={identityId} className={styles.card}>
+      <nav className={styles.sectionLinks} aria-label="Sections du dossier">
+        {([['all', 'Synthèse'], ['identity', 'Identité'], ['reports', 'Comptes-rendus'], ['results', 'Résultats et pièces jointes']] as const).map(([id, label]) => <button key={id} type="button" aria-pressed={section === id} onClick={() => setSection(id)}>{label}</button>)}
+      </nav>
+      <div className={styles.layout} data-single={section !== "all" || undefined}>
+        <section hidden={section !== "all" && section !== "identity"} id="dossier-identite" aria-labelledby={identityId} className={styles.card}>
           <h3 id={identityId} className={styles.sectionTitle}>
             <span className={styles.titleIcon}>
               <IdCard size={18} aria-hidden="true" />
@@ -206,6 +227,12 @@ function Record({ titleId, patientId, patient }: RecordProps) {
               <dt>Téléphone</dt>
               <dd>{patient.phone || 'Non renseigné'}</dd>
             </div>
+            {patient.recordNumber && (
+              <div className={styles.fact}>
+                <dt>N° de dossier</dt>
+                <dd>{patient.recordNumber}</dd>
+              </div>
+            )}
           </dl>
           <p className={styles.shield}>
             <ShieldCheck size={18} aria-hidden="true" />
@@ -213,6 +240,8 @@ function Record({ titleId, patientId, patient }: RecordProps) {
           </p>
         </section>
 
+        <div className={styles.recordContent} hidden={section === "identity"}>
+        <div hidden={section === "results"} id="dossier-comptes-rendus" className={styles.sectionTarget}>
         <ReportsPanel
           patientId={patientId}
           load={reports.load}
@@ -226,6 +255,9 @@ function Record({ titleId, patientId, patient }: RecordProps) {
           }}
           saved={saved}
         />
+        </div>
+        <div hidden={section === "reports"} id="dossier-resultats" className={styles.sectionTarget}><PublishResultForm key={patientId} patientId={patientId} /></div>
+        </div>
       </div>
     </>
   )

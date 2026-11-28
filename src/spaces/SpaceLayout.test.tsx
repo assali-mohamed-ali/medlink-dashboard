@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { RouterProvider, createMemoryRouter } from 'react-router-dom'
 import { beforeEach, expect, test, vi } from 'vitest'
@@ -75,7 +75,7 @@ test('after moving to another page, the focus is on the page title (screen reade
   renderAs('ADMINISTRATIVE_STAFF', '/admin')
   const menu = await screen.findByRole('navigation', { name: 'Menu de l’espace' })
   await userEvent.click(within(menu).getByRole('link', { name: 'Gestion des comptes' }))
-  expect(screen.getByRole('heading', { level: 1 })).toHaveFocus()
+  await waitFor(() => expect(screen.getByRole('heading', { level: 1 })).toHaveFocus())
 })
 
 test('the focus is left alone on the first page shown', async () => {
@@ -119,4 +119,37 @@ test('MLink-37 (37.6): a practitioner who logs in finds the alerts received whil
   const panel = await screen.findByRole('region', { name: 'Alertes' })
   expect(within(panel).getByText(/Ahmed Kacem/)).toBeInTheDocument()
   expect(within(panel).getByText('Reçues pendant votre absence')).toBeInTheDocument()
+})
+
+test('administrative tasks have labeled groups and preserve route navigation', async () => {
+  renderAs('ADMINISTRATIVE_STAFF', '/admin/comptes')
+  const menu = await screen.findByRole('navigation', { name: 'Menu de l’espace' })
+  expect(within(menu).getByText('Pilotage')).toBeInTheDocument()
+  expect(within(menu).getByText('Opérations')).toBeInTheDocument()
+  expect(within(menu).getByText('Confidentialité')).toBeInTheDocument()
+  expect(within(menu).getByRole('link', { name: 'Rendez-vous des cliniques' })).toHaveAttribute('href', '/admin/rendez-vous')
+})
+
+test.each([
+  ['PATIENT', '/patient', '/patient/rendez-vous/reaffectations'],
+  ['PRACTITIONER', '/praticien', '/praticien/agenda/reaffectations'],
+  ['ADMINISTRATIVE_STAFF', '/admin', '/admin/comptes/affectations/reaffectations'],
+] as const)('the %s can find reassignment proposals in the task menu', async (role, path, destination) => {
+  renderAs(role, path)
+  const menu = await screen.findByRole('navigation', { name: 'Menu de l’espace' })
+  expect(within(menu).getByRole('link', { name: 'Réaffectations' })).toHaveAttribute('href', destination)
+})
+
+test('patient booking is an independent route reachable from the menu and appointment section', async () => {
+  const router = renderAs('PATIENT', '/patient/rendez-vous')
+  const menu = await screen.findByRole('navigation', { name: 'Menu de l’espace' })
+  await userEvent.click(within(menu).getByRole('link', { name: 'Réserver une consultation' }))
+  await screen.findByRole('heading', { name: 'Prendre un rendez-vous' })
+  expect(router.state.location.pathname).toBe('/patient/creneaux')
+  expect(within(menu).getByRole('link', { name: 'Réserver une consultation' })).toHaveAttribute('aria-current', 'page')
+  const mobile = await screen.findByRole('navigation', { name: 'Navigation mobile' })
+  expect(within(mobile).getByRole('link', { name: 'Mes rendez-vous' })).toHaveAttribute('aria-current', 'page')
+  const section = screen.getByRole('navigation', { name: 'Gestion des rendez-vous' })
+  await userEvent.click(within(section).getByRole('link', { name: 'Mes consultations' }))
+  await waitFor(() => expect(router.state.location.pathname).toBe('/patient/rendez-vous'))
 })

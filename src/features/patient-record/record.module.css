@@ -28,6 +28,8 @@
   font: inherit; font-size: var(--text-sm); line-height: var(--leading-sm); font-weight: 700; cursor: pointer; box-shadow: var(--elev-1);
 }
 .newReport:hover { background: var(--stitch-action-hover); }
+.newReport:disabled { background: var(--surface-low); color: var(--text-muted); box-shadow: none; cursor: not-allowed; }
+.notYet { flex-basis: 100%; margin: 0; text-align: right; color: var(--text-muted); font-size: var(--text-sm); line-height: var(--leading-sm); }
 .newReport:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 
 /* The four facts at a glance */
@@ -145,3 +147,9 @@
   .glance { grid-template-columns: minmax(0, 1fr); }
   .filter { min-width: 0; width: 100%; }
 }
+
+.sectionLinks{display:flex;flex-wrap:wrap;gap:8px;border-bottom:1px solid var(--ux-line);padding-bottom:10px;}.sectionLinks a{color:var(--ux-dark);text-decoration:none;font-size:.875rem;font-weight:650;min-height:44px;padding:10px 13px;border-radius:8px;background:var(--surface-raised);border:1px solid var(--ux-line);}.sectionLinks a:hover{background:var(--ux-sage);}.recordContent{display:grid;gap:16px;min-width:0;}.sectionTarget,.layout>section{scroll-margin-top:85px;min-width:0;}.head{background:var(--surface-raised);border:1px solid var(--ux-line);padding:20px;border-radius:12px;}.newReport:not(:disabled){background:var(--ux-green);color:var(--on-primary);}.newReport:not(:disabled):hover{background:var(--ux-dark);color:var(--on-primary);}
+
+.page{background:transparent;}.head{box-shadow:none;}.glanceItem,.card{border:1px solid var(--ux-line);border-radius:12px;box-shadow:none;min-width:0;}.sectionLinks{position:relative;padding:5px;background:var(--surface-raised);border:1px solid var(--ux-line);border-radius:10px;}.sectionLinks a{border:0;}.sectionLinks a:hover{background:var(--ux-sage);}.newReport{border-radius:9px;min-height:44px;}.layout{min-width:0;}.headText{min-width:0;overflow-wrap:anywhere;}
+
+.sectionLinks button{border:0;background:transparent;color:var(--ux-dark);padding:10px 14px;min-height:44px;font:inherit;font-weight:650;font-size:.875rem;border-radius:8px;cursor:pointer;}.sectionLinks button[aria-pressed='true']{background:var(--ux-sage);}.sectionLinks button:hover{background:var(--surface-sunken);}.layout[data-single]{grid-template-columns:minmax(0,1fr);}.layout [hidden]{display:none;}.title{letter-spacing:-.035em;}

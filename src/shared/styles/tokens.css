@@ -136,3 +136,16 @@
 :root {
   --stitch-canvas: #eff2ed;
 }
+
+/* UX V2.3 public design palette, shared with future workspace redesign. */
+:root {
+  --ux-ink: #152f2b;
+  --ux-green: #08634f;
+  --ux-dark: #10463b;
+  --ux-muted: #50665e;
+  --ux-line: #d8e3db;
+  --ux-sage: #e9f2e9;
+  --ux-cream: #faf8f2;
+  --ux-visual: #dcebe1;
+  --ux-visual-accent: #c2dcc8;
+}

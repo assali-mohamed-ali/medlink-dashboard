@@ -15,16 +15,19 @@ import styles from './PasswordPage.module.css'
  */
 export default function OwnPasswordPage() {
   const { user, endSession } = useAuth()
-  // The practitioner and the patient open it from their profile: a way back to it under the button
+  // Every space opens it from its profile: a way back to it under the button
   const profile = user?.roles.includes('PRACTITIONER')
     ? paths.practitioner.profile
     : user?.roles.includes('PATIENT')
       ? paths.patient.profile
-      : null
+      : user?.roles.includes('ADMINISTRATIVE_STAFF')
+        ? paths.staff.profile
+        : null
 
   return (
     // data-width: the space gives the page its whole width, so the card sits in the middle of the screen
     <div className={styles.inSpace} data-width="wide">
+      <aside className={styles.securityGuide}><h3>Protéger votre compte</h3><p>Utilisez un mot de passe unique. Le changement fermera toutes vos sessions en cours.</p><p>Vous devrez vous reconnecter avec votre nouveau mot de passe.</p></aside>
       <section className={`${styles.card} ${styles.spaceCard}`} aria-labelledby="own-password-title">
         <div className={styles.head}>
           <span className={styles.icon} aria-hidden="true">

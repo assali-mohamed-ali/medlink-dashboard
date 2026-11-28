@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { Info } from 'lucide-react'
+import AuthFrame from '@/shared/layout/AuthFrame'
 import styles from './StatusPage.module.css'
 
 type Props = {
@@ -16,17 +18,18 @@ type Props = {
 
 /** The frame shared by "Accès refusé", "Page introuvable" and the error page (DRY). */
 export default function StatusPage({ title, children, action, inLayout = false }: Props) {
-  const Frame = inLayout ? 'div' : 'main'
   const Title = inLayout ? 'h2' : 'h1'
-  return (
-    <Frame className={styles.page}>
+  const content = (
       <div className={styles.card}>
+        <div className={styles.symbol}><Info size={25} aria-hidden="true" /></div>
         <Title className={styles.title}>{title}</Title>
         <div className={styles.text}>{children}</div>
         <Link className={styles.action} to={action.to}>
           {action.label}
         </Link>
       </div>
-    </Frame>
+  )
+  return inLayout ? <div className={styles.page}>{content}</div> : (
+    <AuthFrame context="Accès à MedLink" description="Retrouvez votre espace ou revenez à l’accueil.">{content}</AuthFrame>
   )
 }

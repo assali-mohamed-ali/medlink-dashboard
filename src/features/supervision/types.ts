@@ -26,3 +26,14 @@ export type SupervisedSlot = {
 
 /** GET /api/admin/agenda: the practitioner's clinics and their slots of the period, earliest first. */
 export type SupervisedAgenda = { clinics: ClinicRef[]; items: SupervisedSlot[] }
+
+export type ClinicSummary = ClinicRef & { city: string }
+
+export type ClinicActivity = {
+  BOOKED: number
+  CANCELLED: number
+  OPEN_SLOTS?: number
+  BOOKED_SLOTS?: number
+  CLOSED_SLOTS?: number
+  OCCUPANCY_PERCENT?: number
+}

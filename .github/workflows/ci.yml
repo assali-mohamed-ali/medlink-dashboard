@@ -18,7 +18,9 @@ jobs:
   validate:
     # Keep this name: branch protection may require it as a status check
     name: Lint, type-check and build
-    runs-on: ubuntu-latest
+    # Playwright 1.57 supports Ubuntu 24.04, not the Ubuntu 26.04 ubuntu-latest image.
+    # Keep the required check name and every validation step unchanged.
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
@@ -47,6 +49,16 @@ jobs:
         run: npm test
       - name: TypeScript and production build
         run: npm run build
+      - name: Bundle budget
+        run: npm run check:budget
+      - name: Accessibility contrast
+        run: npm run check:contrast
+      - name: Install browser smoke-test dependencies
+        run: |
+          python -m pip install --disable-pip-version-check playwright==1.57.0
+          python -m playwright install --with-deps chromium
+      - name: Production bundle browser smoke
+        run: python scripts/ci/browser-smoke.py
       - name: Dependency audit
         run: npm audit --audit-level=high
       - name: Upload production bundle

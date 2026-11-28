@@ -1,0 +1,130 @@
+/* Documents of one patient (MLink-123/125). Tokens only. */
+.form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.fileField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.fileLabel {
+  font-weight: 600;
+}
+
+.fileInput {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-field);
+  background: var(--surface);
+  color: var(--on-surface);
+}
+
+.fileInput::file-selector-button {
+  margin-right: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-field);
+  background: var(--surface-container);
+  color: var(--on-surface);
+  font: inherit;
+  cursor: pointer;
+}
+
+.hint {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+}
+
+.error {
+  margin: var(--space-2) 0 0;
+  color: var(--error);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.failure {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.scroll {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-field);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+}
+
+.table th,
+.table td {
+  padding: var(--space-3) var(--space-4);
+  vertical-align: top;
+  border-bottom: 1px solid var(--border);
+}
+
+.table th {
+  background: var(--surface-container);
+  color: var(--on-surface-variant);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.titleCell {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 600;
+}
+
+.filename {
+  overflow-wrap: anywhere;
+}
+
+.number {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.date {
+  white-space: nowrap;
+}
+
+.pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.scroll{max-width:100%;overflow-x:auto;border-radius:10px;border-color:var(--ux-line);}.table th{background:var(--surface-sunken);}.fileInput{max-width:100%;min-height:44px;}.titleCell{overflow-wrap:anywhere;}.actions button{min-height:44px;}.pager{flex-wrap:wrap;gap:10px;}@media(max-width:600px){.form{grid-template-columns:minmax(0,1fr);}.actions button{width:100%;}}

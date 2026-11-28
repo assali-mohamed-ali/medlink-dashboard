@@ -186,3 +186,31 @@
 @media (max-width: 640px) {
   .board, .filters { padding: var(--space-4); }
 }
+
+/* V2: list mode uses the same slot cards and booking guards. On a small screen, show readable day groups. */
+.viewSwitch { display:flex; gap:4px; flex-wrap:wrap; }
+.viewSwitch button[aria-pressed='true'] { background:var(--ux-sage); color:var(--ux-dark); border-color:var(--ux-green); }
+.grid[data-view='list'] { display:block; }
+.grid[data-view='list'] .times, .grid[data-view='list'] [data-empty='true'] { display:none; }
+.grid[data-view='list'] .day { display:block; margin-bottom:16px; }
+.grid[data-view='list'] .cell { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); min-height:0; margin-top:8px; }
+.grid[data-view='list'] .cell[data-empty='true'] { display:none; }
+@media(max-width:760px) {
+  .grid[data-view='list'] .cell {grid-template-columns:repeat(auto-fit,minmax(min(100%,155px),1fr));}
+  .weekText { min-width:0; }
+}
+
+.mine{background:var(--ux-green);color:var(--on-primary);}.mine:hover{background:var(--ux-dark);}.grid[data-view='list'] .dayHead{justify-content:start;gap:12px;}.grid[data-view='list'] .slot{min-height:104px;}
+
+.selectionBar {display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto;gap:12px;align-items:center;padding:14px 16px;border:1px solid var(--ux-line);border-radius:12px;background:var(--surface-raised);margin-bottom:16px;}
+.selectionBar>div{display:grid;gap:4px;min-width:0;overflow-wrap:anywhere;}
+.selectionBar span{font-size:.75rem;color:var(--ux-muted);font-weight:650;}
+.selectionBar strong{font-size:.875rem;color:var(--ux-dark);}
+.reviewNote{font-size:.875rem;color:var(--ux-muted);margin:12px 0;}
+.filters,.board {border:1px solid var(--ux-line);border-radius:12px;box-shadow:none;}
+.choice[data-checked]{background:var(--ux-sage);}
+.grid[data-view='list'] .slot .srOnly{position:static;width:auto;height:auto;clip:auto;overflow:visible;white-space:normal;font-weight:650;}
+@media(max-width:900px){.selectionBar{grid-template-columns:repeat(2,minmax(0,1fr));}.selectionBar button{justify-self:stretch;}}
+@media(max-width:400px){.selectionBar{gap:8px;padding:10px;}.selectionBar strong{font-size:.8125rem;}}
+
+.bookingControls{display:flex;gap:8px;margin:0 0 12px;flex-wrap:wrap;}.bookingControls button[aria-pressed='true']{background:var(--ux-sage);color:var(--ux-dark);border-color:var(--ux-green);}.layout[data-guided='true']{grid-template-columns:1fr;}.layout[data-guided='true'] .filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;}.layout[data-guided='true'] .filters>.mine,.layout[data-guided='true'] .filters>.month,.layout[data-guided='true'] .filters>button{grid-column:1/-1;}.layout[data-guided='true'] .month{max-width:360px;}.board[hidden]{display:none;}.filters .choice{min-height:44px;}@media(max-width:760px){.layout[data-guided='true'] .filters{grid-template-columns:1fr;}.bookingControls button{flex:1;}.layout:not([data-guided]) .filters{padding:12px;}.layout:not([data-guided]) .filters .month{max-width:340px;}}

@@ -41,6 +41,8 @@ export default function MyAppointmentsPage() {
   const [cancelError, setCancelError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [history, setHistory] = useState<History>('all')
+  const [view, setView] = useState<'all' | 'upcoming' | 'history'>('all')
+  const [since, setSince] = useState('')
   const ids = useId()
 
   useEffect(() => {
@@ -76,7 +78,7 @@ export default function MyAppointmentsPage() {
     try {
       await cancelAppointment(toCancel.id)
       setToCancel(null)
-      setNotice('Votre rendez-vous est annulé. Le créneau est de nouveau proposé aux autres patients.')
+      setNotice('Votre rendez-vous est annulé.')
       setReload((n) => n + 1)
     } catch (e) {
       setCancelError(messageFor(e))
@@ -92,7 +94,7 @@ export default function MyAppointmentsPage() {
   const past = items.filter((a) => kindOf(a, now) === 'past')
   const shownHistory = items.filter((a) => {
     const kind = kindOf(a, now)
-    return kind !== 'toCome' && (history === 'all' || kind === history)
+    return kind !== 'toCome' && (history === 'all' || kind === history) && (!since || new Date(a.startsAt).toLocaleDateString('sv-SE') >= since)
   })
   const clinics = [...new Set(items.map((a) => a.clinic.name))].sort()
   const tintOf = (a: Appointment) => TINTS[clinics.indexOf(a.clinic.name) % TINTS.length]
@@ -106,6 +108,7 @@ export default function MyAppointmentsPage() {
           </p>
           <h2 className={styles.title}>Mes rendez-vous</h2>
           <p className={styles.lead}>Vos rendez-vous à venir et votre historique. Annulez ou reportez-les vous-même.</p>
+          <Link to={paths.patient.reassignments}>Propositions de réaffectation</Link>
         </div>
         <Link className={styles.newOne} to={paths.patient.slots}>
           <CalendarPlus size={18} aria-hidden="true" />
@@ -113,15 +116,20 @@ export default function MyAppointmentsPage() {
         </Link>
       </header>
 
+      {!loading && !error && result && result.total > 0 && <nav className={styles.sectionLinks} aria-label="Sections des consultations">
+        <Button variant="secondary" aria-pressed={view === 'all'} onClick={() => setView('all')}>Vue d’ensemble</Button>
+        <Button variant="secondary" aria-pressed={view === 'upcoming'} onClick={() => setView('upcoming')}>Consultations à venir</Button>
+        <Button variant="secondary" aria-pressed={view === 'history'} onClick={() => setView('history')}>Historique des consultations</Button>
+      </nav>}
       {notice && <Alert tone="success">{notice}</Alert>}
-      {error && <Alert tone="error">{error}</Alert>}
+      {error && <><Alert tone="error">{error}</Alert><Button variant="secondary" onClick={() => setReload(n => n + 1)}>Réessayer</Button></>}
       {loading && (
         <div className={styles.loading}>
           <Spinner label="Chargement de vos rendez-vous…" />
         </div>
       )}
 
-      {!loading && result && result.total === 0 && (
+      {!loading && !error && result && result.total === 0 && (
         <div className={styles.empty}>
           <CalendarDays size={28} aria-hidden="true" />
           <p>Vous n’avez pas encore de rendez-vous.</p>
@@ -131,7 +139,7 @@ export default function MyAppointmentsPage() {
         </div>
       )}
 
-      {!loading && result && result.total > 0 && (
+      {!loading && !error && result && result.total > 0 && (
         <>
           <div className={styles.glanceBar}>
             <ul className={styles.glance} aria-label="En bref">
@@ -154,7 +162,7 @@ export default function MyAppointmentsPage() {
             )}
           </div>
 
-          <section className={styles.card} aria-labelledby={`${ids}-to-come`}>
+          <section hidden={view === "history"} id="rendez-vous-a-venir" className={styles.card} aria-labelledby={`${ids}-to-come`}>
             {/* The count stays out of the heading: the section is named "À venir" */}
             <div className={styles.titleRow}>
               <h3 id={`${ids}-to-come`} className={styles.cardTitle}>
@@ -179,7 +187,7 @@ export default function MyAppointmentsPage() {
             )}
           </section>
 
-          <section className={styles.card} aria-labelledby={`${ids}-history`}>
+          <section hidden={view === "upcoming"} id="rendez-vous-historique" className={styles.card} aria-labelledby={`${ids}-history`}>
             <div className={styles.cardHead}>
               <div className={styles.titleRow}>
                 <h3 id={`${ids}-history`} className={styles.cardTitle}>
@@ -199,6 +207,7 @@ export default function MyAppointmentsPage() {
                 </Chip>
               </div>
             </div>
+            <div className={styles.dateFilter}><label htmlFor={`${ids}-since`}>Depuis (sur cette page)</label><input id={`${ids}-since`} type="date" value={since} onChange={event => setSince(event.target.value)} /><Button variant="secondary" size="sm" disabled={!since} onClick={() => setSince('')}>Effacer la date</Button></div>
             {shownHistory.length === 0 ? (
               <p className={styles.none}>Aucun rendez-vous dans l’historique.</p>
             ) : (
@@ -209,8 +218,9 @@ export default function MyAppointmentsPage() {
               </ul>
             )}
             <p className={styles.hint}>
-              <Check size={14} aria-hidden="true" /> Un rendez-vous annulé libère le créneau pour les autres patients.
+              <Check size={14} aria-hidden="true" /> Un créneau libéré peut être réservé à nouveau s’il reste disponible.
             </p>
+          </section>
             {pages > 1 && (
               <nav className={styles.pager} aria-label="Pages de rendez-vous">
                 <Button variant="secondary" onClick={() => setPage((p) => p - 1)} disabled={page === 0}>
@@ -224,7 +234,6 @@ export default function MyAppointmentsPage() {
                 </Button>
               </nav>
             )}
-          </section>
         </>
       )}
 
@@ -316,6 +325,7 @@ function ToComeCard({ appointment, tint, next, onCancel }: ToComeProps) {
           <MapPin size={11} aria-hidden="true" />
           <span>{appointment.clinic.name}</span>
         </span>
+        {appointment.bookedByStaff && <p>Pris par l’accueil</p>}
       </div>
       <div className={styles.actions}>
         <Link className={styles.move} to={`${paths.patient.slots}?reporter=${appointment.id}`}>
@@ -345,6 +355,7 @@ function HistoryRow({ appointment, kind }: { appointment: Appointment; kind: Kin
           Dr {firstName} {lastName}
         </span>{' '}
         · <span>{appointment.clinic.name}</span>
+        {appointment.bookedByStaff && <span>Pris par l’accueil</span>}
       </span>
       <span className={`${styles.status} ${cancelled ? styles.cancelled : styles.past}`}>
         {cancelled ? 'Annulé' : 'Passé'}

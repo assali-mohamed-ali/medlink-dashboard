@@ -21,3 +21,24 @@ export function changeSlotStatus(slotId: string, status: 'OPEN' | 'CLOSED') {
     body: { status },
   })
 }
+
+export type Absence = { id: string; startsAt: string; endsAt: string; reason: string | null }
+export type AffectedAppointment = {
+  appointmentId: string
+  startsAt: string
+  clinic: string
+  patientFirstName: string
+  patientLastName: string
+}
+export function fetchAbsences() {
+  return apiFetch<Absence[]>('/practitioner/absences')
+}
+export function declareAbsence(startsAt: string, endsAt: string, reason: string) {
+  return apiFetch<Absence>('/practitioner/absences', { method: 'POST', body: { startsAt, endsAt, reason } })
+}
+export function fetchAffectedAppointments(id: string) {
+  return apiFetch<AffectedAppointment[]>(`/practitioner/absences/${encodeURIComponent(id)}/appointments`)
+}
+export function decideAffectedAppointment(id: string, action: 'CANCEL' | 'POSTPONE') {
+  return apiFetch(`/practitioner/appointments/${encodeURIComponent(id)}/absence-decision`, { method: 'POST', body: { action } })
+}

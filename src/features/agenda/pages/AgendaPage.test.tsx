@@ -10,7 +10,7 @@ import AgendaPage from './AgendaPage'
 
 // MLink-26 (26.7): the practitioner's week, the three clinics in one view (Stitch design, real data only). The API is
 // mocked at the feature's api.ts; "now" is fixed and every date is a Tunis date, so the tests hold in any time zone.
-vi.mock('../api', () => ({ fetchAgenda: vi.fn(), openSlot: vi.fn(), changeSlotStatus: vi.fn() }))
+vi.mock('../api', () => ({ fetchAgenda: vi.fn(), fetchAbsences: vi.fn(), openSlot: vi.fn(), changeSlotStatus: vi.fn() }))
 vi.mock('@/features/auth', () => ({
   useAuth: () => ({ user: { id: 'u1', email: 'mehdi@example.com', firstName: 'Mehdi', lastName: 'Ben Salem', roles: ['PRACTITIONER'] } }),
 }))
@@ -57,6 +57,7 @@ beforeEach(() => {
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(NOW)
   fetchAgenda.mockResolvedValue(WEEK)
+  vi.mocked(api.fetchAbsences).mockResolvedValue([])
 })
 
 afterEach(() => {
@@ -287,4 +288,51 @@ test('37.7: when an alert arrives, the agenda is read again (it then matches the
   act(() => announceNewAlerts())
 
   await waitFor(() => expect(fetchAgenda).toHaveBeenCalledTimes(2))
+})
+
+test('US-21: shows overlapping absences in Tunis time, including a period starting before the week', async () => {
+  const user = userEvent.setup()
+  vi.mocked(api.fetchAbsences).mockResolvedValue([
+    { id: 'a1', startsAt: '2026-11-08T21:00:00Z', endsAt: '2026-11-09T08:00:00Z', reason: null },
+    { id: 'a2', startsAt: '2026-11-12T08:00:00Z', endsAt: '2026-11-12T11:00:00Z', reason: null },
+    { id: 'a3', startsAt: '2026-11-16T08:00:00Z', endsAt: '2026-11-16T11:00:00Z', reason: null },
+    { id: 'boundary', startsAt: '2026-11-07T08:00:00Z', endsAt: '2026-11-08T23:00:00Z', reason: null },
+  ])
+  renderPage()
+
+  const absences = await screen.findByRole('region', { name: 'Absences de la semaine' })
+  expect(within(absences).getByText('dimanche 8 novembre, 22:00 – lundi 9 novembre, 09:00')).toBeInTheDocument()
+  expect(within(absences).getByText('jeudi 12 novembre, 09:00 – jeudi 12 novembre, 12:00')).toBeInTheDocument()
+  expect(within(absences).getAllByRole('listitem')).toHaveLength(2)
+  expect(within(absences).getByRole('link', { name: 'Gérer mes absences' })).toHaveAttribute('href', '/praticien/absences')
+
+  await user.click(screen.getByRole('button', { name: 'Semaine suivante' }))
+  await waitFor(() => expect(screen.getByRole('region', { name: 'Absences de la semaine' })).toHaveTextContent('lundi 16 novembre, 09:00'))
+  expect(screen.getByRole('region', { name: 'Absences de la semaine' })).not.toHaveTextContent('jeudi 12 novembre')
+})
+
+test('US-21: an absence lookup error is visible without hiding the agenda and can be retried', async () => {
+  const user = userEvent.setup()
+  vi.mocked(api.fetchAbsences).mockRejectedValueOnce(new ApiError(503, 'UNAVAILABLE', 'Absences indisponibles.'))
+  renderPage()
+
+  expect(await screen.findByRole('table', { name: TITLE })).toBeInTheDocument()
+  expect(await screen.findByRole('alert')).toHaveTextContent('Absences indisponibles.')
+  await user.click(screen.getByRole('button', { name: 'Réessayer les absences' }))
+  await waitFor(() => expect(vi.mocked(api.fetchAbsences)).toHaveBeenCalledTimes(2))
+  await waitFor(() => expect(screen.queryByRole('alert')).toBeNull())
+})
+
+test('day view selects a date within the loaded week', async () => {
+  const user = userEvent.setup()
+  renderPage()
+  await screen.findByRole('table', { name: TITLE })
+  await user.click(screen.getByRole('button', { name: 'Jour' }))
+  const days = screen.getByRole('group', { name: 'Jour de l’agenda' })
+  await user.click(within(days).getByRole('button', { name: 'mardi 10 novembre' }))
+  expect(screen.getByRole('table', { name: 'mardi 10 novembre' })).toBeInTheDocument()
+  expect(screen.getByRole('listitem', { name: /Ahmed Kacem/ })).toBeInTheDocument()
+  expect(screen.queryByRole('listitem', { name: /jeudi 12 novembre, 14:00/ })).toBeNull()
+  await user.click(screen.getByRole('button', { name: 'Semaine' }))
+  expect(screen.getByRole('table', { name: TITLE })).toBeInTheDocument()
 })

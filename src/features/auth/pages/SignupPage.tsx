@@ -1,10 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Link } from 'react-router-dom'
 import PublicFooter from '@/shared/layout/PublicFooter'
-import assistanceImg from '@/assets/home/assistance.jpg'
 import {
   Calendar,
   Check,
@@ -12,7 +11,6 @@ import {
   ChevronRight,
   Eye,
   EyeOff,
-  Headset,
   Home,
   Info,
   Lock,
@@ -30,7 +28,7 @@ import PublicHeader from '@/shared/layout/PublicHeader'
 import { ApiError } from '@/shared/api/apiClient'
 import { fieldErrors as pickFieldErrors, messageFor } from '@/shared/api/errors'
 import { paths } from '@/shared/config/paths'
-import { register as registerRequest } from '../api'
+import { currentConsent, register as registerRequest } from '../api'
 import {
   allPasswordRulesPass,
   evaluatePasswordRules,
@@ -74,6 +72,20 @@ const API_FIELDS = [
 ] as const
 
 export default function SignupPage() {
+  const [policy, setPolicy] = useState<Awaited<ReturnType<typeof currentConsent>>>()
+  const [policyFailed, setPolicyFailed] = useState(false)
+  const [attempt, setAttempt] = useState(0)
+  const [acceptedVersion, setAcceptedVersion] = useState<string>()
+  useEffect(() => {
+    let active = true
+    currentConsent().then(
+      (value) => { if (active) setPolicy(value) },
+      () => { if (active) setPolicyFailed(true) },
+    )
+    return () => { active = false }
+  }, [attempt])
+  const accepted = policy !== undefined && acceptedVersion === policy.version
+
   const [showPassword, setShowPassword] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
@@ -119,6 +131,11 @@ export default function SignupPage() {
       return
     }
 
+    if (!policy || (policy.required && !accepted)) {
+      setFormError('Prenez connaissance du texte et confirmez votre choix.')
+      return
+    }
+
     let phone = values.phone.trim()
     if (phone && !phone.startsWith('+')) {
       phone = `+216 ${phone.replace(/^0+/, '')}`
@@ -133,6 +150,7 @@ export default function SignupPage() {
         birthDate: values.birthDate,
         phone,
         address: values.address.trim(),
+        ...(accepted ? { consentVersion: policy.version } : {}),
       })
       setSubmittedEmail(values.email.trim())
       setSuccess(true)
@@ -192,7 +210,7 @@ export default function SignupPage() {
             <ul className="signup__success-list">
               <li>
                 <CheckCircle2 size={18} aria-hidden="true" />
-                Activation instantanée sans déplacement
+                Vérification de votre adresse e-mail
               </li>
               <li>
                 <Timer size={18} aria-hidden="true" />
@@ -200,7 +218,7 @@ export default function SignupPage() {
               </li>
               <li>
                 <ShieldCheck size={18} aria-hidden="true" />
-                Données hébergées en Tunisie (INPDP)
+                Accès au compte après vérification de l’e-mail
               </li>
             </ul>
             <p className="signup__hint">
@@ -222,7 +240,7 @@ export default function SignupPage() {
     <div className="signup__top">
       <div className="signup__hds-badge">
         <ShieldCheck size={16} aria-hidden="true" />
-        Protection HDS &amp; INPDP · Chiffrement de bout en bout
+        Création de votre accès patient
       </div>
     </div>
   )
@@ -232,8 +250,7 @@ export default function SignupPage() {
       <span className="signup__badge">Espace Santé Personnel &amp; Sécurisé</span>
       <h1 className="signup__page-title">Créer votre compte patient MedLink</h1>
       <p className="signup__page-lead">
-        Une seule étape pour accéder à vos rendez-vous, résultats et dossiers sur
-        les trois cliniques du réseau — en toute confidentialité.
+        Créez un compte pour retrouver vos rendez-vous, résultats et documents transmis par vos praticiens.
       </p>
     </div>
   )
@@ -243,7 +260,7 @@ export default function SignupPage() {
       <Home size={14} aria-hidden="true" />
       <Link to={paths.home}>Retour à l&apos;accueil</Link>
       <span aria-hidden="true">·</span>
-      Réseau de cliniques MedLink · Données de santé hébergées en Tunisie
+      Réseau de cliniques MedLink
     </p>
   )
 
@@ -256,11 +273,12 @@ export default function SignupPage() {
         intro={intro}
         sidebar={
           <>
-            <div className="signup-side__card">
+            <div className="signup-side__card signup-side__card--journey">
               <div className="signup-side__icon" aria-hidden="true">
                 <Mail size={24} />
               </div>
-              <h3 className="signup-side__title">Aperçu de l&apos;étape suivante</h3>
+              <h3 className="signup-side__title">Votre parcours d’inscription</h3>
+              <ol className="signup__journey"><li>Complétez votre identité et vos coordonnées.</li><li>Consultez le consentement applicable.</li><li>Vérifiez votre boîte e-mail.</li></ol>
               <p className="signup-side__text">
                 Après validation, un e-mail d&apos;activation sécurisé vous sera
                 adressé pour confirmer votre identité.
@@ -275,57 +293,24 @@ export default function SignupPage() {
               <ul className="signup-side__checks">
                 <li>
                   <CheckCircle2 size={16} aria-hidden="true" />
-                  Activation instantanée sans déplacement
+                  Vérification de votre adresse e-mail
                 </li>
                 <li>
                   <CheckCircle2 size={16} aria-hidden="true" />
-                  Accès immédiat aux créneaux en ligne
+                  Réservation après connexion et profil complet
                 </li>
                 <li>
                   <CheckCircle2 size={16} aria-hidden="true" />
-                  Dossier synchronisé sur les 3 cliniques
+                  Accès à vos documents après connexion
                 </li>
               </ul>
             </div>
 
-         <div className="signup-side__card signup-side__card--help">
-  <div className="signup-side__photo">
-    <img
-      src={assistanceImg}
-      alt="Conseillère MedLink accueillant une patiente"
-    />
-    <span className="signup-side__tag">Assistance Enrôlement</span>
-  </div>
-
-  <div className="signup-side__help-body">
-    <h3 className="signup-side__title">
-      Besoin d&apos;aide pour vous inscrire ?
-    </h3>
-    <p className="signup-side__text">
-      Notre permanence d&apos;accueil vous guide pour finaliser votre
-      compte patient.
-    </p>
-    <div className="signup-side__phone">
-      <span className="signup-side__phone-icon" aria-hidden="true">
-        <Headset size={20} />
-      </span>
-      <div>
-        <strong>Ligne directe gratuite</strong>
-        <a href="tel:+21671800900">+216 71 800 900</a>
-      </div>
-    </div>
-    <div className="signup-side__hosting">
-      <ShieldCheck size={16} aria-hidden="true" />
-      <div>
-        <strong>Garantie d&apos;hébergement HDS</strong>
-        <span>
-          Vos informations médicales restent en Tunisie, chiffrées et
-          journalisées.
-        </span>
-      </div>
-    </div>
-  </div>
-</div>
+            <div className="signup-side__card">
+              <h3 className="signup-side__title">Besoin d’aide pour vous inscrire ?</h3>
+              <p className="signup-side__text">Si l’inscription est indisponible ou si vous avez besoin d’une aide, contactez votre clinique. Si vous avez déjà un compte, vous pouvez vous connecter.</p>
+              <Link to={paths.login}>Se connecter</Link>
+            </div>
           </>
         }
         footer={footer}
@@ -335,15 +320,15 @@ export default function SignupPage() {
             <div className="signup__step">1</div>
             <div>
               <h2 id="signup-form-title" className="signup__card-title">
-                Fiche d&apos;identification clinique
+                Informations du compte
               </h2>
               <p className="signup__card-sub">
-                Étape unique de création d&apos;accès patient
+                Complétez les champs obligatoires, puis consultez le consentement.
               </p>
             </div>
             <span className="signup__csrf-pill">
               <Lock size={12} aria-hidden="true" />
-              Session protégée par CSRF
+              Accès patient
             </span>
           </div>
 
@@ -606,6 +591,28 @@ export default function SignupPage() {
               </div>
             </fieldset>
 
+            <fieldset className="signup__section">
+              <legend className="signup__section-label">Consentement</legend>
+              {policyFailed ? (
+                <>
+                  <p role="alert">Le texte de consentement est indisponible.</p>
+                  <button type="button" onClick={() => {
+                    setPolicyFailed(false)
+                    setAttempt(attempt + 1)
+                  }}>Réessayer</button>
+                </>
+              ) : !policy ? <p role="status">Chargement du texte de consentement…</p> : (
+                <>
+                  <div className="signup__policy"><p>{policy.text}</p></div>
+                  <label className="signup__policy-choice">
+                    <input type="checkbox" checked={accepted} onChange={(event) =>
+                      setAcceptedVersion(event.target.checked ? policy.version : undefined)
+                    } />
+                    {' '}J’accepte le texte de consentement présenté ci-dessus.
+                  </label>
+                </>
+              )}
+            </fieldset>
             <div className="signup__actions">
               <p className="signup__login-link">
                 Déjà inscrit ? <Link to={paths.login}>Se connecter</Link>
@@ -613,7 +620,7 @@ export default function SignupPage() {
               <button
                 className="signup__submit"
                 type="submit"
-                disabled={isSubmitting || !passwordOk}
+                disabled={isSubmitting || !passwordOk || !policy || (policy.required && !accepted)}
               >
                 {isSubmitting ? (
                   'Création du compte…'

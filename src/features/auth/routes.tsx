@@ -12,6 +12,8 @@ export const authRoutes: RouteObject[] = [
       { path: paths.signup, lazy: lazyPage(() => import('./pages/SignupPage')) },
     ],
   },
+  { path: paths.forgotPassword, lazy: lazyPage(() => import('./pages/RecoveryPage')) },
+  { path: paths.resetPassword, lazy: lazyPage(() => import('./pages/RecoveryPage')) },
   // Opened from a mail, logged in or not
   { path: paths.verifyEmail, lazy: lazyPage(() => import('./pages/VerifyEmailPage')) },
   // The new staff member's first password (MLink-71), from the activation mail: no session yet

@@ -36,17 +36,18 @@ beforeEach(() => {
   vi.mocked(api.fetchMyAppointments).mockResolvedValue({ items: [], total: 0 })
 })
 
-test('a patient opens the slot search from the menu of their space', async () => {
+test('a patient opens the slot search from home and the desktop menu marks the booking route', async () => {
   const user = userEvent.setup()
   loggedInAs('PATIENT')
   const router = renderAt('/patient')
 
-  // The menu's link: the patient's home has its own quick links of the same name
-  const menu = await screen.findByRole('navigation', { name: 'Menu de l’espace' })
-  await user.click(within(menu).getByRole('link', { name: 'Prendre rendez-vous' }))
+  await user.click(await screen.findByRole('link', { name: 'Prendre rendez-vous' }))
 
   expect(await screen.findByRole('heading', { name: 'Prendre un rendez-vous' })).toBeInTheDocument()
   expect(router.state.location.pathname).toBe('/patient/creneaux')
+  const menu = within(screen.getByRole('navigation', { name: 'Menu de l’espace' }))
+  expect(menu.getByRole('link', { name: 'Réserver une consultation' })).toHaveAttribute('aria-current', 'page')
+  expect(menu.getByRole('link', { name: 'Rendez-vous' })).not.toHaveAttribute('aria-current')
 })
 
 test.each(['PRACTITIONER', 'ADMINISTRATIVE_STAFF'] as const)('a %s gets "Accès refusé"', async (role) => {
@@ -66,7 +67,7 @@ test('a patient opens their appointments from the menu of their space', async ()
 
   // The menu's link: the patient's home has its own quick links of the same name
   const menu = await screen.findByRole('navigation', { name: 'Menu de l’espace' })
-  await user.click(within(menu).getByRole('link', { name: 'Mes rendez-vous' }))
+  await user.click(within(menu).getByRole('link', { name: 'Rendez-vous' }))
 
   expect(await screen.findByRole('heading', { name: 'Mes rendez-vous' })).toBeInTheDocument()
   expect(router.state.location.pathname).toBe('/patient/rendez-vous')

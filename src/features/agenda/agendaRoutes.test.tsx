@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { RouterProvider, createMemoryRouter } from 'react-router-dom'
 import { beforeEach, expect, test, vi } from 'vitest'
@@ -10,7 +10,7 @@ import * as api from './api'
 
 // MLink-26 (26.7): the agenda is a page of the practitioner's space, reached from its menu; no other role opens it.
 vi.mock('@/features/auth/api', () => ({ fetchMe: vi.fn(), login: vi.fn(), logout: vi.fn() }))
-vi.mock('./api', () => ({ fetchAgenda: vi.fn(), openSlot: vi.fn(), changeSlotStatus: vi.fn() }))
+vi.mock('./api', () => ({ fetchAgenda: vi.fn(), fetchAbsences: vi.fn(), openSlot: vi.fn(), changeSlotStatus: vi.fn() }))
 const fetchMe = vi.mocked(authApi.fetchMe)
 
 const TITLE = 'Agenda praticien — Consultations multi-cliniques'
@@ -34,6 +34,7 @@ function renderAt(path: string) {
 beforeEach(() => {
   vi.resetAllMocks()
   vi.mocked(api.fetchAgenda).mockResolvedValue({ clinics: [], items: [] })
+  vi.mocked(api.fetchAbsences).mockResolvedValue([])
 })
 
 test('a practitioner opens the agenda from the menu of their space', async () => {
@@ -41,7 +42,8 @@ test('a practitioner opens the agenda from the menu of their space', async () =>
   loggedInAs('PRACTITIONER')
   const router = renderAt('/praticien')
 
-  await user.click(await screen.findByRole('link', { name: 'Agenda' }))
+  const menu = await screen.findByRole('navigation', { name: 'Menu de l’espace' })
+  await user.click(within(menu).getByRole('link', { name: 'Agenda' }))
 
   expect(await screen.findByRole('heading', { name: TITLE, level: 2 })).toBeInTheDocument()
   expect(router.state.location.pathname).toBe('/praticien/agenda')
@@ -54,4 +56,5 @@ test.each(['PATIENT', 'ADMINISTRATIVE_STAFF'] as const)('a %s gets "Accès refus
   expect(await screen.findByRole('heading', { name: 'Accès refusé' })).toBeInTheDocument()
   expect(screen.queryByRole('heading', { name: TITLE, level: 2 })).toBeNull()
   expect(api.fetchAgenda).not.toHaveBeenCalled()
+  expect(api.fetchAbsences).not.toHaveBeenCalled()
 })

@@ -9,18 +9,17 @@ import { INDICATORS } from '../types'
 import type { Indicator, StatsExport } from '../types'
 import styles from './StatsExportPage.module.css'
 
-/** The API refuses a period longer than this many days. */
-const MAX_DAYS = 366
-const DAY_MS = 24 * 60 * 60 * 1000
-
 type Draft = { from: string; to: string; indicators: Indicator[] }
 type Errors = { from?: string; to?: string; indicators?: string }
 
-const EMPTY: Draft = { from: '', to: '', indicators: INDICATORS.map((indicator) => indicator.value) }
+const EMPTY: Draft = { from: '', to: '', indicators: ['APPOINTMENTS_PER_STATUS'] }
 
-function dayNumber(value: string): number {
-  const [y = 0, m = 1, d = 1] = value.split('-').map(Number)
-  return Date.UTC(y, m - 1, d) / DAY_MS
+function validMonth(from: string, to: string): boolean {
+  const [y = 0, m = 0] = from.split('-').map(Number)
+  const end = new Date(Date.UTC(y, m, 0))
+  const today = new Date().toISOString().slice(0, 10)
+  return from.endsWith('-01') && Number.isFinite(end.getTime()) &&
+    to === end.toISOString().slice(0, 10) && to < today
 }
 
 /** What the person typed, checked before asking the API: the message to show under each wrong field. */
@@ -29,11 +28,9 @@ function check(draft: Draft): Errors {
   if (!draft.from) errors.from = 'Choisissez la date de début.'
   if (!draft.to) errors.to = 'Choisissez la date de fin.'
   if (draft.from && draft.to) {
-    const days = dayNumber(draft.to) - dayNumber(draft.from) + 1
-    if (days < 1) errors.to = 'La date de fin doit suivre la date de début.'
-    else if (days > MAX_DAYS) errors.to = `La période ne peut pas dépasser ${MAX_DAYS} jours.`
+    if (!validMonth(draft.from, draft.to)) errors.to = 'Choisissez un mois civil terminé, du premier au dernier jour.'
   }
-  if (draft.indicators.length === 0) errors.indicators = 'Choisissez au moins un indicateur.'
+  if (draft.indicators.length !== 1) errors.indicators = 'Choisissez un seul indicateur.'
   return errors
 }
 
@@ -42,8 +39,11 @@ function messageOf(error: unknown): string {
     if (error.code === 'ANONYMISATION_IMPOSSIBLE') {
       return (
         'Ces statistiques ne peuvent pas être fournies : pour au moins un indicateur, il y a trop peu de patients ' +
-        'par groupe pour protéger leur anonymat. Élargissez la période ou choisissez d’autres indicateurs.'
+        'par groupe pour protéger leur anonymat. Cette publication est figée pour le mois choisi.'
       )
+    }
+    if (error.code === 'STATS_PARTITION_LOCKED') {
+      return 'Un autre indicateur a déjà été choisi pour ce mois. Les exports croisés sont interdits.'
     }
     if (error.code === 'VALIDATION_FAILED') {
       return 'La période ou les indicateurs choisis ne sont pas valides. Vérifiez-les puis réessayez.'
@@ -77,11 +77,7 @@ export default function StatsExportPage() {
   const [file, setFile] = useState<StatsExport | null>(null)
 
   function toggle(indicator: Indicator) {
-    const chosen = draft.indicators.includes(indicator)
-      ? draft.indicators.filter((value) => value !== indicator)
-      : [...draft.indicators, indicator]
-    // Always in the order of the list, whatever the order of the clicks
-    setDraft({ ...draft, indicators: INDICATORS.map((i) => i.value).filter((value) => chosen.includes(value)) })
+    setDraft({ ...draft, indicators: [indicator] })
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -116,6 +112,9 @@ export default function StatsExportPage() {
   } else if (file) {
     result = (
       <>
+        <div className={styles.chart} aria-label="Visualisation de l’export publié">
+          {file.rows.map((row,index) => <div key={`${row.indicator}-${row.group}-${index}`} className={styles.barRow}><span>{row.group}</span><div aria-hidden="true" className={styles.barTrack}><span style={{width: `${Math.max(0,row.count)/Math.max(1,...file.rows.map(value => value.count))*100}%`}} /></div><strong>{row.count}</strong></div>)}
+        </div>
         <div className={styles.scroll}>
           <table className={styles.table}>
             <caption className="visually-hidden">Statistiques anonymisées des rendez-vous</caption>
@@ -140,7 +139,7 @@ export default function StatsExportPage() {
           </table>
         </div>
         <p className={styles.note}>
-          Pour protéger les patients, les groupes trop petits ne sont pas affichés.
+          Pour protéger les patients, les groupes trop petits ne sont pas affichés et le résultat reste figé.
         </p>
         <div className={styles.actions}>
           <Button onClick={() => download(file)}>Télécharger le fichier CSV</Button>
@@ -156,13 +155,28 @@ export default function StatsExportPage() {
   }
 
   return (
-    <>
-      <h2>Statistiques</h2>
-      <p className={styles.intro}>
-        Des chiffres anonymisés sur les rendez-vous des cliniques, à lire ici ou à télécharger en fichier CSV.
-      </p>
+    <section className={styles.page} data-width="wide">
+      <header className={styles.heading}><div><h2>Statistiques</h2><p className={styles.intro}>
+        Des chiffres agrégés sur les rendez-vous des cliniques, à lire ici ou à télécharger en fichier CSV.
+        Un seul indicateur est publié par mois civil terminé, pour limiter les recoupements. Le premier export
+        fixe définitivement l’indicateur et son résultat pour ce mois.
+      </p></div><span className={styles.headingIcon}><ChartColumn size={26} aria-hidden="true" /></span></header>
+      <div className={styles.workspace}>
       <Card title="Période et indicateurs" headingLevel={3}>
         <form onSubmit={submit} noValidate aria-label="Export des statistiques">
+          <TextField label="Mois civil terminé" type="month"
+            max={new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 0)).toISOString().slice(0, 7)}
+            value={validMonth(draft.from, draft.to) ? draft.from.slice(0, 7) : ''}
+            onChange={event => {
+              const value = event.target.value
+              const [year = 0, month = 0] = value.split('-').map(Number)
+              if (!value || !year || month < 1 || month > 12) {
+                setDraft(current => ({ ...current, from: '', to: '' }))
+                return
+              }
+              setDraft(current => ({ ...current, from: `${value}-01`, to: new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10) }))
+              setErrors({})
+            }} />
           <div className={styles.dates}>
             <TextField
               label="Date de début"
@@ -184,7 +198,8 @@ export default function StatsExportPage() {
             {INDICATORS.map((indicator) => (
               <label key={indicator.value} className={styles.choice}>
                 <input
-                  type="checkbox"
+                  type="radio"
+                  name="stats-indicator"
                   checked={draft.indicators.includes(indicator.value)}
                   onChange={() => toggle(indicator.value)}
                 />
@@ -204,9 +219,13 @@ export default function StatsExportPage() {
           </div>
         </form>
       </Card>
-      <Card title="Résultat" headingLevel={3}>
-        {result}
-      </Card>
-    </>
+      <div className={styles.stack}>
+        <Card title="Règles de confidentialité" headingLevel={3}>
+          <dl className={styles.rules}><div><dt>Mois terminé</dt><dd>Aucune période partielle.</dd></div><div><dt>Publication immuable</dt><dd>Un seul indicateur, résultat figé.</dd></div><div><dt>Petits groupes</dt><dd>La publication est refusée si l’anonymisation est impossible.</dd></div></dl>
+        </Card>
+        <Card title="Résultat" headingLevel={3}>{result}</Card>
+      </div>
+      </div>
+    </section>
   )
 }

@@ -36,3 +36,5 @@
 .lg { min-height: 56px; padding: 0 var(--space-7); font-size: var(--text-lg); }
 
 .full { width: 100%; }
+
+.button{border-radius:9px;font-weight:650;min-width:0;white-space:normal;}.primary{background:var(--ux-green);box-shadow:none;}.primary:hover:not(:disabled){background:var(--ux-dark);}.secondary{color:var(--ux-dark);border-color:var(--border-strong);}.secondary:hover:not(:disabled){background:var(--ux-sage);border-color:var(--ux-green);}.button:focus-visible{outline:2px solid var(--ux-green);outline-offset:3px;box-shadow:none;}

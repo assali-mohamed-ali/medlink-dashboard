@@ -17,6 +17,7 @@ const STATUS_WORDS: Record<AgendaItem['status'], string> = {
 type Props = {
   /** The table's name: the week title. */
   title: string
+  selectedDay?: string
   monday: string
   today: string
   agenda: Agenda
@@ -46,10 +47,10 @@ function actionName(verb: string, item: AgendaItem, day: string) {
  * The week as a table (Stitch design): a row per hour that holds a slot, a column per day (Monday to Saturday),
  * the sites of the week above and the legend below. A slot shows only what the API knows: no consultation type.
  */
-export default function WeekTable({ title, monday, today, agenda, tones, hidden, now, pending, onChange }: Props) {
+export default function WeekTable({ title, selectedDay, monday, today, agenda, tones, hidden, now, pending, onChange }: Props) {
   const action: Action = { now, pending, onChange }
-  const days = weekDays(monday)
-  const shown = agenda.items.filter((item) => !hidden.has(item.clinic.id))
+  const days = selectedDay ? [selectedDay] : weekDays(monday)
+  const shown = agenda.items.filter((item) => !hidden.has(item.clinic.id) && (!selectedDay || tunisDay(item.startsAt) === selectedDay))
   const cells = new Map<string, AgendaItem[]>()
   for (const item of shown) {
     const key = `${tunisDay(item.startsAt)} ${hourRow(item.startsAt)}`
@@ -84,12 +85,12 @@ export default function WeekTable({ title, monday, today, agenda, tones, hidden,
       )}
 
       {shown.length === 0 ? (
-        <EmptyState icon={CalendarX} title="Aucun créneau cette semaine" compact headingLevel={4}>
+        <EmptyState icon={CalendarX} title={selectedDay ? 'Aucun créneau ce jour' : 'Aucun créneau cette semaine'} compact headingLevel={4}>
           Ouvrez un créneau, ou changez de semaine ou de cliniques.
         </EmptyState>
       ) : (
         <div className={styles.tableScroll}>
-          <table className={styles.table} aria-label={title}>
+          <table className={styles.table} data-view={selectedDay ? 'day' : 'week'} aria-label={title}>
             <thead>
               <tr>
                 <th scope="col" className={styles.hourHead}>
