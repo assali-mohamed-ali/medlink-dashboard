@@ -48,7 +48,9 @@ def install_fixtures(context, origin, role):
             data = {"clinics": [CLINIC], "items": []}
         elif path in ("/practitioner/alerts", "/practitioner/absences", "/admin/practitioners"):
             data = []
-        elif path in ("/appointments/me", "/admin/users", "/admin/audit-entries", "/slots"):
+        elif path == "/admin/audit-entries":
+            data = {"items": [], "page": 0, "size": 20, "totalElements": 0, "totalPages": 0}
+        elif path in ("/appointments/me", "/admin/users", "/slots"):
             data = EMPTY_PAGE
         else:
             route.fulfill(status=404, json={"code": "NOT_FOUND", "message": "Fixture non définie"})
@@ -83,7 +85,8 @@ def exercise_public(page, origin):
     page.keyboard.press("Space")
     expect(faq).to_have_attribute("aria-expanded", "false")
     page.get_by_role("link", name="Prendre rendez-vous").click()
-    expect(page.get_by_role("heading", name="Connexion", exact=True)).to_be_visible()
+    expect(page).to_have_url(origin + "/connexion")
+    expect(page.get_by_role("heading", level=1, name="Bienvenue sur MedLink", exact=True)).to_be_visible()
     assert_layout(page)
 
 

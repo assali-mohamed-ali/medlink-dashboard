@@ -18,7 +18,9 @@ jobs:
   validate:
     # Keep this name: branch protection may require it as a status check
     name: Lint, type-check and build
-    runs-on: ubuntu-latest
+    # Playwright 1.57 supports Ubuntu 24.04, not the Ubuntu 26.04 ubuntu-latest image.
+    # Keep the required check name and every validation step unchanged.
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
