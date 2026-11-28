@@ -46,6 +46,7 @@ export default function StaffDocumentsPage() {
     }
   }, [search, attempt])
 
+  const chosenPatient = patients && 'data' in patients ? patients.data.find(patient => patient.id === selected) : undefined
   let picker
   if (patients === null) {
     picker = <Skeleton lines={2} label="Chargement des patients…" />
@@ -105,6 +106,7 @@ export default function StaffDocumentsPage() {
             />
           </div>
           {picker}
+          {chosenPatient && <div className={styles.selectedPatient}><strong>{chosenPatient.firstName} {chosenPatient.lastName}</strong><small>{chosenPatient.email}</small><Button variant="secondary" size="sm" onClick={() => setSelected('')}>Changer de patient</Button></div>}
         </Card>
         <div className={styles.documentStack}>
           {selected ? (

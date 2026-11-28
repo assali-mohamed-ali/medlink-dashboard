@@ -140,6 +140,7 @@ export default function AuditLogPage() {
   const [reloads, setReloads] = useState(0)
   const [result, setResult] = useState<Result | null>(null)
   const [copied, setCopied] = useState(false)
+  const [outcomeFilter, setOutcomeFilter] = useState('')
   // "Today" for the day headings, read once when the page opens
   const [now] = useState(() => new Date())
 
@@ -185,6 +186,7 @@ export default function AuditLogPage() {
 
   function reset() {
     setDraft(EMPTY)
+    setOutcomeFilter('')
     resetPatientPicker((count) => count + 1)
     setErrors({})
     setApplied({})
@@ -211,17 +213,20 @@ export default function AuditLogPage() {
     )
   } else if (data) {
     const total = data.totalElements
+    const visible = data.items.filter(entry => !outcomeFilter || entry.outcome === outcomeFilter)
     content = (
       <>
         <div className={styles.summary}>
           <p className={styles.total}>{`${total} événement${total > 1 ? 's' : ''}`}</p>
           <span className={styles.order}>du plus récent au plus ancien</span>
+          {outcomeFilter && <span>{visible.length} résultat(s) sur cette page</span>}
           {copied && (
             <span className={styles.copied} role="status">
               Identifiant copié.
             </span>
           )}
         </div>
+        {visible.length === 0 && <p>Aucun événement de ce résultat sur cette page.</p>}
         <div className={styles.scroll}>
           <table className={styles.table}>
             <caption className="visually-hidden">Événements du journal d&apos;audit</caption>
@@ -236,9 +241,9 @@ export default function AuditLogPage() {
               </tr>
             </thead>
             <tbody>
-              {data.items.map((entry, index) => {
+              {visible.map((entry, index) => {
                 const date = new Date(entry.timestamp)
-                const previous = data.items[index - 1]
+                const previous = visible[index - 1]
                 const newDay =
                   !Number.isNaN(date.getTime()) &&
                   (!previous || dayKey(new Date(previous.timestamp)) !== dayKey(date))
@@ -390,7 +395,7 @@ export default function AuditLogPage() {
         </form>
       </div>
 
-      <div className={styles.card}>{content}</div>
+      <div className={styles.card}><div className={styles.outcomeToolbar}><h3>Événements</h3><Select label="Résultat sur cette page" value={outcomeFilter} onChange={event => setOutcomeFilter(event.target.value)}><option value="">Tous les résultats</option>{[...new Set(data?.items.map(entry => entry.outcome) ?? [])].map(value => <option key={value} value={value}>{outcomeView(value).label}</option>)}</Select></div>{content}</div>
     </section>
   )
 }

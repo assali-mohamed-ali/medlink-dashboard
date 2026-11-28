@@ -40,3 +40,5 @@
 }
 
 .patientDocuments{display:grid;gap:16px;min-width:0;}.documentHeader{display:flex;justify-content:space-between;align-items:center;gap:12px;}.documentHeader h2{margin:0;font-size:var(--text-3xl);letter-spacing:-.035em;}.documentIcon{display:grid;place-items:center;flex:none;width:48px;height:48px;border-radius:12px;background:var(--ux-sage);color:var(--ux-green);}
+
+.selectedPatient{display:grid;gap:8px;padding:12px;background:var(--ux-sage);border:1px solid var(--ux-line);border-radius:9px;overflow-wrap:anywhere;}.selectedPatient small{color:var(--ux-muted);}.selectedPatient button{justify-self:start;}

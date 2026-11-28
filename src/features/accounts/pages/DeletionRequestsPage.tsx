@@ -48,25 +48,29 @@ export default function DeletionRequestsPage() {
   }
 
   return (
-    <Card title="Demandes de suppression">
+    <section className={styles.workspace} data-width="wide">
+      <header className={styles.pageHeading}><div><h2>Demandes de suppression</h2><p>Traitez les demandes et vérifiez la durée de conservation applicable.</p></div></header>
+      <div className={styles.split}><Card title="Demandes à examiner" headingLevel={3}>
       <div className={styles.feedback}><p>Les demandes sont examinées au regard des obligations de conservation. Aucune destruction automatique de données médicales.</p></div>
       {error && <p role="alert">{error}</p>}
       {notice && <p role="status">{notice}</p>}
       {!requests && !error && <p role="status">Chargement des demandes…</p>}
       {requests?.length === 0 && <p>Aucune demande en attente.</p>}
-      {requests && !selected && (
+      {requests && (
         <ul className={styles.rows} aria-label="Demandes à examiner">{requests.map((request) => (
           <li key={request.patientId} className={styles.requestRow}>
             <div><strong>À examiner</strong><p>Réponse avant le {new Date(request.dueAt).toLocaleDateString('fr-TN')}</p>{request.retainedUntil && <p>Conservation jusqu’au {new Date(request.retainedUntil).toLocaleDateString('fr-TN')}</p>}</div>
-            <Button variant="secondary" onClick={() => {
+            <Button variant={selected?.patientId === request.patientId ? 'primary' : 'secondary'} disabled={busy} aria-pressed={selected?.patientId === request.patientId} onClick={() => {
               setSelected(request)
               setNotice('')
             }}>{request.firstName} {request.lastName}</Button>
           </li>
         ))}</ul>
       )}
+      </Card><Card title="Examen de la demande" headingLevel={3}>
+      {!selected && <p>Sélectionnez une demande pour examiner les obligations de conservation.</p>}
       {selected && (
-        <form className={styles.impact} onSubmit={submit}>
+        <form key={selected.patientId} className={styles.impact} onSubmit={submit}>
           <h3>{selected.firstName} {selected.lastName}</h3>
           <p>Réponse attendue avant le {new Date(selected.dueAt).toLocaleDateString('fr-TN')}.</p>
           {selected.retainedUntil && <p>Conservation prévue jusqu’au {new Date(selected.retainedUntil).toLocaleDateString('fr-TN')}.</p>}
@@ -84,6 +88,7 @@ export default function DeletionRequestsPage() {
           <Button variant="secondary" type="button" disabled={busy} onClick={() => setSelected(undefined)}>Annuler</Button>
         </form>
       )}
-    </Card>
+      </Card></div>
+    </section>
   )
 }

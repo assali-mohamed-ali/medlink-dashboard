@@ -76,3 +76,5 @@
 }
 
 .page,.card{min-width:0;}.card{border:1px solid var(--ux-line);border-radius:12px;box-shadow:none;}.table th{background:var(--surface-sunken);}.tableWrap,.scroll{max-width:100%;overflow-x:auto;}
+
+.outcomeToolbar{display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap;margin-bottom:12px;}.outcomeToolbar h3{margin:0;font-size:1.125rem;}.outcomeToolbar>div{min-width:min(100%,230px);}.filters{padding:12px;background:var(--surface-sunken);border-radius:10px;}.card{overflow:hidden;}.scroll{max-width:100%;}.title{letter-spacing:-.035em;}

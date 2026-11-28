@@ -12,3 +12,5 @@
 .form>div,.form>section{width:100%;max-width:none;padding:0;border:0;box-shadow:none;border-radius:0;min-width:0;}
 .footer{font-size:.8125rem;color:var(--ux-muted);margin:0;}
 @media(max-width:760px){.frame{padding:16px;justify-content:start;}.frame[data-header]{padding-top:88px;}.layout{grid-template-columns:1fr;border-radius:14px;}.intro{padding:20px;gap:14px;}.intro .brand{font-size:1.2rem;}.intro .brand span{width:32px;height:32px;}.headline{font-size:1.6rem;margin:6px 0;}.headline br{display:none;}.description{font-size:.875rem;margin:0;max-width:none;}.kicker{margin:0;font-size:.6875rem;}.note{display:none;}.form{padding:22px 18px;}}
+
+.form{--green:var(--ux-green);--green-dark:var(--ux-dark);--ink:var(--ux-ink);--muted:var(--ux-muted);}.form h1{color:var(--ux-ink);letter-spacing:-.035em;}.form [role="alert"]{overflow-wrap:anywhere;}

@@ -112,6 +112,9 @@ export default function StatsExportPage() {
   } else if (file) {
     result = (
       <>
+        <div className={styles.chart} aria-label="Visualisation de l’export publié">
+          {file.rows.map((row,index) => <div key={`${row.indicator}-${row.group}-${index}`} className={styles.barRow}><span>{row.group}</span><div aria-hidden="true" className={styles.barTrack}><span style={{width: `${Math.max(0,row.count)/Math.max(1,...file.rows.map(value => value.count))*100}%`}} /></div><strong>{row.count}</strong></div>)}
+        </div>
         <div className={styles.scroll}>
           <table className={styles.table}>
             <caption className="visually-hidden">Statistiques anonymisées des rendez-vous</caption>
@@ -152,13 +155,12 @@ export default function StatsExportPage() {
   }
 
   return (
-    <>
-      <h2>Statistiques</h2>
-      <p className={styles.intro}>
+    <section className={styles.page} data-width="wide">
+      <header className={styles.heading}><div><h2>Statistiques</h2><p className={styles.intro}>
         Des chiffres agrégés sur les rendez-vous des cliniques, à lire ici ou à télécharger en fichier CSV.
         Un seul indicateur est publié par mois civil terminé, pour limiter les recoupements. Le premier export
         fixe définitivement l’indicateur et son résultat pour ce mois.
-      </p>
+      </p></div><span className={styles.headingIcon}><ChartColumn size={26} aria-hidden="true" /></span></header>
       <div className={styles.workspace}>
       <Card title="Période et indicateurs" headingLevel={3}>
         <form onSubmit={submit} noValidate aria-label="Export des statistiques">
@@ -224,6 +226,6 @@ export default function StatsExportPage() {
         <Card title="Résultat" headingLevel={3}>{result}</Card>
       </div>
       </div>
-    </>
+    </section>
   )
 }
