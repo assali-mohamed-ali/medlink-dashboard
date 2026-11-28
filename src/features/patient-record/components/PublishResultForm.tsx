@@ -30,6 +30,7 @@ export default function PublishResultForm({ patientId }: { patientId: string }) 
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [published, setPublished] = useState(false)
+  const [view, setView] = useState<'all' | 'publish' | 'history' | 'files'>('all')
 
   useEffect(() => {
     let current = true
@@ -107,6 +108,10 @@ export default function PublishResultForm({ patientId }: { patientId: string }) 
 
   return (
     <Card title="Publier un résultat d’examen" className={styles.card}>
+      <div role="group" aria-label="Résultats et pièces jointes">
+        {([['all','Tout afficher'],['publish','Publier'],['history','Résultats publiés'],['files','Pièces jointes autorisées']] as const).map(([id,label]) => <Button key={id} size="sm" variant={view === id ? 'primary' : 'secondary'} aria-pressed={view === id} onClick={() => setView(id)}>{label}</Button>)}
+      </div>
+      <div hidden={view !== 'all' && view !== 'publish'}>
       <WorkflowSteps steps={['Saisir le résultat', 'Vérifier', 'Publier']} current={published ? 2 : draft ? 1 : 0} />
       {error && <Alert tone="error">{error}</Alert>}
       {published && <p role="status">Résultat publié dans l’espace du patient. Il en est prévenu par e-mail s’il l’a accepté.</p>}
@@ -138,12 +143,14 @@ export default function PublishResultForm({ patientId }: { patientId: string }) 
           <Button type="submit">Relire le résultat</Button>
         </form>
       )}
-      <h3>Résultats publiés</h3>
+      </div><section hidden={view !== 'all' && view !== 'history'}><h3>Résultats publiés</h3>
       {historyError ? <p role="alert">{historyError}</p> : !history ? <p role="status">Chargement…</p> : (
         history.length === 0 ? <p>Aucun résultat publié par vous.</p> : (
           <ul>{history.map((result) => <li key={result.id}>{result.title} · {result.examDate}</li>)}</ul>
         )
       )}
+      </section>
+      <section hidden={view !== 'files'}><h3>Pièces jointes autorisées</h3>{filesError ? <p role="alert">{filesError}</p> : !files ? <p role="status">Chargement…</p> : files.length === 0 ? <p>Aucune pièce jointe disponible.</p> : <ul>{files.map(file => <li key={file.id}>{file.title} · {file.originalFilename}</li>)}</ul>}<p>Les documents disponibles peuvent être joints à un résultat depuis le formulaire de publication.</p></section>
     </Card>
   )
 }

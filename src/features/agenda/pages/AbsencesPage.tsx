@@ -72,7 +72,9 @@ export default function AbsencesPage() {
   }
 
   return (
-    <Card title="Mes absences">
+    <section className={styles.workspace}>
+      <header className={styles.pageHeading}><div><h2>Mes absences</h2><p>Planifiez vos disponibilités et traitez les consultations concernées.</p></div><Link className={styles.outlineLink} to={`${paths.practitioner.agenda}?ajouter`}>Ajouter un créneau</Link></header>
+      <div className={styles.split}><Card title="Déclarer une absence" headingLevel={3}>
       {error && <p role="alert">{error}</p>}
       {notice && <p role="status">{notice}</p>}
       <div className={styles.feedback}><strong>Disponibilités et absences</strong><p>Les créneaux libres de vos cliniques seront fermés pendant cette période. Examinez les rendez-vous concernés.</p><Link to={`${paths.practitioner.agenda}?ajouter`}>Ajouter une disponibilité depuis l’agenda</Link></div>
@@ -82,6 +84,7 @@ export default function AbsencesPage() {
         <TextField id="absence-reason" name="reason" label="Motif facultatif" maxLength={200} />
         <Button type="submit" disabled={busy}>Déclarer l’absence</Button>
       </form>
+      </Card><Card title="Absences planifiées" headingLevel={3}>
       {!absences && !error && <p role="status">Chargement des absences…</p>}
       {absences?.length === 0 && <p>Aucune absence déclarée.</p>}
       {absences && <ul className={styles.rows}>{absences.map((absence) => (
@@ -91,6 +94,7 @@ export default function AbsencesPage() {
           </Button>
         </li>
       ))}</ul>}
+      </Card></div>
       {selected && (
         <section className={styles.impact} aria-label="Rendez-vous à traiter">
           <h3>Rendez-vous à traiter</h3>
@@ -120,6 +124,6 @@ export default function AbsencesPage() {
           ))}</ul>}
         </section>
       )}
-    </Card>
+    </section>
   )
 }

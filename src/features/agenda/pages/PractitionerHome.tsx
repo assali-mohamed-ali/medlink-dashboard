@@ -176,7 +176,7 @@ export default function PractitionerHome({ firstName }: { firstName?: string }) 
           </div>
 
           {load.status === 'loading' && <Skeleton lines={4} label="Chargement de votre journée…" />}
-          {load.status === 'error' && <Alert tone="error">{load.message}</Alert>}
+          {load.status === 'error' && <><Alert tone="error">{load.message}</Alert><button type="button" className={styles.retry} onClick={() => setAttempt(n => n + 1)}>Réessayer</button></>}
           {agenda && day.length === 0 && <p className={styles.none}>Aucun créneau aujourd’hui.</p>}
 
           {next && (

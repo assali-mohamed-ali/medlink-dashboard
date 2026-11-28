@@ -193,6 +193,7 @@ export default function AgendaPage() {
           <Link to={paths.practitioner.reassignments}>Propositions de réaffectation</Link>
         </div>
         <div className={styles.headerSide}>
+          <Link to={paths.practitioner.absences} className={styles.secondaryAction}>Mes absences</Link>
           <button
             ref={addButton}
             type="button"
@@ -223,7 +224,7 @@ export default function AgendaPage() {
       {notice && <Alert tone={notice.tone}>{notice.text}</Alert>}
 
       <div className={styles.layout}>
-        <aside className={styles.side}>
+        <aside className={styles.side} aria-label="Calendrier et filtres">
           <MonthCalendar month={month} monday={monday} today={today} onMonth={setMonth} onDay={showWeek} />
           {load.status === 'ready' && (
             <>
@@ -269,6 +270,7 @@ export default function AgendaPage() {
           </div>
 
           <div className={styles.viewControls}>
+            <span className={styles.viewLabel}>Mode de consultation</span>
             <div className={styles.viewSwitch} role="group" aria-label="Affichage de l’agenda">
               <Button size="sm" variant="secondary" aria-pressed={view === 'week'} onClick={() => setView('week')}>Semaine</Button>
               <Button size="sm" variant="secondary" aria-pressed={view === 'day'} onClick={() => setView('day')}>Jour</Button>

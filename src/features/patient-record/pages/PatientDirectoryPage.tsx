@@ -38,7 +38,9 @@ export default function PatientDirectoryPage() {
   const last = result ? Math.max(0, Math.ceil(result.total / result.size) - 1) : 0
 
   return (
-    <Card title="Mes patients">
+    <section className={styles.workspace}>
+      <header className={styles.pageHeading}><div><h2>Mes patients</h2><p>Recherchez uniquement les dossiers des patients qui vous sont rattachés.</p></div></header>
+      <Card title="Annuaire des patients" headingLevel={3}>
       <form className={styles.search} onSubmit={submit} role="search">
         <TextField id="directory-query" label="Nom, prénom ou numéro de dossier" name="query" maxLength={100}
           hint="Par exemple : Ben Salah, Amel Ben Salah ou MED-000042." />
@@ -48,14 +50,11 @@ export default function PatientDirectoryPage() {
         result.items.length === 0 ? <p>Aucun patient trouvé parmi vos patients.</p> : (
           <>
             <p role="status">{result.total} patient{result.total > 1 ? 's' : ''} trouvé{result.total > 1 ? 's' : ''}</p>
-            <ul className={styles.rows} aria-label="Patients trouvés">
+            <div className={styles.tableScroll}><table className={styles.directory}><caption>Patients trouvés</caption><thead><tr><th scope="col">Patient</th><th scope="col">N° de dossier</th><th scope="col">Action</th></tr></thead><tbody>
               {result.items.map((patient) => (
-                <li key={patient.id}>
-                  <Link to={`${paths.practitioner.patients}/${patient.id}`}>{patient.firstName} {patient.lastName}</Link>
-                  {patient.recordNumber && <> · Dossier {patient.recordNumber}</>}
-                </li>
+                <tr key={patient.id}><td><span className={styles.person}><span aria-hidden="true" className={styles.initials}>{patient.firstName.charAt(0)}{patient.lastName.charAt(0)}</span><strong>{patient.firstName} {patient.lastName}</strong></span></td><td>{patient.recordNumber ? `Dossier ${patient.recordNumber}` : 'Non renseigné'}</td><td><Link className={styles.outlineLink} aria-label={`${patient.firstName} ${patient.lastName}`} to={`${paths.practitioner.patients}/${encodeURIComponent(patient.id)}`}>Ouvrir le dossier</Link></td></tr>
               ))}
-            </ul>
+            </tbody></table></div>
             {last > 0 && (
               <nav className={styles.pagination} aria-label="Pages de résultats">
                 <Button type="button" disabled={search.page === 0}
@@ -68,6 +67,7 @@ export default function PatientDirectoryPage() {
           </>
         )
       )}
-    </Card>
+      </Card>
+    </section>
   )
 }

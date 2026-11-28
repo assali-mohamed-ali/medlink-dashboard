@@ -131,6 +131,7 @@ function Record({ titleId, patientId, patient, canWrite }: RecordProps) {
   const notYetId = useId()
   const [today] = useState(() => new Date())
   const reports = useReports(patientId)
+  const [section, setSection] = useState<'all' | 'identity' | 'reports' | 'results'>('all')
   const [writing, setWriting] = useState(false)
   const [saved, setSaved] = useState(false)
   const newButton = useRef<HTMLButtonElement>(null)
@@ -169,6 +170,7 @@ function Record({ titleId, patientId, patient, canWrite }: RecordProps) {
           aria-describedby={canWrite ? undefined : notYetId}
           onClick={() => {
             setSaved(false)
+            setSection('reports')
             setWriting(true)
           }}
         >
@@ -196,12 +198,10 @@ function Record({ titleId, patientId, patient, canWrite }: RecordProps) {
       </ul>
 
       <nav className={styles.sectionLinks} aria-label="Sections du dossier">
-        <a href="#dossier-identite">Identité</a>
-        <a href="#dossier-comptes-rendus">Comptes-rendus</a>
-        <a href="#dossier-resultats">Résultats et documents</a>
+        {([['all', 'Synthèse'], ['identity', 'Identité'], ['reports', 'Comptes-rendus'], ['results', 'Résultats et pièces jointes']] as const).map(([id, label]) => <button key={id} type="button" aria-pressed={section === id} onClick={() => setSection(id)}>{label}</button>)}
       </nav>
-      <div className={styles.layout}>
-        <section id="dossier-identite" aria-labelledby={identityId} className={styles.card}>
+      <div className={styles.layout} data-single={section !== "all" || undefined}>
+        <section hidden={section !== "all" && section !== "identity"} id="dossier-identite" aria-labelledby={identityId} className={styles.card}>
           <h3 id={identityId} className={styles.sectionTitle}>
             <span className={styles.titleIcon}>
               <IdCard size={18} aria-hidden="true" />
@@ -240,8 +240,8 @@ function Record({ titleId, patientId, patient, canWrite }: RecordProps) {
           </p>
         </section>
 
-        <div className={styles.recordContent}>
-        <div id="dossier-comptes-rendus" className={styles.sectionTarget}>
+        <div className={styles.recordContent} hidden={section === "identity"}>
+        <div hidden={section === "results"} id="dossier-comptes-rendus" className={styles.sectionTarget}>
         <ReportsPanel
           patientId={patientId}
           load={reports.load}
@@ -256,7 +256,7 @@ function Record({ titleId, patientId, patient, canWrite }: RecordProps) {
           saved={saved}
         />
         </div>
-        <div id="dossier-resultats" className={styles.sectionTarget}><PublishResultForm key={patientId} patientId={patientId} /></div>
+        <div hidden={section === "reports"} id="dossier-resultats" className={styles.sectionTarget}><PublishResultForm key={patientId} patientId={patientId} /></div>
         </div>
       </div>
     </>

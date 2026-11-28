@@ -20,6 +20,7 @@ const TONES = 3
 export default function ProfilePage() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const [section, setSection] = useState<'all' | 'identity' | 'security'>('all')
   const [week, setWeek] = useState<Week>({ status: 'loading' })
 
   useEffect(() => {
@@ -80,9 +81,9 @@ export default function ProfilePage() {
         </ul>
       )}
 
-      <nav aria-label="Rubriques du profil" className={styles.sectionLinks}><a href="#compte-identite">Informations</a><a href="#compte-securite">Sécurité</a></nav>
-      <div className={styles.settings}>
-        <div id="compte-identite" className={styles.settingGroup}><AccountCard name={fullName} email={user?.email ?? ''} role="Praticien" whom="l’administration de votre clinique">
+      <nav aria-label="Rubriques du profil" className={styles.sectionLinks}>{([['all','Vue d’ensemble'],['identity','Informations'],['security','Sécurité']] as const).map(([id,label]) => <button key={id} type="button" aria-pressed={section === id} onClick={() => setSection(id)}>{label}</button>)}</nav>
+      <div className={styles.settings} data-single={section !== 'all' || undefined}>
+        <div hidden={section === "security"} id="compte-identite" className={styles.settingGroup}><AccountCard name={fullName} email={user?.email ?? ''} role="Praticien" whom="l’administration de votre clinique">
           <div>
             <p className={styles.sub}>Cliniques de rattachement</p>
             {week.status === 'loading' && <p className={styles.muted}>Chargement…</p>}
@@ -101,7 +102,7 @@ export default function ProfilePage() {
             )}
           </div>
         </AccountCard></div>
-        <div id="compte-securite" className={styles.settingGroup}><SecurityCard passwordPath={paths.practitioner.password} onLogout={onLogout}>
+        <div hidden={section === "identity"} id="compte-securite" className={styles.settingGroup}><SecurityCard passwordPath={paths.practitioner.password} onLogout={onLogout}>
           <Protection
             icon={<ShieldCheck size={20} />}
             title="Connexion en deux étapes"

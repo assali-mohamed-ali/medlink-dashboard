@@ -1,5 +1,7 @@
 import styles from '@/shared/ui/WorkflowPage.module.css'
 import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { paths } from '@/shared/config/paths'
 import { Alert, Button, Card } from '@/shared/ui'
 import { messageFor } from '@/shared/api/errors'
 import { decideProposal, fetchProposals } from '../api'
@@ -45,8 +47,10 @@ export default function ApprovalPage({ party }: { party: Party }) {
   }
 
   return (
-    <Card title="Propositions de réaffectation">
-      <p>Le transfert nécessite l’accord du patient et du praticien repreneur. Le rendez-vous initial reste inchangé jusque-là.</p>
+    <section className={styles.workspace}>
+      <header className={styles.pageHeading}><div><h2>Propositions de réaffectation</h2><p>{party === 'patient' ? 'Examinez les nouveaux créneaux proposés pour vos consultations.' : 'Examinez les consultations que vous êtes invité à reprendre.'}</p></div><Link className={styles.outlineLink} to={party === 'patient' ? paths.patient.appointments : paths.practitioner.agenda}>{party === 'patient' ? 'Mes rendez-vous' : 'Mon agenda'}</Link></header>
+      <Card title="Propositions reçues" headingLevel={3}>
+      <div className={styles.feedback}><p>Le transfert nécessite l’accord du patient et du praticien repreneur. Le rendez-vous initial reste inchangé jusque-là.</p></div>
       {error && <><Alert tone="error">{error}</Alert><Button variant="secondary" onClick={() => setAttempt((n) => n + 1)}>Actualiser</Button></>}
       {notice && <Alert tone="success">{notice}</Alert>}
       {!data && !error && <p role="status">Chargement des propositions…</p>}
@@ -75,6 +79,7 @@ export default function ApprovalPage({ party }: { party: Party }) {
         )
       })}</ul>}
       {data && <PageNav label="Pages de propositions" value={data} disabled={busy} onPage={(next) => { setDecision(undefined); setPage(next) }} />}
-    </Card>
+      </Card>
+    </section>
   )
 }
