@@ -185,6 +185,7 @@ export default function StaffHome({ firstName }: { firstName?: string }) {
           </p>
         </div>
         <div className={styles.quick}>
+          <Link to={paths.staff.booking} className={styles.add}><CalendarDays size={18} aria-hidden="true" /> Nouveau rendez-vous</Link>
           <Link to={`${paths.staff.accounts}?nouveau`} className={styles.add}>
             <UserPlus size={18} aria-hidden="true" />
             Nouveau compte
@@ -269,6 +270,14 @@ export default function StaffHome({ firstName }: { firstName?: string }) {
         </section>
 
         <div className={styles.side}>
+          <section className={styles.card} aria-labelledby={`${ids}-operations`}>
+            <h3 id={`${ids}-operations`} className={styles.cardTitle}>Opérations à traiter</h3>
+            <div className={styles.taskLinks}>
+              <Link to={paths.staff.reassignments}>Suivre les réaffectations <ArrowRight size={16} aria-hidden="true" /></Link>
+              <Link to={paths.staff.deletionRequests}>Examiner les demandes de suppression <ArrowRight size={16} aria-hidden="true" /></Link>
+              <Link to={paths.staff.clinicAssignments}>Gérer les affectations aux cliniques <ArrowRight size={16} aria-hidden="true" /></Link>
+            </div>
+          </section>
           <section className={styles.card} aria-labelledby={`${ids}-network`}>
             <div className={styles.cardHead}>
               <h3 id={`${ids}-network`} className={styles.cardTitle}>

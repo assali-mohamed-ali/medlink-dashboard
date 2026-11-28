@@ -141,3 +141,5 @@
 @media (max-width: 560px) {
   .glance { grid-template-columns: minmax(0, 1fr); }
 }
+
+.card{border:1px solid var(--ux-line);border-radius:12px;box-shadow:none;}.newOne{background:var(--ux-green);color:var(--on-primary);}.newOne:hover{background:var(--ux-dark);color:var(--on-primary);}.chip[aria-pressed='true']{background:var(--ux-sage);color:var(--ux-dark);border-color:var(--ux-green);}.cancel{color:var(--error);}.cancel:hover{background:var(--error-container);color:var(--on-error-container);}

@@ -115,14 +115,14 @@ export default function MyAppointmentsPage() {
       </header>
 
       {notice && <Alert tone="success">{notice}</Alert>}
-      {error && <Alert tone="error">{error}</Alert>}
+      {error && <><Alert tone="error">{error}</Alert><Button variant="secondary" onClick={() => setReload(n => n + 1)}>Réessayer</Button></>}
       {loading && (
         <div className={styles.loading}>
           <Spinner label="Chargement de vos rendez-vous…" />
         </div>
       )}
 
-      {!loading && result && result.total === 0 && (
+      {!loading && !error && result && result.total === 0 && (
         <div className={styles.empty}>
           <CalendarDays size={28} aria-hidden="true" />
           <p>Vous n’avez pas encore de rendez-vous.</p>
@@ -132,7 +132,7 @@ export default function MyAppointmentsPage() {
         </div>
       )}
 
-      {!loading && result && result.total > 0 && (
+      {!loading && !error && result && result.total > 0 && (
         <>
           <div className={styles.glanceBar}>
             <ul className={styles.glance} aria-label="En bref">

@@ -143,7 +143,7 @@ export default function PatientHome({ firstName }: { firstName?: string }) {
           </div>
 
           {load.status === 'loading' && <Skeleton lines={3} label="Chargement de vos rendez-vous…" />}
-          {load.status === 'error' && <Alert tone="error">{load.message}</Alert>}
+          {load.status === 'error' && <><Alert tone="error">{load.message}</Alert><Button variant="secondary" onClick={() => { setLoad({ status: 'loading' }); setReload(n => n + 1) }}>Réessayer</Button></>}
           {load.status === 'ready' && !next && <p className={styles.none}>Aucun rendez-vous à venir.</p>}
           {next && nextStart && (
             <>
@@ -217,6 +217,8 @@ export default function PatientHome({ firstName }: { firstName?: string }) {
             text="Les comptes-rendus de vos consultations"
             link={{ to: paths.patient.reports, label: 'Voir mes comptes-rendus' }}
           />
+          <Part icon={<FileText size={20} aria-hidden="true" />} title="Mes résultats" text="Les résultats transmis par vos praticiens" link={{ to: paths.patient.results, label: 'Consulter mes résultats' }} />
+          <Part icon={<FileText size={20} aria-hidden="true" />} title="Mes documents" text="Vos documents médicaux disponibles" link={{ to: paths.patient.documents, label: 'Ouvrir mes documents' }} />
           <Soon icon={<MessageSquare size={20} aria-hidden="true" />} title="Messages" text="Vos échanges avec vos soignants" />
           <aside className={styles.help} aria-label="Un empêchement ?">
             <strong>Un empêchement ?</strong>

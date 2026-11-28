@@ -94,3 +94,6 @@
   .title { font-size: var(--text-2xl); line-height: var(--leading-2xl); }
   .actions { flex-direction: row; }
 }
+
+/* The upcoming visit is the priority; services remain compact and readable. */
+.card,.soon,.help{border:1px solid var(--ux-line);border-radius:12px;box-shadow:none;}.book{background:var(--ux-green);color:var(--on-primary);}.book:hover{background:var(--ux-dark);color:var(--on-primary);}.side{gap:12px;}.soonText{min-width:0;}.soon{flex-wrap:wrap;}

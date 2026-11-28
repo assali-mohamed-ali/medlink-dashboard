@@ -251,6 +251,14 @@ export default function PractitionerHome({ firstName }: { firstName?: string }) 
             )}
           </section>
 
+          <section className={styles.card} aria-labelledby={`${ids}-actions`}>
+            <h3 id={`${ids}-actions`} className={styles.cardTitle}>Actions de planning</h3>
+            <div className={styles.taskLinks}>
+              <Link to={paths.practitioner.patients}>Rechercher un dossier patient <ArrowRight size={16} aria-hidden="true" /></Link>
+              <Link to={paths.practitioner.absences}>Gérer les absences <ArrowRight size={16} aria-hidden="true" /></Link>
+              <Link to={paths.practitioner.reassignments}>Consulter les réaffectations <ArrowRight size={16} aria-hidden="true" /></Link>
+            </div>
+          </section>
           <section className={styles.soon} aria-labelledby={`${ids}-messages`}>
             <span className={styles.soonIcon}>
               <MessageSquare size={20} aria-hidden="true" />
