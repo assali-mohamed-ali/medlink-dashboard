@@ -54,8 +54,9 @@ export const SPACES: Record<Role, Space> = {
         label: 'Rendez-vous',
         to: paths.patient.appointments, group: 'Mon espace',
         icon: CalendarDays,
-        also: [paths.patient.slots, paths.patient.reassignments],
+        also: [paths.patient.slots],
       },
+      { label: 'Réaffectations', to: paths.patient.reassignments, group: 'Mon espace', icon: CalendarDays },
       { label: 'Mes résultats', to: paths.patient.results, group: 'Dossier médical', icon: FileText },
       { label: 'Mes documents', to: paths.patient.documents, group: 'Dossier médical', icon: FileText },
       // MLink-32 follow-up: the consultation reports written about the patient
@@ -88,8 +89,9 @@ export const SPACES: Record<Role, Space> = {
     menu: [
       { label: 'Accueil', to: paths.practitioner.root, group: 'Consultations', icon: House },
       { label: 'Mes patients', to: paths.practitioner.patients, group: 'Consultations', icon: Users },
-      { label: 'Agenda', to: paths.practitioner.agenda, group: 'Consultations', icon: CalendarDays, also: [paths.practitioner.reassignments] },
+      { label: 'Agenda', to: paths.practitioner.agenda, group: 'Consultations', icon: CalendarDays },
       { label: 'Absences', to: paths.practitioner.absences, group: 'Planning', icon: CalendarDays },
+      { label: 'Réaffectations', to: paths.practitioner.reassignments, group: 'Planning', icon: CalendarDays },
       // The password page opens from the profile ("Modifier le mot de passe"), not from the menu
       { label: 'Profil', to: paths.practitioner.profile, group: 'Compte', icon: UserRound, also: [paths.practitioner.password] },
     ],
@@ -114,8 +116,9 @@ export const SPACES: Record<Role, Space> = {
       { label: 'Accueil', to: paths.staff.root, group: 'Pilotage', icon: House },
       { label: 'Rendez-vous des cliniques', to: paths.staff.activity, group: 'Pilotage', icon: CalendarDays },
       { label: 'Réserver pour un patient', to: paths.staff.booking, group: 'Opérations', icon: CalendarDays },
+      { label: 'Réaffectations', to: paths.staff.reassignments, group: 'Opérations', icon: CalendarDays },
       { label: 'Gestion des comptes', to: paths.staff.accounts, group: 'Opérations', icon: Users },
-      { label: 'Affectations des praticiens', to: paths.staff.clinicAssignments, group: 'Opérations', icon: Users, also: [paths.staff.reassignments] },
+      { label: 'Affectations des praticiens', to: paths.staff.clinicAssignments, group: 'Opérations', icon: Users },
       { label: 'Documents patients', to: paths.staff.documents, group: 'Opérations', icon: FileText },
       { label: 'Journal d’audit', to: paths.staff.audit, group: 'Confidentialité', icon: ScrollText },
       { label: 'Statistiques', to: paths.staff.stats, group: 'Confidentialité', icon: ChartColumn },

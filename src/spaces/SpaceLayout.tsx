@@ -47,7 +47,7 @@ export default function SpaceLayout({ role }: { role: Role }) {
       <a href="#contenu" className={styles.skip}>
         Aller au contenu
       </a>
-      <button ref={menuToggle} type="button" className={styles.menuToggle} aria-expanded={menuOpen} aria-controls="space-menu" onClick={() => setMenuOpen(open => !open)}><Menu size={20} aria-hidden="true" /> Menu</button>
+      <button ref={menuToggle} type="button" className={styles.menuToggle} aria-expanded={menuOpen} aria-controls="space-menu" onClick={() => setMenuOpen(open => !open)}><Menu size={20} aria-hidden="true" /> Menu <span aria-hidden="true" className={styles.mobileBrand}>MedLink</span></button>
       <nav id="space-menu" data-open={menuOpen} className={styles.nav} aria-label="Menu de l’espace" onKeyDown={(event) => {
         if (event.key === 'Escape' && menuOpen) { setMenuOpen(false); menuToggle.current?.focus() }
       }}>

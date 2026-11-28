@@ -51,6 +51,12 @@ jobs:
         run: npm run check:budget
       - name: Accessibility contrast
         run: npm run check:contrast
+      - name: Install browser smoke-test dependencies
+        run: |
+          python -m pip install --disable-pip-version-check playwright==1.57.0
+          python -m playwright install --with-deps chromium
+      - name: Production bundle browser smoke
+        run: python scripts/ci/browser-smoke.py
       - name: Dependency audit
         run: npm audit --audit-level=high
       - name: Upload production bundle

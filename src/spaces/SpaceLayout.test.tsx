@@ -129,3 +129,13 @@ test('administrative tasks have labeled groups and preserve route navigation', a
   expect(within(menu).getByText('Confidentialité')).toBeInTheDocument()
   expect(within(menu).getByRole('link', { name: 'Rendez-vous des cliniques' })).toHaveAttribute('href', '/admin/rendez-vous')
 })
+
+test.each([
+  ['PATIENT', '/patient', '/patient/rendez-vous/reaffectations'],
+  ['PRACTITIONER', '/praticien', '/praticien/agenda/reaffectations'],
+  ['ADMINISTRATIVE_STAFF', '/admin', '/admin/comptes/affectations/reaffectations'],
+] as const)('the %s can find reassignment proposals in the task menu', async (role, path, destination) => {
+  renderAs(role, path)
+  const menu = await screen.findByRole('navigation', { name: 'Menu de l’espace' })
+  expect(within(menu).getByRole('link', { name: 'Réaffectations' })).toHaveAttribute('href', destination)
+})

@@ -22,3 +22,6 @@ Design reference: user-approved public homepage V2.3 (28 November 2026); the HTM
 Run repository pre-commit, lint, unit/component tests, TypeScript/build, bundle budget, contrast, dependency audit and security workflows on the final head. Then review responsive behavior, keyboard navigation and live API workflows using synthetic accounts in a non-production environment. Do not mark browser acceptance complete on component tests alone.
 
 Preserve all existing API contracts, route guards, consent, MFA, session revocation, authorization and validation. No new production signup, irreversible deletion, data exposure or deployment. Keep work on feat/ux-v2, with reviewed commits and full frontend CI.
+
+## Browser smoke coverage
+The production bundle is served on loopback by `python scripts/ci/browser-smoke.py` (Python Playwright 1.57.0 with Chromium). The CI check covers desktop (1440px) and mobile (390px), the anonymous homepage FAQ keyboard interaction and protected-route login redirect, all three authenticated homes, navigation, mobile disclosure and Escape focus restoration, page-level overflow and uncaught JavaScript errors. Fixtures are synthetic and read-only; external requests are blocked. The check is not an exact visual comparison with the prototype or a live API test.

@@ -49,3 +49,5 @@
   .logoutLabel{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;}
   .main{padding:16px 12px 32px;}
 }
+
+.mobileBrand { margin-left:auto; font-size:1.125rem; font-weight:750; letter-spacing:-.025em; }
