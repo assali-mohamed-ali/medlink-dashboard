@@ -167,7 +167,7 @@ test('the activation link of the mail opens the activation page, without a sessi
 
   expect(await screen.findByRole('heading', { level: 1, name: 'Activez votre compte' })).toBeInTheDocument()
   expect(screen.getByRole('button', { name: 'Activer mon compte' })).toBeInTheDocument()
-  expect(screen.queryByText('Activation du compte')).toBeNull()
+  expect(screen.getByText('Activation du compte')).toBeInTheDocument()
 })
 
 const BACKLOG_PAGES = [
