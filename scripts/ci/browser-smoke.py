@@ -108,6 +108,15 @@ def exercise_public(page, origin):
     page.get_by_role("link", name="Prendre rendez-vous").click()
     expect(page).to_have_url(origin + "/connexion")
     expect(page.get_by_role("heading", level=1, name="Bienvenue sur MedLink", exact=True)).to_be_visible()
+    intro = page.get_by_role("complementary", name="À propos de votre accès")
+    if page.viewport_size["width"] <= 760:
+        expect(intro).not_to_be_visible()
+        page.goto(origin + "/double-authentification")
+        expect(page.get_by_role("heading", name="Saisissez votre code")).to_be_visible()
+        expect(intro.get_by_role("link", name="MedLink, retour à l’accueil")).to_be_visible()
+        expect(page.get_by_text("Votre santé,", exact=False)).not_to_be_visible()
+    else:
+        expect(intro).to_be_visible()
     assert_layout(page)
 
 
