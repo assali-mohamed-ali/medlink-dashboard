@@ -1,0 +1,22 @@
+/* Shared secondary workflows: compact responsive lists and a clear review surface. */
+.search { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; align-items:start; margin-bottom:20px; }
+.search > button { align-self:center; }
+.fields { display:grid; gap:12px; grid-template-columns:repeat(2,minmax(0,1fr)); padding:16px; background:var(--surface-sunken); border:1px solid var(--ux-line); border-radius:12px; margin:16px 0; }
+.fields > :nth-child(3) { grid-column:1/-1; }
+.fields > button { grid-column:1/-1; justify-self:start; }
+.rows,.proposals { display:grid; list-style:none; padding:0; margin:16px 0; gap:12px; }
+.rows > li { min-width:0; padding:14px; border:1px solid var(--ux-line); background:var(--surface-raised); border-radius:10px; overflow-wrap:anywhere; }
+.rows a { font-weight:650; color:var(--ux-green); }
+.rows button,.proposals button,.impact button { margin:4px 6px 4px 0; }
+.result { border:1px solid var(--ux-line); border-radius:10px; padding:0 16px 12px; margin:12px 0; overflow-wrap:anywhere; }
+.result summary { padding:14px 0; cursor:pointer; font-weight:700; color:var(--ux-dark); min-height:44px; }
+.result summary:focus-visible { outline:2px solid var(--ux-green); outline-offset:3px; }
+.result p { line-height:1.6; }
+.feedback,.impact { border:1px solid var(--ux-line); border-radius:12px; padding:16px; margin-top:16px; background:var(--surface-sunken); }
+.feedback p { margin-top:0; }
+.pagination { display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; margin-top:20px; }
+@media(max-width:600px) {
+  .search,.fields { grid-template-columns:minmax(0,1fr); }
+  .search > button,.fields > button { justify-self:stretch; }
+  .pagination { justify-content:center; }
+}

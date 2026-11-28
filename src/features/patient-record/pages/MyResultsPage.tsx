@@ -1,3 +1,4 @@
+import styles from '@/shared/ui/WorkflowPage.module.css'
 import { useEffect, useState } from 'react'
 import { messageFor } from '@/shared/api/errors'
 import { useAuth } from '@/features/auth'
@@ -13,6 +14,7 @@ export default function MyResultsPage() {
   const [downloading, setDownloading] = useState(false)
   const [downloadError, setDownloadError] = useState('')
   const [page, setPage] = useState(0)
+  const [attempt, setAttempt] = useState(0)
   const [data, setData] = useState<ResultPage>()
   const [error, setError] = useState('')
 
@@ -23,7 +25,7 @@ export default function MyResultsPage() {
       (cause) => { if (current) setError(messageFor(cause)) },
     )
     return () => { current = false }
-  }, [page])
+  }, [page, attempt])
 
   function go(next: number) {
     setData(undefined)
@@ -59,10 +61,10 @@ export default function MyResultsPage() {
       {data && data.unseen > 0 && (
         <p role="status">{data.unseen} nouveau{data.unseen > 1 ? 'x' : ''} résultat{data.unseen > 1 ? 's' : ''} depuis votre dernière visite.</p>
       )}
-      {error ? <p role="alert">{error}</p> : !results ? <p role="status">Chargement des résultats…</p> : (
+      {error ? <div className={styles.feedback}><p role="alert">{error}</p><Button variant="secondary" onClick={() => { setError(''); setAttempt(n => n + 1) }}>Réessayer</Button></div> : !results ? <p role="status">Chargement des résultats…</p> : (
         results.length === 0 ? <p>Aucun résultat publié.</p> : (
           results.map((result) => (
-            <details key={result.id} className="border-b py-3">
+            <details key={result.id} className={styles.result}>
               <summary>{result.title}{result.isNew && ' · Nouveau'}</summary>
               <p>{result.examType} · Examen du {result.examDate}</p>
               <p>
@@ -78,7 +80,7 @@ export default function MyResultsPage() {
         )
       )}
       {data && last > 0 && (
-        <nav aria-label="Pages de résultats">
+        <nav className={styles.pagination} aria-label="Pages de résultats">
           <Button disabled={page === 0} onClick={() => go(page - 1)}>Page précédente</Button>
           <span> Page {page + 1} sur {last + 1} </span>
           <Button disabled={page >= last} onClick={() => go(page + 1)}>Page suivante</Button>

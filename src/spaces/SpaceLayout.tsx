@@ -22,7 +22,9 @@ export default function SpaceLayout({ role }: { role: Role }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuToggle = useRef<HTMLButtonElement>(null)
   const path = pathname.replace(/\/+$/, '') || '/'
-  const active = space.menu.find(entry => entry.to === path) ?? space.menu.find(entry => entry.also?.includes(path) || (entry.to !== space.menu[0].to && path.startsWith(entry.to + '/')))
+  const active = space.menu.find(entry => entry.to === path)
+    ?? space.menu.find(entry => entry.also?.includes(path))
+    ?? [...space.menu].sort((a, b) => b.to.length - a.to.length).find(entry => entry.to !== space.menu[0].to && path.startsWith(entry.to + '/'))
   const groups = [...new Set(space.menu.map(entry => entry.group ?? 'Navigation'))]
   const titleRef = useRef<HTMLHeadingElement>(null)
   const shownPath = useRef(pathname)
@@ -75,13 +77,6 @@ export default function SpaceLayout({ role }: { role: Role }) {
       <div className={styles.page}>
         <header className={styles.topbar}>
           <div className={styles.topbarStart}>
-            <span className={styles.wordmark} aria-hidden="true">
-              <span className={styles.wordmarkLogo}>
-                <Plus size={14} strokeWidth={3} />
-              </span>
-              <span className={styles.wordmarkName}>MedLink</span>
-              <span className={styles.wordmarkTag}>Santé</span>
-            </span>
             <h1 ref={titleRef} tabIndex={-1} className={styles.title}>
               {space.title}
             </h1>

@@ -1,3 +1,4 @@
+import styles from '@/shared/ui/WorkflowPage.module.css'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { messageFor } from '@/shared/api/errors'
@@ -38,16 +39,16 @@ export default function PatientDirectoryPage() {
 
   return (
     <Card title="Mes patients">
-      <form onSubmit={submit} role="search">
+      <form className={styles.search} onSubmit={submit} role="search">
         <TextField id="directory-query" label="Nom, prénom ou numéro de dossier" name="query" maxLength={100}
           hint="Par exemple : Ben Salah, Amel Ben Salah ou MED-000042." />
         <Button type="submit">Rechercher</Button>
       </form>
-      {error ? <p role="alert">{error}</p> : !result ? <p role="status">Recherche en cours…</p> : (
+      {error ? <div className={styles.feedback}><p role="alert">{error}</p><Button variant="secondary" onClick={() => go({ ...search })}>Réessayer</Button></div> : !result ? <p role="status">Recherche en cours…</p> : (
         result.items.length === 0 ? <p>Aucun patient trouvé parmi vos patients.</p> : (
           <>
             <p role="status">{result.total} patient{result.total > 1 ? 's' : ''} trouvé{result.total > 1 ? 's' : ''}</p>
-            <ul aria-label="Patients trouvés">
+            <ul className={styles.rows} aria-label="Patients trouvés">
               {result.items.map((patient) => (
                 <li key={patient.id}>
                   <Link to={`${paths.practitioner.patients}/${patient.id}`}>{patient.firstName} {patient.lastName}</Link>
@@ -56,7 +57,7 @@ export default function PatientDirectoryPage() {
               ))}
             </ul>
             {last > 0 && (
-              <nav aria-label="Pages de résultats">
+              <nav className={styles.pagination} aria-label="Pages de résultats">
                 <Button type="button" disabled={search.page === 0}
                   onClick={() => go({ ...search, page: search.page - 1 })}>Page précédente</Button>
                 <span> Page {search.page + 1} sur {last + 1} </span>

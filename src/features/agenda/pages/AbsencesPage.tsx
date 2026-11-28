@@ -1,3 +1,4 @@
+import styles from '@/shared/ui/WorkflowPage.module.css'
 import { useEffect, useState, type FormEvent } from 'react'
 import { messageFor } from '@/shared/api/errors'
 import { Button, Card, TextField } from '@/shared/ui'
@@ -73,7 +74,7 @@ export default function AbsencesPage() {
       {error && <p role="alert">{error}</p>}
       {notice && <p role="status">{notice}</p>}
       <p>Les créneaux libres de vos cliniques seront fermés pendant cette période. Examinez les rendez-vous concernés.</p>
-      <form className="grid gap-3" onSubmit={submit}>
+      <form className={styles.fields} onSubmit={submit}>
         <TextField id="absence-start" name="start" label="Début (heure de Tunisie)" type="datetime-local" required />
         <TextField id="absence-end" name="end" label="Fin (heure de Tunisie)" type="datetime-local" required />
         <TextField id="absence-reason" name="reason" label="Motif facultatif" maxLength={200} />
@@ -81,25 +82,25 @@ export default function AbsencesPage() {
       </form>
       {!absences && !error && <p role="status">Chargement des absences…</p>}
       {absences?.length === 0 && <p>Aucune absence déclarée.</p>}
-      {absences && <ul>{absences.map((absence) => (
+      {absences && <ul className={styles.rows}>{absences.map((absence) => (
         <li key={absence.id}>
-          <Button disabled={busy} onClick={() => void run(() => select(absence))}>
+          <Button variant={selected?.id === absence.id ? "primary" : "secondary"} aria-pressed={selected?.id === absence.id} disabled={busy} onClick={() => void run(() => select(absence))}>
             {dateTime.format(new Date(absence.startsAt))} – {dateTime.format(new Date(absence.endsAt))}
           </Button>
         </li>
       ))}</ul>}
       {selected && (
-        <section aria-label="Rendez-vous à traiter">
+        <section className={styles.impact} aria-label="Rendez-vous à traiter">
           <h3>Rendez-vous à traiter</h3>
           {selected.reason && <p>{selected.reason}</p>}
           {!affected && !error && <p role="status">Chargement des rendez-vous…</p>}
           {affected?.length === 0 && <p>Aucun rendez-vous à traiter pour cette absence.</p>}
-          {affected && <ul>{affected.map((appointment) => (
+          {affected && <ul className={styles.rows}>{affected.map((appointment) => (
             <li key={appointment.appointmentId}>
               <p>{appointment.patientFirstName} {appointment.patientLastName} · {appointment.clinic} ·{' '}
                 {dateTime.format(new Date(appointment.startsAt))}</p>
-              <Button disabled={busy} onClick={() => setDecision({ id: appointment.appointmentId, action: 'CANCEL' })}>Annuler le rendez-vous</Button>
-              <Button disabled={busy} onClick={() => setDecision({ id: appointment.appointmentId, action: 'POSTPONE' })}>Reporter à la semaine suivante</Button>
+              <Button variant="danger" disabled={busy} onClick={() => setDecision({ id: appointment.appointmentId, action: 'CANCEL' })}>Annuler le rendez-vous</Button>
+              <Button variant="secondary" disabled={busy} onClick={() => setDecision({ id: appointment.appointmentId, action: 'POSTPONE' })}>Reporter à la semaine suivante</Button>
               {decision?.id === appointment.appointmentId && (
                 <div>
                   <p>{decision.action === 'CANCEL' ? 'Confirmer l’annulation de ce rendez-vous ?' :

@@ -1,3 +1,4 @@
+import styles from '@/shared/ui/WorkflowPage.module.css'
 import { useEffect, useRef, useState } from 'react'
 import { Alert, Button, Card } from '@/shared/ui'
 import { messageFor } from '@/shared/api/errors'
@@ -50,7 +51,7 @@ export default function ApprovalPage({ party }: { party: Party }) {
       {notice && <Alert tone="success">{notice}</Alert>}
       {!data && !error && <p role="status">Chargement des propositions…</p>}
       {data?.items.length === 0 && <p>Aucune proposition.</p>}
-      {data && <ul aria-label="Propositions">{data.items.map((proposal) => {
+      {data && <ul className={styles.proposals} aria-label="Propositions">{data.items.map((proposal) => {
         const alreadyAccepted = party === 'patient' ? proposal.patientAccepted : proposal.practitionerAccepted
         return (
           <li key={proposal.id}>
@@ -61,7 +62,7 @@ export default function ApprovalPage({ party }: { party: Party }) {
                   <Button disabled={busy} onClick={() => setDecision({ id: proposal.id, accepted: true })}>Accepter la proposition</Button>
                   <Button variant="secondary" disabled={busy} onClick={() => setDecision({ id: proposal.id, accepted: false })}>Refuser la proposition</Button>
                   {decision?.id === proposal.id && (
-                    <div>
+                    <div className={styles.impact}>
                       <p>Confirmer votre décision ?</p>
                       <Button loading={busy} onClick={() => void submit()}>{decision.accepted ? 'Confirmer l’acceptation' : 'Confirmer le refus'}</Button>
                       <Button variant="secondary" disabled={busy} onClick={() => setDecision(undefined)}>Revenir</Button>
