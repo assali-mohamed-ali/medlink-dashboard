@@ -106,3 +106,5 @@
   .counts { grid-template-columns: minmax(0, 1fr); }
   .protection { flex-wrap: wrap; }
 }
+
+.sectionLinks{display:flex;gap:8px;flex-wrap:wrap;}.sectionLinks a{color:var(--ux-dark);font-size:.875rem;font-weight:650;text-decoration:none;border:1px solid var(--ux-line);border-radius:8px;background:var(--surface-raised);min-height:44px;padding:10px 14px;}.sectionLinks a:hover{background:var(--ux-sage);}.settings{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:20px;}.settingGroup{display:grid;gap:12px;min-width:0;scroll-margin-top:85px;}.settingGroup>h3{font-size:1rem;color:var(--ux-dark);margin:0;}.card{border:1px solid var(--ux-line);border-radius:12px;box-shadow:none;}.change{background:var(--ux-green);color:var(--on-primary);}.change:hover{background:var(--ux-dark);color:var(--on-primary);}@media(max-width:1000px){.settings{grid-template-columns:1fr;}}

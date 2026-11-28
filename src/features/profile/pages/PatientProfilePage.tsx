@@ -93,13 +93,25 @@ export default function PatientProfilePage() {
         </div>
       )}
 
-      <div className={styles.layout}>
-        <AccountCard name={fullName} email={user?.email ?? ''} role="Patient" whom="l’accueil de votre clinique" />
-        <SecurityCard passwordPath={paths.patient.password} onLogout={onLogout} />
-        <PatientDetails />
-        <EmailChange onConfirmed={onLogout} />
-        <NotificationPreferences />
-        <PatientData />
+      <nav aria-label="Rubriques du profil" className={styles.sectionLinks}>
+        <a href="#profil-identite">Informations personnelles</a>
+        <a href="#profil-securite">Connexion et sécurité</a>
+        <a href="#profil-notifications">Notifications</a>
+        <a href="#profil-confidentialite">Confidentialité</a>
+      </nav>
+      <div className={styles.settings}>
+        <div id="profil-identite" className={styles.settingGroup}>
+          <h3>Informations personnelles</h3>
+          <AccountCard name={fullName} email={user?.email ?? ''} role="Patient" whom="l’accueil de votre clinique" />
+          <PatientDetails />
+        </div>
+        <div id="profil-securite" className={styles.settingGroup}>
+          <h3>Connexion et sécurité</h3>
+          <SecurityCard passwordPath={paths.patient.password} onLogout={onLogout} />
+          <EmailChange onConfirmed={onLogout} />
+        </div>
+        <div id="profil-notifications" className={styles.settingGroup}><h3>Notifications</h3><NotificationPreferences /></div>
+        <div id="profil-confidentialite" className={styles.settingGroup}><h3>Confidentialité et données</h3><PatientData /></div>
       </div>
     </div>
   )

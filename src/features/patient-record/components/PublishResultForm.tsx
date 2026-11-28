@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { messageFor } from '@/shared/api/errors'
-import { Button, Card, Select, TextField } from '@/shared/ui'
+import styles from './PublishResultForm.module.css'
+import { Alert, Button, Card, Select, TextField, WorkflowSteps } from '@/shared/ui'
 import {
   fetchPatientFiles,
   fetchPublishedResults,
@@ -105,20 +106,21 @@ export default function PublishResultForm({ patientId }: { patientId: string }) 
   }
 
   return (
-    <Card title="Publier un résultat d’examen">
-      {error && <p role="alert">{error}</p>}
+    <Card title="Publier un résultat d’examen" className={styles.card}>
+      <WorkflowSteps steps={['Saisir le résultat', 'Vérifier', 'Publier']} current={published ? 2 : draft ? 1 : 0} />
+      {error && <Alert tone="error">{error}</Alert>}
       {published && <p role="status">Résultat publié dans l’espace du patient. Il en est prévenu par e-mail s’il l’a accepté.</p>}
       {draft ? (
-        <div>
+        <div className={styles.review}>
           <h3>{draft.title}</h3>
           <p>{draft.examType} · {draft.examDate}</p>
           {draft.fileLabel && <p>Pièce jointe : {draft.fileLabel}</p>}
           <p className="whitespace-pre-wrap break-words">{draft.content}</p>
           <Button disabled={busy} onClick={() => void publish()}>Confirmer la publication</Button>
-          <Button disabled={busy} onClick={() => setDraft(undefined)}>Annuler</Button>
+          <Button variant="secondary" disabled={busy} onClick={() => setDraft(undefined)}>Annuler</Button>
         </div>
       ) : (
-        <form onSubmit={review}>
+        <form className={styles.form} onSubmit={review}>
           <TextField id="result-title" label="Titre de l’examen" name="title" required maxLength={200} />
           <TextField id="result-type" label="Type d’examen" name="examType" required maxLength={100} />
           <TextField id="result-date" label="Date de l’examen" name="examDate" type="date" required />
@@ -132,7 +134,7 @@ export default function PublishResultForm({ patientId }: { patientId: string }) 
           <label className="block" htmlFor="result-file">Ou déposer un nouveau fichier (PDF, PNG ou JPEG, 10 Mo au plus)</label>
           <input id="result-file" name="file" type="file" accept={ACCEPT} />
           <label className="block" htmlFor="result-content">Résultat</label>
-          <textarea className="w-full rounded-md border p-2" id="result-content" name="content" required maxLength={10000} />
+          <textarea className={styles.textarea} id="result-content" name="content" required maxLength={10000} />
           <Button type="submit">Relire le résultat</Button>
         </form>
       )}

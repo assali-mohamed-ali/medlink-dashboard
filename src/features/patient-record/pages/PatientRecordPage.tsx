@@ -195,8 +195,13 @@ function Record({ titleId, patientId, patient, canWrite }: RecordProps) {
         <Fact icon={Lock} tone={4} label="Confidentialité" value="Chiffré" note="AES-256" />
       </ul>
 
+      <nav className={styles.sectionLinks} aria-label="Sections du dossier">
+        <a href="#dossier-identite">Identité</a>
+        <a href="#dossier-comptes-rendus">Comptes-rendus</a>
+        <a href="#dossier-resultats">Résultats et documents</a>
+      </nav>
       <div className={styles.layout}>
-        <section aria-labelledby={identityId} className={styles.card}>
+        <section id="dossier-identite" aria-labelledby={identityId} className={styles.card}>
           <h3 id={identityId} className={styles.sectionTitle}>
             <span className={styles.titleIcon}>
               <IdCard size={18} aria-hidden="true" />
@@ -235,7 +240,8 @@ function Record({ titleId, patientId, patient, canWrite }: RecordProps) {
           </p>
         </section>
 
-        <PublishResultForm key={patientId} patientId={patientId} />
+        <div className={styles.recordContent}>
+        <div id="dossier-comptes-rendus" className={styles.sectionTarget}>
         <ReportsPanel
           patientId={patientId}
           load={reports.load}
@@ -249,6 +255,9 @@ function Record({ titleId, patientId, patient, canWrite }: RecordProps) {
           }}
           saved={saved}
         />
+        </div>
+        <div id="dossier-resultats" className={styles.sectionTarget}><PublishResultForm key={patientId} patientId={patientId} /></div>
+        </div>
       </div>
     </>
   )
