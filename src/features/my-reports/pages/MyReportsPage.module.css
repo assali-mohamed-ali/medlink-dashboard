@@ -29,3 +29,7 @@
 @media (max-width: 640px) {
   .date { margin-left: 0; flex-basis: 100%; }
 }
+
+.report{border:1px solid var(--ux-line);border-radius:12px;box-shadow:none;min-width:0;}.meta{flex-wrap:wrap;}.more{min-height:44px;color:var(--ux-green);}.text{overflow-wrap:anywhere;}
+
+.readOnly{font-size:.8125rem;color:var(--ux-muted);margin:8px 0 0;}.reportIcon{display:grid;place-items:center;width:44px;height:44px;flex:none;background:var(--ux-sage);color:var(--ux-green);border-radius:10px;}.report{padding:18px;}.reports{gap:12px;}.meta{align-items:center;}.author{font-weight:700;}.author .icon{display:none;}.text{padding:14px;background:var(--surface-sunken);border-radius:8px;white-space:pre-wrap;}.more{border:1px solid var(--ux-line);border-radius:8px;padding:8px 14px;}.more:hover{background:var(--ux-sage);}

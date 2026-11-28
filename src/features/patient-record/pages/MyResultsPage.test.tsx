@@ -60,3 +60,13 @@ test('no result yet says so', async () => {
 
   expect(await screen.findByText('Aucun résultat publié.')).toBeInTheDocument()
 })
+
+test('an unsuccessful results request can be retried without navigating away', async () => {
+  fetchMyResults.mockRejectedValueOnce(new Error('Network unavailable'))
+  fetchMyResults.mockResolvedValueOnce({ items: [RESULT], page: 0, size: 20, total: 1, unseen: 1 })
+  render(<MyResultsPage />)
+  await screen.findByRole('alert')
+  await userEvent.click(screen.getByRole('button', { name: 'Réessayer' }))
+  expect(await screen.findByText('Bilan sanguin · Nouveau')).toBeInTheDocument()
+  expect(fetchMyResults).toHaveBeenCalledTimes(2)
+})

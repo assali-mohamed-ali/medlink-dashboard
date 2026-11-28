@@ -14,7 +14,7 @@ import Occupancy from '../components/Occupancy'
 import OpenSlotForm from '../components/OpenSlotForm'
 import WeekTable from '../components/WeekTable'
 import type { Agenda, AgendaItem, ClinicRef } from '../types'
-import { addDays, isoWeek, longDayLabel, mondayOf, monthOf, timeLabel, tunisDay, weekPeriod, weekTitle } from '../week'
+import { addDays, isoWeek, longDayLabel, mondayOf, monthOf, timeLabel, tunisDay, weekDays, weekPeriod, weekTitle } from '../week'
 import styles from '../agenda.module.css'
 
 type Load = { status: 'loading' } | { status: 'ready'; agenda: Agenda } | { status: 'error'; message: string }
@@ -50,6 +50,8 @@ export default function AgendaPage() {
   const today = tunisDay(new Date(now))
   const thisMonday = mondayOf(today)
   const [monday, setMonday] = useState(thisMonday)
+  const [view, setView] = useState<'week' | 'day'>(() => typeof window !== 'undefined' && window.matchMedia?.('(max-width: 760px)').matches ? 'day' : 'week')
+  const [selectedDay, setSelectedDay] = useState(today)
   const [month, setMonth] = useState(monthOf(today))
   const [attempt, setAttempt] = useState(0)
   const [answer, setAnswer] = useState<Answer | null>(null)
@@ -106,6 +108,7 @@ export default function AgendaPage() {
   function showWeek(day: string) {
     const next = mondayOf(day)
     setMonday(next)
+    setSelectedDay(weekDays(next).includes(day) ? day : next)
     setMonth(monthOf(day))
   }
 
@@ -168,6 +171,8 @@ export default function AgendaPage() {
   }
 
   const title = weekTitle(monday)
+  const days = weekDays(monday)
+  const activeDay = days.includes(selectedDay) ? selectedDay : days[0] ?? monday
   const weekAbsences = absenceAnswer?.key === key ? absenceAnswer : null
 
   return (
@@ -188,6 +193,7 @@ export default function AgendaPage() {
           <Link to={paths.practitioner.reassignments}>Propositions de réaffectation</Link>
         </div>
         <div className={styles.headerSide}>
+          <Link to={paths.practitioner.absences} className={styles.secondaryAction}>Mes absences</Link>
           <button
             ref={addButton}
             type="button"
@@ -218,7 +224,7 @@ export default function AgendaPage() {
       {notice && <Alert tone={notice.tone}>{notice.text}</Alert>}
 
       <div className={styles.layout}>
-        <aside className={styles.side}>
+        <aside className={styles.side} aria-label="Calendrier et filtres">
           <MonthCalendar month={month} monday={monday} today={today} onMonth={setMonth} onDay={showWeek} />
           {load.status === 'ready' && (
             <>
@@ -263,6 +269,16 @@ export default function AgendaPage() {
             </Button>
           </div>
 
+          <div className={styles.viewControls}>
+            <span className={styles.viewLabel}>Mode de consultation</span>
+            <div className={styles.viewSwitch} role="group" aria-label="Affichage de l’agenda">
+              <Button size="sm" variant="secondary" aria-pressed={view === 'week'} onClick={() => setView('week')}>Semaine</Button>
+              <Button size="sm" variant="secondary" aria-pressed={view === 'day'} onClick={() => setView('day')}>Jour</Button>
+            </div>
+            {view === 'day' && <div className={styles.dayPicker} role="group" aria-label="Jour de l’agenda">
+              {days.map(day => <Button key={day} size="sm" variant="secondary" aria-pressed={activeDay === day} onClick={() => setSelectedDay(day)}>{longDayLabel(day)}</Button>)}
+            </div>}
+          </div>
           {load.status === 'loading' && <Skeleton lines={6} label="Chargement de l’agenda…" />}
           {load.status === 'error' && (
             <div className={styles.error}>
@@ -295,7 +311,8 @@ export default function AgendaPage() {
           )}
           {load.status === 'ready' && (
             <WeekTable
-              title={title}
+              title={view === 'day' ? longDayLabel(activeDay) : title}
+              selectedDay={view === 'day' ? activeDay : undefined}
               monday={monday}
               today={today}
               agenda={load.agenda}

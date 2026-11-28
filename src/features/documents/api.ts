@@ -43,6 +43,7 @@ type AccountRow = {
   email: string
   role: string | null
   roles: string[]
+  hasPatientProfile?: boolean
 }
 
 /**
@@ -53,6 +54,6 @@ export async function searchPatients(search: string): Promise<PatientChoice[]> {
   const query = new URLSearchParams({ search, page: '0', size: '100' })
   const page = await apiFetch<{ items: AccountRow[] }>(`/admin/users?${query}`)
   return page.items
-    .filter((account) => account.role === 'PATIENT' && account.roles.length === 1)
+    .filter((account) => account.role === 'PATIENT' && account.roles.length === 1 && account.hasPatientProfile !== false)
     .map(({ id, firstName, lastName, email }) => ({ id, firstName, lastName, email }))
 }

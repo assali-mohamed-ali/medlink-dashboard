@@ -2,15 +2,15 @@ import { useEffect, useId, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ArrowRight,
-  CalendarCheck,
   CalendarDays,
   CalendarPlus,
   Clock,
-  FileText,
+  FlaskConical,
+  FolderOpen,
   Hourglass,
   MapPin,
-  MessageSquare,
   Repeat,
+  Settings,
   X,
 } from 'lucide-react'
 import { messageFor } from '@/shared/api/errors'
@@ -31,13 +31,6 @@ const SHORT_MONTH = new Intl.DateTimeFormat('fr-FR', { month: 'short' })
 
 type Load = { status: 'loading' } | { status: 'ready'; items: Appointment[] } | { status: 'error'; message: string }
 
-/** "demain à 08:00", "le vendredi 13 novembre à 09:00" */
-function nextSentence(start: Date, now: number) {
-  const days = daysUntil(start, now)
-  const day = days <= 0 ? 'aujourd’hui' : days === 1 ? 'demain' : `le ${dayLabel(start)}`
-  return `${day} à ${timeLabel(start)}`
-}
-
 /** "Aujourd’hui", "Demain", "Dans 2 jours" */
 function soonBadge(start: Date, now: number) {
   const days = daysUntil(start, now)
@@ -46,9 +39,7 @@ function soonBadge(start: Date, now: number) {
 }
 
 /**
- * The patient's home (Stitch design): the greeting with today's date and when the next appointment is, the two quick
- * actions (book, my appointments), the next appointment with "Reporter" and "Annuler", then what is not built yet.
- * Only the patient's own appointments from the API: no fake document, message or figure.
+ * The patient's upcoming visit from the API, with shortcuts to booking, clinical documents and settings.
  */
 export default function PatientHome({ firstName }: { firstName?: string }) {
   // Read once: "now" does not move while the page is open
@@ -96,85 +87,68 @@ export default function PatientHome({ firstName }: { firstName?: string }) {
     <div className={styles.home} data-width="wide">
       <section className={styles.hello} aria-labelledby={`${ids}-hello`}>
         <div>
-          <p className={styles.today}>
-            <CalendarDays size={14} aria-hidden="true" />
-            <span>{fullDateLabel(new Date(now))}</span>
-          </p>
           <h2 id={`${ids}-hello`} className={styles.title}>
-            Bonjour{firstName ? ` ${firstName}` : ''}
+            Bonjour{firstName ? `, ${firstName}` : ''}
           </h2>
-          {load.status === 'ready' && (
-            <p className={styles.sentence}>
-              {nextStart ? (
-                <>
-                  Votre prochain rendez-vous est <strong>{nextSentence(nextStart, now)}</strong>.
-                </>
-              ) : (
-                'Vous n’avez pas de rendez-vous prévu.'
-              )}
-            </p>
-          )}
+          <p className={styles.sentence}>Votre santé, vos rendez-vous et vos documents.</p>
         </div>
-        <div className={styles.quick}>
-          <Link to={paths.patient.slots} className={styles.book}>
-            <CalendarPlus size={18} aria-hidden="true" />
-            Prendre rendez-vous
-          </Link>
-          <Link to={paths.patient.appointments} className={styles.mine}>
-            <CalendarCheck size={18} aria-hidden="true" />
-            Mes rendez-vous
-            {toCome.length > 0 && <span className={styles.mineCount}>{toCome.length} à venir</span>}
-          </Link>
-        </div>
+        <Link to={paths.patient.slots} className={styles.book}>
+          <CalendarPlus size={18} aria-hidden="true" />
+          Prendre rendez-vous
+        </Link>
       </section>
 
       {notice && <Alert tone="success">{notice}</Alert>}
 
       <div className={styles.row}>
-        <section className={styles.card} aria-labelledby={`${ids}-next`}>
-          <div className={styles.cardHead}>
-            <h3 id={`${ids}-next`} className={styles.cardTitle}>
-              Prochain rendez-vous
-            </h3>
-            <Link to={paths.patient.appointments} className={styles.all}>
-              Voir tous mes rendez-vous
-              <ArrowRight size={14} aria-hidden="true" />
-            </Link>
-          </div>
-
-          {load.status === 'loading' && <Skeleton lines={3} label="Chargement de vos rendez-vous…" />}
-          {load.status === 'error' && <Alert tone="error">{load.message}</Alert>}
-          {load.status === 'ready' && !next && <p className={styles.none}>Aucun rendez-vous à venir.</p>}
-          {next && nextStart && (
-            <>
-              <div className={styles.next}>
-                {/* The date is said in full on the line below: the tile is for the eye */}
-                <span className={styles.tile} aria-hidden="true">
-                  <small>{SHORT_WEEKDAY.format(nextStart)}</small>
-                  <b>{nextStart.getDate()}</b>
-                  <span>{SHORT_MONTH.format(nextStart)}</span>
+        <div className={styles.stack}>
+          <section className={next ? styles.hero : styles.card} aria-labelledby={`${ids}-next`}>
+            <div className={styles.cardHead}>
+              <h3 id={`${ids}-next`} className={styles.cardTitle}>
+                Prochain rendez-vous
+              </h3>
+              {nextStart && (
+                <span className={styles.badge}>
+                  <Hourglass size={12} aria-hidden="true" />
+                  {soonBadge(nextStart, now)}
                 </span>
-                <div className={styles.nextText}>
-                  <span className={styles.badge}>
-                    <Hourglass size={12} aria-hidden="true" />
-                    {soonBadge(nextStart, now)}
+              )}
+            </div>
+
+            {load.status === 'loading' && <Skeleton lines={3} label="Chargement de vos rendez-vous…" />}
+            {load.status === 'error' && <><Alert tone="error">{load.message}</Alert><Button variant="secondary" onClick={() => { setLoad({ status: 'loading' }); setReload(n => n + 1) }}>Réessayer</Button></>}
+            {load.status === 'ready' && !next && <p className={styles.none}>Aucun rendez-vous à venir.</p>}
+            {next && nextStart && (
+              <>
+                <div className={styles.next}>
+                  {/* The date is said in full on the line below: the tile is for the eye */}
+                  <span className={styles.tile} aria-hidden="true">
+                    <small>{SHORT_WEEKDAY.format(nextStart)}</small>
+                    <b>{nextStart.getDate()}</b>
+                    <span>{SHORT_MONTH.format(nextStart)}</span>
                   </span>
-                  <p className={styles.who}>
-                    Dr {next.practitioner.firstName} {next.practitioner.lastName}
-                  </p>
-                  <p className={styles.when}>
-                    <Clock size={14} aria-hidden="true" />
-                    <span className={styles.capitalize}>{fullDateLabel(nextStart)}</span> ·{' '}
-                    <span>
-                      {timeLabel(nextStart)} – {timeLabel(new Date(next.endsAt))}
+                  <div className={styles.nextText}>
+                    <p className={styles.who}>
+                      Dr {next.practitioner.firstName} {next.practitioner.lastName}
+                    </p>
+                    <p className={styles.when}>
+                      <Clock size={14} aria-hidden="true" />
+                      <span className={styles.capitalize}>{fullDateLabel(nextStart)}</span> ·{' '}
+                      <span>
+                        {timeLabel(nextStart)} – {timeLabel(new Date(next.endsAt))}
+                      </span>
+                    </p>
+                    <span className={styles.clinic}>
+                      <MapPin size={12} aria-hidden="true" />
+                      <span>{next.clinic.name}</span>
                     </span>
-                  </p>
-                  <span className={styles.clinic}>
-                    <MapPin size={12} aria-hidden="true" />
-                    <span>{next.clinic.name}</span>
-                  </span>
+                  </div>
                 </div>
                 <div className={styles.actions}>
+                  <Link to={paths.patient.appointments} className={styles.book}>
+                    Voir tous mes rendez-vous
+                    <ArrowRight size={14} aria-hidden="true" />
+                  </Link>
                   <Link className={styles.move} to={`${paths.patient.slots}?reporter=${next.id}`}>
                     <Repeat size={14} aria-hidden="true" />
                     Reporter
@@ -192,32 +166,42 @@ export default function PatientHome({ firstName }: { firstName?: string }) {
                     Annuler
                   </button>
                 </div>
-              </div>
-              {after && (
-                <p className={styles.then}>
-                  <span>
-                    Ensuite : <strong>{dayLabel(new Date(after.startsAt))} · {timeLabel(new Date(after.startsAt))}</strong> avec Dr{' '}
-                    {after.practitioner.firstName} {after.practitioner.lastName}, {after.clinic.name}
-                  </span>
-                  {toCome.length > 2 && (
-                    <span className={styles.more}>
-                      + {toCome.length - 2} autre{toCome.length - 2 > 1 ? 's' : ''}
+                {after && (
+                  <p className={styles.then}>
+                    <span>
+                      Ensuite : <strong>{dayLabel(new Date(after.startsAt))} · {timeLabel(new Date(after.startsAt))}</strong> avec Dr{' '}
+                      {after.practitioner.firstName} {after.practitioner.lastName}, {after.clinic.name}
                     </span>
-                  )}
-                </p>
-              )}
-            </>
-          )}
-        </section>
+                    {toCome.length > 2 && (
+                      <span className={styles.more}>
+                        + {toCome.length - 2} autre{toCome.length - 2 > 1 ? 's' : ''}
+                      </span>
+                    )}
+                  </p>
+                )}
+              </>
+            )}
+          </section>
 
-        <div className={styles.side}>
-          <Part
-            icon={<FileText size={20} aria-hidden="true" />}
-            title="Comptes-rendus"
-            text="Les comptes-rendus de vos consultations"
-            link={{ to: paths.patient.reports, label: 'Voir mes comptes-rendus' }}
-          />
-          <Soon icon={<MessageSquare size={20} aria-hidden="true" />} title="Messages" text="Vos échanges avec vos soignants" />
+          <section className={styles.card} aria-labelledby={`${ids}-services`}>
+            <h3 id={`${ids}-services`} className={styles.cardTitle}>À consulter</h3>
+            <div>
+              <ServiceLink icon={<FlaskConical size={20} />} title="Résultats d’examens"
+                text="Résultats transmis par vos praticiens" to={paths.patient.results} />
+              <ServiceLink icon={<Repeat size={20} />} title="Propositions de réaffectation"
+                text="Consultez les propositions et donnez votre réponse" to={paths.patient.reassignments} />
+            </div>
+          </section>
+        </div>
+
+        <div className={styles.stack}>
+          <ServiceLink tile icon={<CalendarDays size={20} />} title="Mes rendez-vous"
+            text={toCome.length ? `${toCome.length} à venir · Historique` : 'À venir et historique'}
+            to={paths.patient.appointments} />
+          <ServiceLink tile icon={<FolderOpen size={20} />} title="Mon dossier médical"
+            text="Résultats, comptes-rendus et documents" to={paths.patient.results} />
+          <ServiceLink tile icon={<Settings size={20} />} title="Mes paramètres"
+            text="Informations personnelles, sécurité et notifications" to={paths.patient.profile} />
           <aside className={styles.help} aria-label="Un empêchement ?">
             <strong>Un empêchement ?</strong>
             Reportez ou annulez vous-même jusqu’à 12 heures avant le rendez-vous : le créneau est aussitôt proposé à un
@@ -249,38 +233,21 @@ export default function PatientHome({ firstName }: { firstName?: string }) {
   )
 }
 
-/** A part of the space with its page (MLink-32 follow-up: the consultation reports). */
-function Part({ icon, title, text, link }: { icon: ReactNode; title: string; text: string; link: { to: string; label: string } }) {
-  const id = useId()
+function ServiceLink({ icon, title, text, to, tile }: {
+  icon: ReactNode
+  title: string
+  text: string
+  to: string
+  tile?: boolean
+}) {
   return (
-    <section className={styles.soon} aria-labelledby={id}>
-      <span className={styles.soonIcon}>{icon}</span>
-      <div className={styles.soonText}>
-        <h3 id={id} className={styles.soonTitle}>
-          {title}
-        </h3>
-        <span>{text}</span>
-      </div>
-      <Link to={link.to} className={styles.partLink}>
-        {link.label}
-      </Link>
-    </section>
-  )
-}
-
-/** A part that is not built yet: said plainly, with no link to a page that does not exist. */
-function Soon({ icon, title, text }: { icon: ReactNode; title: string; text: string }) {
-  const id = useId()
-  return (
-    <section className={styles.soon} aria-labelledby={id}>
-      <span className={styles.soonIcon}>{icon}</span>
-      <div className={styles.soonText}>
-        <h3 id={id} className={styles.soonTitle}>
-          {title}
-        </h3>
-        <span>{text}</span>
-      </div>
-      <span className={styles.pill}>Bientôt disponible</span>
-    </section>
+    <Link to={to} className={tile ? styles.serviceTile : styles.service}>
+      <span className={styles.serviceIcon} aria-hidden="true">{icon}</span>
+      <span className={styles.serviceText}>
+        <strong>{title}</strong>
+        <small>{text}</small>
+      </span>
+      <ArrowRight className={styles.serviceArrow} size={18} aria-hidden="true" />
+    </Link>
   )
 }

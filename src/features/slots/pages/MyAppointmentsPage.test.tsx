@@ -230,3 +230,14 @@ test('US-30: only staff-assisted appointments are labelled, including history', 
   expect(within(card('jeudi 12 novembre 2026')).getByText('Pris par l’accueil')).toBeInTheDocument()
   expect(within(card('lundi 2 novembre 2026')).queryByText('Pris par l’accueil')).toBeNull()
 })
+
+test('the appointment tabs switch between upcoming appointments and history without losing either list', async () => {
+  renderPage()
+  await screen.findByRole('listitem', { name: 'Rendez-vous du vendredi 13 novembre 2026' })
+  await userEvent.click(screen.getByRole('button', { name: 'Historique des consultations' }))
+  expect(screen.queryByRole('listitem', { name: 'Rendez-vous du vendredi 13 novembre 2026' })).not.toBeInTheDocument()
+  expect(screen.getByRole('listitem', { name: 'Rendez-vous du lundi 2 novembre 2026' })).toBeVisible()
+  await userEvent.click(screen.getByRole('button', { name: 'Consultations à venir' }))
+  expect(screen.getByRole('listitem', { name: 'Rendez-vous du vendredi 13 novembre 2026' })).toBeVisible()
+  expect(screen.queryByRole('listitem', { name: 'Rendez-vous du lundi 2 novembre 2026' })).not.toBeInTheDocument()
+})

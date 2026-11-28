@@ -1,3 +1,4 @@
+import { MemoryRouter } from 'react-router-dom'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, expect, test, vi } from 'vitest'
@@ -34,7 +35,7 @@ beforeEach(() => {
 test('the patient confirms an approval and waits for the other party', async () => {
   const user = userEvent.setup()
   vi.mocked(api.decideProposal).mockResolvedValue({ ...proposal, patientAccepted: true })
-  render(<ApprovalPage party="patient" />)
+  render(<MemoryRouter><ApprovalPage party="patient" /></MemoryRouter>)
   await user.click(await screen.findByRole('button', { name: 'Accepter la proposition' }))
   expect(api.decideProposal).not.toHaveBeenCalled()
   await user.click(screen.getByRole('button', { name: 'Confirmer l’acceptation' }))
@@ -47,7 +48,7 @@ test('the patient confirms an approval and waits for the other party', async () 
 test('the receiving practitioner can decline and the source is preserved', async () => {
   const user = userEvent.setup()
   vi.mocked(api.decideProposal).mockResolvedValue({ ...proposal, status: 'DECLINED' })
-  render(<ApprovalPage party="practitioner" />)
+  render(<MemoryRouter><ApprovalPage party="practitioner" /></MemoryRouter>)
   await user.click(await screen.findByRole('button', { name: 'Refuser la proposition' }))
   await user.click(screen.getByRole('button', { name: 'Confirmer le refus' }))
   expect(await screen.findByText('Proposition refusée')).toBeInTheDocument()
@@ -74,7 +75,7 @@ test('the staff selects a future appointment and a target without typing an iden
 test('a refused decision is visible and can be retried', async () => {
   const user = userEvent.setup()
   vi.mocked(api.decideProposal).mockRejectedValue(new ApiError(409, 'DECISION_ALREADY_RECORDED', 'Décision déjà enregistrée.'))
-  render(<ApprovalPage party="patient" />)
+  render(<MemoryRouter><ApprovalPage party="patient" /></MemoryRouter>)
   await user.click(await screen.findByRole('button', { name: 'Accepter la proposition' }))
   await user.click(screen.getByRole('button', { name: 'Confirmer l’acceptation' }))
   expect(await screen.findByRole('alert')).toHaveTextContent('Décision déjà enregistrée.')
@@ -84,7 +85,7 @@ test('a refused decision is visible and can be retried', async () => {
 test('an unavailable final transfer is displayed without claiming success', async () => {
   const user = userEvent.setup()
   vi.mocked(api.decideProposal).mockResolvedValue({ ...proposal, status: 'FAILED', patientAccepted: true, practitionerAccepted: true })
-  render(<ApprovalPage party="patient" />)
+  render(<MemoryRouter><ApprovalPage party="patient" /></MemoryRouter>)
   await user.click(await screen.findByRole('button', { name: 'Accepter la proposition' }))
   await user.click(screen.getByRole('button', { name: 'Confirmer l’acceptation' }))
   expect(await screen.findByText('Transfert impossible — rendez-vous initial conservé')).toBeInTheDocument()

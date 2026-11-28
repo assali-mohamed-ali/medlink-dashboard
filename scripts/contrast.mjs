@@ -12,6 +12,15 @@ const SURFACES = ['--bg', '--surface-raised', '--surface-sunken']
 
 /** [foreground, background, minimum, what it is] */
 export const PAIRS = [
+  ...['--surface-raised', '--surface-sunken', '--ux-cream', '--ux-sage', '--ux-visual'].flatMap((bg) => [
+    ['--ux-ink', bg, 4.5, 'UX V2 text'],
+    ['--ux-muted', bg, 4.5, 'UX V2 secondary text'],
+    ['--ux-green', bg, 4.5, 'UX V2 links'],
+    ['--ux-dark', bg, 4.5, 'UX V2 headings'],
+  ]),
+  ['--on-primary', '--ux-green', 4.5, 'UX V2 primary CTA'],
+  ['--on-primary', '--ux-dark', 4.5, 'UX V2 professional CTA'],
+  ['--ux-sage', '--ux-dark', 4.5, 'UX V2 professional secondary text'],
   ...SURFACES.flatMap((bg) => [
     ['--on-surface', bg, 4.5, 'text'],
     ['--on-surface-variant', bg, 4.5, 'secondary text'],

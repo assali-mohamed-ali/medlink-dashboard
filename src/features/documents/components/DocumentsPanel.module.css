@@ -126,3 +126,5 @@
   gap: var(--space-3);
   margin-top: var(--space-4);
 }
+
+.scroll{max-width:100%;overflow-x:auto;border-radius:10px;border-color:var(--ux-line);}.table th{background:var(--surface-sunken);}.fileInput{max-width:100%;min-height:44px;}.titleCell{overflow-wrap:anywhere;}.actions button{min-height:44px;}.pager{flex-wrap:wrap;gap:10px;}@media(max-width:600px){.form{grid-template-columns:minmax(0,1fr);}.actions button{width:100%;}}

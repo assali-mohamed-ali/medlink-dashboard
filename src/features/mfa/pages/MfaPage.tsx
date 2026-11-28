@@ -1,3 +1,4 @@
+import AuthFrame from '@/shared/layout/AuthFrame'
 import { useLocation } from 'react-router-dom'
 import CodeForm from '../components/CodeForm'
 import styles from '../mfa.module.css'
@@ -12,7 +13,7 @@ export default function MfaPage() {
 
   if (state?.mfaSetupRequired) {
     return (
-      <main className={styles.page}>
+      <AuthFrame context="Double authentification" description="Confirmez votre identité avec le code de votre application.">
         <div className={styles.card}>
           <h1 className={styles.title}>Configurez votre application</h1>
           <p className={styles.lead}>
@@ -21,17 +22,17 @@ export default function MfaPage() {
             30 minutes et ne sert qu’une fois.
           </p>
         </div>
-      </main>
+      </AuthFrame>
     )
   }
 
   return (
-    <main className={styles.page}>
+    <AuthFrame context="Double authentification" description="Confirmez votre identité avec le code de votre application.">
       <div className={styles.card}>
         <h1 className={styles.title}>Saisissez votre code</h1>
         <p className={styles.lead}>Ouvrez votre application d’authentification et saisissez le code affiché.</p>
         <CodeForm />
       </div>
-    </main>
+    </AuthFrame>
   )
 }

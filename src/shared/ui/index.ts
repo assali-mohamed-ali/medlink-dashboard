@@ -12,3 +12,5 @@ export { default as Skeleton } from './Skeleton'
 export { default as Spinner } from './Spinner'
 export { default as TextField } from './TextField'
 export type { TextFieldProps } from './TextField'
+
+export { default as WorkflowSteps } from './WorkflowSteps'

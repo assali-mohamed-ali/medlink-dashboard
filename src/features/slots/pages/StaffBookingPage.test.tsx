@@ -1,3 +1,4 @@
+import { MemoryRouter } from 'react-router-dom'
 import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { expect, test, vi } from 'vitest'
@@ -27,7 +28,7 @@ test('staff reviews the selected patient and slot before booking on their behalf
   vi.mocked(bookForPatient).mockResolvedValue({
     id: 'reservation', clinic, practitioner, startsAt, endsAt, status: 'BOOKED',
   })
-  render(<StaffBookingPage />)
+  render(<MemoryRouter><StaffBookingPage /></MemoryRouter>)
   const user = userEvent.setup()
   await user.type(screen.getByLabelText('Nom ou e-mail du patient'), 'Amel')
   await user.click(screen.getByRole('button', { name: 'Rechercher un patient' }))

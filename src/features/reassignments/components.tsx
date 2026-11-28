@@ -1,3 +1,4 @@
+import styles from './ProposalDetails.module.css'
 import { Button } from '@/shared/ui'
 import type { Page, Proposal, SlotRef } from './types'
 
@@ -16,11 +17,13 @@ const STATUS = {
 
 export function ProposalDetails({ proposal }: { proposal: Proposal }) {
   return (
-    <div>
-      <p><strong>Rendez-vous initial :</strong> {slotLabel(proposal.original)}</p>
-      <p><strong>Créneau proposé :</strong> {slotLabel(proposal.target)}</p>
-      <p>{STATUS[proposal.status]}</p>
-      <p>Patient : {proposal.patientAccepted ? 'accord donné' : 'accord non donné'} · Praticien : {proposal.practitionerAccepted ? 'accord donné' : 'accord non donné'}</p>
+    <div className={styles.proposal}>
+      <p className={styles.status} data-status={proposal.status}>{STATUS[proposal.status]}</p>
+      <div className={styles.comparison}>
+        <section><p><strong>Rendez-vous initial :</strong> {slotLabel(proposal.original)}</p></section>
+        <section><p><strong>Créneau proposé :</strong> {slotLabel(proposal.target)}</p></section>
+      </div>
+      <p className={styles.approvals}>Patient : {proposal.patientAccepted ? 'accord donné' : 'accord non donné'} · Praticien : {proposal.practitionerAccepted ? 'accord donné' : 'accord non donné'}</p>
     </div>
   )
 }

@@ -189,3 +189,6 @@
     padding-top: 80px;
   }
 }
+
+/* V2 public identity, shared by authentication routes. */
+.public-header{background:var(--surface-raised);border-bottom:1px solid var(--ux-line);box-shadow:none;}.public-header__brand-icon{background:var(--ux-green);color:var(--on-primary);width:36px;height:36px;border-radius:10px;}.public-header__brand-text strong{color:var(--ux-dark);font-size:22px;letter-spacing:-.04em;}.public-header__btn--primary{background:var(--ux-green);border-radius:9px;min-height:44px;box-shadow:none;}.public-header__btn--primary:hover{background:var(--ux-dark);transform:none;}@media(max-width:380px){.public-header__inner{padding-inline:12px;gap:8px;}.public-header__btn--primary{padding:8px 12px;font-size:13px;}.public-header__brand-text strong{font-size:18px;}}

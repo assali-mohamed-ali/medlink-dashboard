@@ -28,3 +28,16 @@ test('rejects overlapping dates and submits only one closed-month indicator', as
     from: '2002-02-01', to: '2002-02-28', indicators: ['APPOINTMENTS_PER_SPECIALTY'],
   }))
 })
+
+test('month selector derives a full leap-year month without changing the export contract', async () => {
+  const { fireEvent } = await import('@testing-library/react')
+  vi.mocked(exportStats).mockResolvedValue({ csv: 'indicator,group,count\n', rows: [], filename: 'stats.csv' })
+  render(<StatsExportPage />)
+  fireEvent.change(screen.getByLabelText('Mois civil terminé'), { target: { value: '2024-02' } })
+  expect(screen.getByLabelText('Date de début')).toHaveValue('2024-02-01')
+  expect(screen.getByLabelText('Date de fin')).toHaveValue('2024-02-29')
+  await userEvent.click(screen.getByRole('button', { name: 'Exporter les statistiques' }))
+  await waitFor(() => expect(exportStats).toHaveBeenCalledWith({
+    from: '2024-02-01', to: '2024-02-29', indicators: ['APPOINTMENTS_PER_STATUS'],
+  }))
+})

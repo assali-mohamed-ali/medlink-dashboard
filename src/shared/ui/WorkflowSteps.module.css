@@ -1,0 +1,7 @@
+.steps { display:grid; grid-template-columns:repeat(auto-fit,minmax(105px,1fr)); gap:8px; list-style:none; padding:12px; margin:0 0 16px; background:var(--surface-raised); border:1px solid var(--ux-line); border-radius:12px; }
+.steps li { display:flex; gap:8px; align-items:center; min-width:0; font-size:.8125rem; font-weight:600; color:var(--ux-muted); padding:8px; border-radius:7px; }
+.steps li span:first-child { width:26px; height:26px; flex:none; display:grid; place-items:center; border-radius:50%; background:var(--surface-sunken); color:var(--ux-dark); border:1px solid var(--border-strong); }
+.steps li[aria-current='step'] { background:var(--ux-sage); color:var(--ux-dark); font-weight:750; }
+.steps li[aria-current='step'] span:first-child { background:var(--ux-green); color:var(--on-primary); border-color:var(--ux-green); }
+.steps li[data-complete] span:first-child { background:var(--ux-sage); color:var(--ux-dark); border-color:var(--ux-green); }
+@media(max-width:600px){.steps{grid-template-columns:repeat(2,minmax(0,1fr));padding:8px;gap:4px}.steps li{font-size:.75rem;padding:6px;}}

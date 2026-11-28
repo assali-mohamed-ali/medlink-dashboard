@@ -1,3 +1,4 @@
+import AuthFrame from '@/shared/layout/AuthFrame'
 import { useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { ApiError } from '@/shared/api/apiClient'
@@ -94,11 +95,11 @@ export default function ConfigureCodePage() {
   }
 
   return (
-    <main className={styles.page}>
+    <AuthFrame context="Configuration MFA" description="Associez votre application d’authentification à votre compte professionnel.">
       <div className={styles.card}>
         <h1 className={styles.title}>Configurez votre application</h1>
         <div className={styles.stack}>{content}</div>
       </div>
-    </main>
+    </AuthFrame>
   )
 }

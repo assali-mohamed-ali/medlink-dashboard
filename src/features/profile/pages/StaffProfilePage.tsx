@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { BadgeCheck, Mail, ShieldCheck } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth'
@@ -13,6 +14,7 @@ import styles from '../profile.module.css'
 export default function StaffProfilePage() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const [section, setSection] = useState<'all' | 'identity' | 'security'>('all')
 
   async function onLogout() {
     await logout()
@@ -37,14 +39,15 @@ export default function StaffProfilePage() {
         }
       />
 
-      <div className={styles.layout}>
-        <AccountCard
+      <nav aria-label="Rubriques du profil" className={styles.sectionLinks}>{([['all','Vue d’ensemble'],['identity','Informations'],['security','Sécurité']] as const).map(([id,label]) => <button key={id} type="button" aria-pressed={section === id} onClick={() => setSection(id)}>{label}</button>)}</nav>
+      <div className={styles.settings} data-single={section !== 'all' || undefined}>
+        <div hidden={section === "security"} id="compte-identite" className={styles.settingGroup}><AccountCard
           name={fullName}
           email={user?.email ?? ''}
           role="Personnel administratif"
           whom="un autre membre du personnel administratif"
-        />
-        <SecurityCard passwordPath={paths.staff.password} onLogout={onLogout}>
+        /></div>
+        <div hidden={section === "identity"} id="compte-securite" className={styles.settingGroup}><SecurityCard passwordPath={paths.staff.password} onLogout={onLogout}>
           <Protection
             icon={<ShieldCheck size={20} />}
             title="Connexion en deux étapes"
@@ -54,7 +57,7 @@ export default function StaffProfilePage() {
               Un code à 6 chiffres de votre application d’authentification, après le mot de passe.
             </p>
           </Protection>
-        </SecurityCard>
+        </SecurityCard></div>
       </div>
     </div>
   )

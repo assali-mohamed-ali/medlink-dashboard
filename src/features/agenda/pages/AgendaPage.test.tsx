@@ -322,3 +322,17 @@ test('US-21: an absence lookup error is visible without hiding the agenda and ca
   await waitFor(() => expect(vi.mocked(api.fetchAbsences)).toHaveBeenCalledTimes(2))
   await waitFor(() => expect(screen.queryByRole('alert')).toBeNull())
 })
+
+test('day view selects a date within the loaded week', async () => {
+  const user = userEvent.setup()
+  renderPage()
+  await screen.findByRole('table', { name: TITLE })
+  await user.click(screen.getByRole('button', { name: 'Jour' }))
+  const days = screen.getByRole('group', { name: 'Jour de l’agenda' })
+  await user.click(within(days).getByRole('button', { name: 'mardi 10 novembre' }))
+  expect(screen.getByRole('table', { name: 'mardi 10 novembre' })).toBeInTheDocument()
+  expect(screen.getByRole('listitem', { name: /Ahmed Kacem/ })).toBeInTheDocument()
+  expect(screen.queryByRole('listitem', { name: /jeudi 12 novembre, 14:00/ })).toBeNull()
+  await user.click(screen.getByRole('button', { name: 'Semaine' }))
+  expect(screen.getByRole('table', { name: TITLE })).toBeInTheDocument()
+})

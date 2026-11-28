@@ -112,6 +112,9 @@ export default function StatsExportPage() {
   } else if (file) {
     result = (
       <>
+        <div className={styles.chart} aria-label="Visualisation de l’export publié">
+          {file.rows.map((row,index) => <div key={`${row.indicator}-${row.group}-${index}`} className={styles.barRow}><span>{row.group}</span><div aria-hidden="true" className={styles.barTrack}><span style={{width: `${Math.max(0,row.count)/Math.max(1,...file.rows.map(value => value.count))*100}%`}} /></div><strong>{row.count}</strong></div>)}
+        </div>
         <div className={styles.scroll}>
           <table className={styles.table}>
             <caption className="visually-hidden">Statistiques anonymisées des rendez-vous</caption>
@@ -152,15 +155,28 @@ export default function StatsExportPage() {
   }
 
   return (
-    <>
-      <h2>Statistiques</h2>
-      <p className={styles.intro}>
+    <section className={styles.page} data-width="wide">
+      <header className={styles.heading}><div><h2>Statistiques</h2><p className={styles.intro}>
         Des chiffres agrégés sur les rendez-vous des cliniques, à lire ici ou à télécharger en fichier CSV.
         Un seul indicateur est publié par mois civil terminé, pour limiter les recoupements. Le premier export
         fixe définitivement l’indicateur et son résultat pour ce mois.
-      </p>
+      </p></div><span className={styles.headingIcon}><ChartColumn size={26} aria-hidden="true" /></span></header>
+      <div className={styles.workspace}>
       <Card title="Période et indicateurs" headingLevel={3}>
         <form onSubmit={submit} noValidate aria-label="Export des statistiques">
+          <TextField label="Mois civil terminé" type="month"
+            max={new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 0)).toISOString().slice(0, 7)}
+            value={validMonth(draft.from, draft.to) ? draft.from.slice(0, 7) : ''}
+            onChange={event => {
+              const value = event.target.value
+              const [year = 0, month = 0] = value.split('-').map(Number)
+              if (!value || !year || month < 1 || month > 12) {
+                setDraft(current => ({ ...current, from: '', to: '' }))
+                return
+              }
+              setDraft(current => ({ ...current, from: `${value}-01`, to: new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10) }))
+              setErrors({})
+            }} />
           <div className={styles.dates}>
             <TextField
               label="Date de début"
@@ -203,9 +219,13 @@ export default function StatsExportPage() {
           </div>
         </form>
       </Card>
-      <Card title="Résultat" headingLevel={3}>
-        {result}
-      </Card>
-    </>
+      <div className={styles.stack}>
+        <Card title="Règles de confidentialité" headingLevel={3}>
+          <dl className={styles.rules}><div><dt>Mois terminé</dt><dd>Aucune période partielle.</dd></div><div><dt>Publication immuable</dt><dd>Un seul indicateur, résultat figé.</dd></div><div><dt>Petits groupes</dt><dd>La publication est refusée si l’anonymisation est impossible.</dd></div></dl>
+        </Card>
+        <Card title="Résultat" headingLevel={3}>{result}</Card>
+      </div>
+      </div>
+    </section>
   )
 }
