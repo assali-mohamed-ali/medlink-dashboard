@@ -1,3 +1,4 @@
+import { FlaskConical } from 'lucide-react'
 import styles from '@/shared/ui/WorkflowPage.module.css'
 import { useEffect, useState } from 'react'
 import { messageFor } from '@/shared/api/errors'
@@ -56,7 +57,9 @@ export default function MyResultsPage() {
   }
 
   return (
-    <Card title="Mes résultats d’examens">
+    <section className={styles.resultPage}>
+      <header className={styles.pageHeading}><div><h2>Mes résultats d’examens</h2><p>Consultez les résultats publiés par vos praticiens et leurs pièces jointes.</p></div><span className={styles.headingIcon}><FlaskConical size={26} aria-hidden="true" /></span></header>
+      <Card>
       {downloadError && <p role="alert">{downloadError}</p>}
       {data && data.unseen > 0 && (
         <p role="status">{data.unseen} nouveau{data.unseen > 1 ? 'x' : ''} résultat{data.unseen > 1 ? 's' : ''} depuis votre dernière visite.</p>
@@ -65,9 +68,9 @@ export default function MyResultsPage() {
         results.length === 0 ? <p>Aucun résultat publié.</p> : (
           results.map((result) => (
             <details key={result.id} className={styles.result}>
-              <summary>{result.title}{result.isNew && ' · Nouveau'}</summary>
-              <p>{result.examType} · Examen du {result.examDate}</p>
-              <p>
+              <summary><span>{result.title}{result.isNew && ' · Nouveau'}</span><span className={styles.readLabel} aria-hidden="true">Consulter</span></summary>
+              <p className={styles.resultMeta}>{result.examType} · Examen du {result.examDate}</p>
+              <p className={styles.resultMeta}>
                 Publié le {new Intl.DateTimeFormat('fr-TN', { timeZone: 'Africa/Tunis' }).format(new Date(result.publishedAt))}
                 {result.practitioner && ` · ${result.practitioner.firstName} ${result.practitioner.lastName}`}
               </p>
@@ -86,6 +89,7 @@ export default function MyResultsPage() {
           <Button disabled={page >= last} onClick={() => go(page + 1)}>Page suivante</Button>
         </nav>
       )}
-    </Card>
+      </Card>
+    </section>
   )
 }

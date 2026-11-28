@@ -212,6 +212,7 @@ export default function SlotSearchPage() {
     if (kept && id && kept.specialtyId !== id) setPractitionerId(undefined)
   }
 
+  const [guided, setGuided] = useState(false)
   const [view, setView] = useState<'week' | 'list'>(() => typeof window !== 'undefined' && window.matchMedia?.('(max-width: 760px)').matches ? 'list' : 'week')
   const week = new Date(monday)
   const days = Array.from({ length: DAYS_SHOWN }, (_, i) => addDays(week, i))
@@ -251,14 +252,18 @@ export default function SlotSearchPage() {
         )}
       </header>
 
-      <WorkflowSteps steps={['Recherche', 'Choix du créneau', 'Vérification', 'Confirmation']} current={booked ? 3 : choice ? 2 : loading || !result ? 0 : 1} />
+      <WorkflowSteps steps={['Recherche', 'Choix du créneau', 'Vérification', 'Confirmation']} current={booked ? 3 : choice ? 2 : guided ? 0 : loading || !result ? 0 : 1} />
       <div className={styles.selectionBar} aria-label="Votre sélection">
         <div><span>Spécialité</span><strong>{chosenSpecialty ?? 'Toutes'}</strong></div>
         <div><span>Clinique</span><strong>{chosenClinic?.name ?? 'Toutes'}</strong></div>
         <div><span>Praticien</span><strong>{chosenPractitioner ? `Dr ${chosenPractitioner.firstName} ${chosenPractitioner.lastName}` : 'Tous'}</strong></div>
         <Button variant="secondary" size="sm" disabled={!clinicId && !specialtyId && !practitionerId} onClick={() => { setClinicId(undefined); setSpecialtyId(undefined); setPractitionerId(undefined) }}>Réinitialiser les filtres</Button>
       </div>
-      <div className={styles.layout}>
+      <div className={styles.bookingControls}>
+        <Button variant="secondary" aria-pressed={guided} onClick={() => setGuided(true)}>1. Choisir les critères</Button>
+        <Button variant="secondary" aria-pressed={!guided} onClick={() => setGuided(false)}>2. Consulter les créneaux</Button>
+      </div>
+      <div className={styles.layout} data-guided={guided || undefined}>
         <aside className={styles.filters} aria-label="Filtres de la recherche">
           <Link to={paths.patient.appointments} className={styles.mine}>
             <CalendarCheck size={18} aria-hidden="true" />
@@ -386,9 +391,10 @@ export default function SlotSearchPage() {
             ))}
             {errors.practitionerId && <FieldError message={errors.practitionerId} />}
           </fieldset>
+          <Button fullWidth onClick={() => setGuided(false)}>Voir les créneaux disponibles</Button>
         </aside>
 
-        <section className={styles.board} aria-labelledby={`${ids}-week`}>
+        <section className={styles.board} aria-labelledby={`${ids}-week`} hidden={guided}>
           <div className={styles.boardBar}>
             <div className={styles.weekNav}>
               <button

@@ -62,6 +62,7 @@ export default function MyReportsPage() {
           Mes comptes-rendus
         </h2>
         <p className={styles.subtitle}>Les comptes-rendus de vos consultations, du plus récent au plus ancien</p>
+        <p className={styles.readOnly}>Consultation en lecture seule · Les comptes-rendus sont rédigés par vos praticiens.</p>
       </header>
 
       {load.status === 'loading' && <Skeleton lines={4} label="Chargement de vos comptes-rendus…" />}
@@ -87,6 +88,7 @@ export default function MyReportsPage() {
             return (
               <li key={report.id} className={styles.report}>
                 <div className={styles.meta}>
+                  <span className={styles.reportIcon}><FileText size={23} aria-hidden="true" /></span>
                   <span className={styles.author}>
                     <span className={styles.icon} aria-hidden="true">
                       <Stethoscope size={18} />
