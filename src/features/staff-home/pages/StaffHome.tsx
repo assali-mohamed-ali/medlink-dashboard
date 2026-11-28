@@ -217,7 +217,7 @@ export default function StaffHome({ firstName }: { firstName?: string }) {
           tone="3"
           label="À activer"
           value={counted ? String(counted.toActivate) : pending(accounts.load.status)}
-          note="mail d’activation envoyé"
+          note={accounts.load.status === 'ready' && accounts.load.data.total > accounts.load.data.items.length ? 'sur la première page' : 'activation en attente'}
         />
         <Figure
           icon={<ShieldAlert size={20} />}
@@ -228,6 +228,17 @@ export default function StaffHome({ firstName }: { firstName?: string }) {
         />
       </ul>
 
+      <section className={styles.operationDesk} aria-labelledby={`${ids}-operations`}>
+        <h3 id={`${ids}-operations`} className={styles.cardTitle}>Opérations à traiter</h3>
+        <div className={styles.operationGrid}>
+          {[
+            { to: paths.staff.booking, icon: CalendarDays, title: 'Réserver un rendez-vous', detail: 'Identifier un patient et choisir un créneau' },
+            { to: paths.staff.reassignments, icon: CalendarDays, title: 'Suivre les réaffectations', detail: 'Propositions et accords en attente' },
+            { to: paths.staff.clinicAssignments, icon: Building2, title: 'Affectations aux cliniques', detail: 'Organisation de l’équipe médicale' },
+            { to: paths.staff.deletionRequests, icon: ShieldAlert, title: 'Examiner les demandes de suppression', detail: 'Décision et obligations de conservation' },
+          ].map(({ to, icon: Icon, title, detail }) => <Link className={styles.operation} key={to} to={to}><span className={styles.operationIcon}><Icon size={22} aria-hidden="true" /></span><span><strong>{title}</strong><small>{detail}</small></span><ArrowRight size={18} aria-hidden="true" /></Link>)}
+        </div>
+      </section>
       <div className={styles.row}>
         <section className={styles.card} aria-labelledby={`${ids}-activity`}>
           <div className={styles.cardHead}>
@@ -270,14 +281,6 @@ export default function StaffHome({ firstName }: { firstName?: string }) {
         </section>
 
         <div className={styles.side}>
-          <section className={styles.card} aria-labelledby={`${ids}-operations`}>
-            <h3 id={`${ids}-operations`} className={styles.cardTitle}>Opérations à traiter</h3>
-            <div className={styles.taskLinks}>
-              <Link to={paths.staff.reassignments}>Suivre les réaffectations <ArrowRight size={16} aria-hidden="true" /></Link>
-              <Link to={paths.staff.deletionRequests}>Examiner les demandes de suppression <ArrowRight size={16} aria-hidden="true" /></Link>
-              <Link to={paths.staff.clinicAssignments}>Gérer les affectations aux cliniques <ArrowRight size={16} aria-hidden="true" /></Link>
-            </div>
-          </section>
           <section className={styles.card} aria-labelledby={`${ids}-network`}>
             <div className={styles.cardHead}>
               <h3 id={`${ids}-network`} className={styles.cardTitle}>

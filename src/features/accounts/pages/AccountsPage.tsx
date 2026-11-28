@@ -63,6 +63,7 @@ export default function AccountsPage() {
   const { user } = useAuth()
   const [typed, setTyped] = useState('')
   const [roleFilter, setRoleFilter] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
   const [query, setQuery] = useState<Query>({ search: '', page: 0, attempt: 0 })
   const [data, setData] = useState<AccountPage | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -125,7 +126,7 @@ export default function AccountsPage() {
 
   const pages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1
 
-  const visibleAccounts = data?.items.filter(account => !roleFilter || (roleFilter === 'AMBIGUOUS' ? account.ambiguousRole || !account.role : account.role === roleFilter)) ?? []
+  const visibleAccounts = data?.items.filter(account => (!roleFilter || (roleFilter === 'AMBIGUOUS' ? account.ambiguousRole || !account.role : account.role === roleFilter)) && (!statusFilter || (statusFilter === 'disabled' ? !account.enabled : statusFilter === 'pending' ? account.enabled && !account.emailVerified : account.enabled && account.emailVerified))) ?? []
 
   return (
     <section aria-labelledby={titleId} className={styles.page} data-width="wide">
@@ -175,6 +176,8 @@ export default function AccountsPage() {
           <Select className={styles.roleFilter} label="Rôle sur cette page" value={roleFilter} onChange={event => { setRoleFilter(event.target.value); setMenuFor(null) }}>
             <option value="">Tous les rôles</option><option value="PATIENT">Patient</option><option value="PRACTITIONER">Praticien</option><option value="ADMINISTRATIVE_STAFF">Personnel administratif</option><option value="AMBIGUOUS">Rôle à corriger</option>
           </Select>
+          <Select className={styles.roleFilter} label="Statut sur cette page" value={statusFilter} onChange={event => { setStatusFilter(event.target.value); setMenuFor(null) }}><option value="">Tous les statuts</option><option value="active">Actif</option><option value="pending">Activation en attente</option><option value="disabled">Désactivé</option></Select>
+          {(roleFilter || statusFilter) && <Button variant="secondary" size="sm" onClick={() => { setRoleFilter(''); setStatusFilter(''); setMenuFor(null) }}>Effacer les filtres locaux</Button>}
           {data && (
             <p className={styles.count} aria-live="polite">
               {data.total} compte{data.total > 1 ? 's' : ''}
@@ -196,7 +199,7 @@ export default function AccountsPage() {
             Aucun compte ne correspond à votre recherche.
           </EmptyState>
         )}
-        {data && data.items.length > 0 && visibleAccounts.length === 0 && <p>Aucun compte de ce rôle sur cette page. Les autres pages restent accessibles.</p>}
+        {data && data.items.length > 0 && visibleAccounts.length === 0 && <p>Aucun compte ne correspond à ces filtres sur cette page. Les autres pages restent accessibles.</p>}
         {data && visibleAccounts.length > 0 && (
           <div className={styles.tableWrap}>
             <table className={styles.table}>

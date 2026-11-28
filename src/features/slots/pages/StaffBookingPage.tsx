@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+import { paths } from '@/shared/config/paths'
 import { useEffect, useState, type FormEvent } from 'react'
 import { messageFor } from '@/shared/api/errors'
 import { Alert, Button, Card, Select, TextField, WorkflowSteps } from '@/shared/ui'
@@ -21,6 +23,9 @@ export default function StaffBookingPage() {
   const [slots, setSlots] = useState<Awaited<ReturnType<typeof searchStaffSlots>>>()
   const [selected, setSelected] = useState<Slot>()
   const [appointment, setAppointment] = useState<Appointment>()
+  const [clinicFilter, setClinicFilter] = useState('')
+  const [specialtyFilter, setSpecialtyFilter] = useState('')
+  const [doctorFilter, setDoctorFilter] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
@@ -97,7 +102,7 @@ export default function StaffBookingPage() {
     <div className={styles.page} data-width="wide">
       <header><h2>Réserver pour un patient</h2><p>Identifiez le patient, choisissez un créneau puis vérifiez les détails.</p></header>
       <WorkflowSteps steps={['Patient', 'Créneau', 'Vérification', 'Confirmation']} current={appointment ? 3 : selected ? 2 : patient ? 1 : 0} />
-      <Card className={styles.workflow}>
+      <div className={styles.bookingLayout}><Card className={styles.workflow}>
       {error && <Alert tone="error">{error}</Alert>}
       {busy && <p role="status">Chargement…</p>}
       {appointment && patient ? (
@@ -113,6 +118,7 @@ export default function StaffBookingPage() {
             setSlots(undefined)
             setSearch(undefined)
           }}>Nouvelle réservation</Button>
+          <Link to={paths.staff.activity}>Voir les rendez-vous des cliniques</Link>
         </>
       ) : !patient ? (
         <>
@@ -149,16 +155,16 @@ export default function StaffBookingPage() {
           }}>Changer de patient</Button></div>
           {!filters && !error && <p role="status">Chargement des filtres…</p>}
           {filters && (
-            <form className={styles.filters} onSubmit={submitSlots}>
+            <form hidden={Boolean(selected)} className={styles.filters} onSubmit={submitSlots}>
               <TextField id="booking-date" name="date" label="Date en Tunisie" type="date" required />
-              <Select label="Spécialité" name="specialtyId" disabled={busy}>
+              <Select label="Spécialité" name="specialtyId" disabled={busy} value={specialtyFilter} onChange={event => { setSpecialtyFilter(event.target.value); setDoctorFilter(''); setSelected(undefined); setSlots(undefined) }}>
                 <option value="">Toutes</option>{filters.specialties.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
               </Select>
-              <Select label="Clinique" name="clinicId" disabled={busy}>
+              <Select label="Clinique" name="clinicId" disabled={busy} value={clinicFilter} onChange={event => { setClinicFilter(event.target.value); setDoctorFilter(''); setSelected(undefined); setSlots(undefined) }}>
                 <option value="">Toutes</option>{filters.clinics.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
               </Select>
-              <Select label="Praticien" name="practitionerId" disabled={busy}>
-                <option value="">Tous</option>{filters.practitioners.map((item) => (
+              <Select label="Praticien" name="practitionerId" disabled={busy} value={doctorFilter} onChange={event => { setDoctorFilter(event.target.value); setSelected(undefined); setSlots(undefined) }}>
+                <option value="">Tous</option>{filters.practitioners.filter(item => (!clinicFilter || item.clinicIds.includes(clinicFilter)) && (!specialtyFilter || item.specialtyId === specialtyFilter)).map((item) => (
                   <option key={item.id} value={item.id}>{item.firstName} {item.lastName}</option>
                 ))}
               </Select>
@@ -190,7 +196,7 @@ export default function StaffBookingPage() {
           )}
         </>
       )}
-      </Card>
+      </Card><aside className={styles.summary}><h3>Votre réservation</h3><dl><dt>Patient</dt><dd>{patient ? `${patient.firstName} ${patient.lastName}` : 'À sélectionner'}</dd><dt>Créneau</dt><dd>{selected ? dateTime.format(new Date(selected.startsAt)) : appointment ? dateTime.format(new Date(appointment.startsAt)) : 'À sélectionner'}</dd><dt>Clinique</dt><dd>{selected?.clinic.name ?? appointment?.clinic.name ?? 'À sélectionner'}</dd></dl><p>La disponibilité est vérifiée par le serveur lors de la confirmation.</p></aside></div>
     </div>
   )
 }

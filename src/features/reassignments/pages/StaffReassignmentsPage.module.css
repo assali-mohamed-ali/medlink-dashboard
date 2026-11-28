@@ -3,3 +3,5 @@
 .review{border:1px solid var(--ux-line);background:var(--surface-sunken);padding:14px;border-radius:10px;}
 .review h3{margin:0 0 12px;font-size:1rem;}.review dl{display:grid;gap:12px;margin:0;}.review dt{color:var(--ux-muted);font-size:.8125rem;font-weight:650;}.review dd{margin:4px 0 0;overflow-wrap:anywhere;}.review p{font-size:.8125rem;margin-bottom:0;}
 @media(max-width:1200px){.page{grid-template-columns:1fr;}}@media(max-width:600px){.filters{grid-template-columns:1fr;}}
+
+.workspace{display:grid;gap:16px;}.workspace header h2{font-size:var(--text-3xl);margin:0;letter-spacing:-.035em;}.workspace header p{margin:4px 0;color:var(--ux-muted);}.stepPanel{display:grid;gap:10px;padding:14px;border:1px solid var(--ux-line);border-radius:10px;margin-top:10px;}.stepPanel h3{margin:0;font-size:1rem;}.followup{list-style:none;padding:0;display:grid;gap:14px;margin:12px 0;}.followup>li{border-bottom:1px solid var(--ux-line);padding-bottom:14px;}.followup>li:last-child{border:0;}

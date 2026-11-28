@@ -1,7 +1,9 @@
+import { Link } from 'react-router-dom'
+import { paths } from '@/shared/config/paths'
 import { useEffect, useId, useState } from 'react'
 import { CalendarDays, ChevronLeft, ChevronRight, Lock, Search } from 'lucide-react'
 import { messageFor } from '@/shared/api/errors'
-import { Alert, Button, EmptyState, Skeleton } from '@/shared/ui'
+import { Alert, Button, EmptyState, Select, Skeleton, TextField } from '@/shared/ui'
 import { fetchPractitionerAgenda, fetchPractitioners } from '../api'
 import type { AdminPractitioner, ClinicRef, SlotStatus, SupervisedAgenda, SupervisedSlot } from '../types'
 import {
@@ -116,9 +118,11 @@ export default function ClinicActivityPage() {
     setMonday(day)
   }
 
+  const [clinicId, setClinicId] = useState('')
   const list = practitioners && 'data' in practitioners ? practitioners.data : null
+  const clinicChoices = [...new Map((list ?? []).flatMap(person => person.clinics).map(clinic => [clinic.id, clinic])).values()].sort((a, b) => a.name.localeCompare(b.name, 'fr'))
   const wanted = normalize(search.trim())
-  const shown = list?.filter((p) => !wanted || normalize(`${fullName(p)} ${p.lastName} ${p.specialty.name}`).includes(wanted))
+  const shown = list?.filter((p) => (!clinicId || p.clinics.some(clinic => clinic.id === clinicId)) && (!wanted || normalize(`${fullName(p)} ${p.lastName} ${p.specialty.name}`).includes(wanted)))
   const practitioner = list?.find((p) => p.id === chosen)
   // One tone per clinic for the whole page (cards, slots, legend): from every practitioner's clinics
   const networkTones = tonesOf(list?.flatMap((p) => p.clinics) ?? [])
@@ -217,7 +221,7 @@ export default function ClinicActivityPage() {
       </div>
     )
   } else {
-    const items = agenda.data.items
+    const items = agenda.data.items.filter(slot => !clinicId || slot.clinic.id === clinicId)
     const tones = networkTones.size > 0 ? networkTones : tonesOf(agenda.data.clinics)
     const count = (status: SlotStatus) => items.filter((slot) => slot.status === status).length
     const booked = count('BOOKED')
@@ -325,13 +329,15 @@ export default function ClinicActivityPage() {
             praticiens.
           </p>
         </div>
-        <span className={styles.readOnly}>
-          <Lock size={16} aria-hidden="true" />
-          Lecture seule
-        </span>
+        <div className={styles.headerActions}><span className={styles.readOnly}><Lock size={16} aria-hidden="true" /> Lecture seule</span><Link className={styles.bookingLink} to={paths.staff.booking}>Réserver pour un patient</Link></div>
       </header>
 
-      <ClinicCards monday={monday} />
+      <div className={styles.periodControls}>
+        <TextField label="Semaine contenant le" type="date" value={monday} onChange={event => { if (event.target.value) moveTo(mondayOf(event.target.value)) }} />
+        <Select label="Clinique" value={clinicId} onChange={event => { const id = event.target.value; setClinicId(id); if (id && practitioner && !practitioner.clinics.some(clinic => clinic.id === id)) choose('') }}><option value="">Toutes les cliniques</option>{clinicChoices.map(clinic => <option key={clinic.id} value={clinic.id}>{clinic.name}</option>)}</Select>
+        <Button variant="secondary" onClick={() => { setClinicId(''); moveTo(thisMonday) }}>Réinitialiser</Button>
+      </div>
+      <ClinicCards monday={monday} clinicId={clinicId} />
 
       <div className={styles.layout}>
         <aside className={styles.card} aria-label="Choix du praticien">
