@@ -186,3 +186,19 @@
 @media (max-width: 640px) {
   .board, .filters { padding: var(--space-4); }
 }
+
+/* V2: list mode uses the same slot cards and booking guards. On a small screen, show readable day groups. */
+.viewSwitch { display:flex; gap:4px; flex-wrap:wrap; }
+.viewSwitch button[aria-pressed='true'] { background:var(--ux-sage); color:var(--ux-dark); border-color:var(--ux-green); }
+.grid[data-view='list'] { display:block; }
+.grid[data-view='list'] .times, .grid[data-view='list'] [data-empty='true'] { display:none; }
+.grid[data-view='list'] .day { display:block; margin-bottom:16px; }
+.grid[data-view='list'] .cell { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); min-height:0; margin-top:8px; }
+.grid[data-view='list'] .cell[data-empty='true'] { display:none; }
+@media(max-width:760px) {
+  .grid { display:block; }
+  .grid .times, .grid .day[data-empty='true'], .grid .cell[data-empty='true'] {display:none;}
+  .grid .day {display:block;margin-bottom:16px;}
+  .grid .cell {display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));min-height:0;margin-top:8px;}
+  .weekText { min-width:0; }
+}

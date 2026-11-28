@@ -1,8 +1,9 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { messageFor } from '@/shared/api/errors'
-import { Button, Card, TextField } from '@/shared/ui'
+import { Alert, Button, Card, Select, TextField, WorkflowSteps } from '@/shared/ui'
 import { bookForPatient, fetchStaffSlotFilters, searchBookingPatients, searchStaffSlots } from '../api'
 import type { Appointment, Slot, SlotFilters, SlotSearch } from '../types'
+import styles from './StaffBookingPage.module.css'
 
 const dateTime = new Intl.DateTimeFormat('fr-TN', {
   dateStyle: 'medium', timeStyle: 'short', timeZone: 'Africa/Tunis',
@@ -93,8 +94,11 @@ export default function StaffBookingPage() {
   }
 
   return (
-    <Card title="Réserver pour un patient">
-      {error && <p role="alert">{error}</p>}
+    <div className={styles.page} data-width="wide">
+      <header><h2>Réserver pour un patient</h2><p>Identifiez le patient, choisissez un créneau puis vérifiez les détails.</p></header>
+      <WorkflowSteps steps={['Patient', 'Créneau', 'Vérification', 'Confirmation']} current={appointment ? 3 : selected ? 2 : patient ? 1 : 0} />
+      <Card className={styles.workflow}>
+      {error && <Alert tone="error">{error}</Alert>}
       {busy && <p role="status">Chargement…</p>}
       {appointment && patient ? (
         <>
@@ -112,7 +116,7 @@ export default function StaffBookingPage() {
         </>
       ) : !patient ? (
         <>
-          <form onSubmit={(event) => {
+          <form className={styles.search} onSubmit={(event) => {
             event.preventDefault()
             const query = String(new FormData(event.currentTarget).get('query')).trim()
             if (!busy && query) void lookup(query, 0)
@@ -123,7 +127,7 @@ export default function StaffBookingPage() {
           {patients && (
             <>
               {patients.items.length === 0 && <p>Aucun patient éligible sur cette page.</p>}
-              <ul>{patients.items.map((entry) => (
+              <ul className={styles.choices} aria-label="Patients trouvés">{patients.items.map((entry) => (
                 <li key={entry.id}><Button disabled={busy} onClick={() => setPatient(entry)}>
                   {entry.firstName} {entry.lastName} · {entry.email}
                 </Button></li>
@@ -137,35 +141,35 @@ export default function StaffBookingPage() {
         </>
       ) : (
         <>
-          <p>Patient sélectionné · {patient.firstName} {patient.lastName}</p>
-          <Button disabled={busy} onClick={() => {
+          <div className={styles.selection}><p>Patient sélectionné · <strong>{patient.firstName} {patient.lastName}</strong></p>
+          <Button variant="secondary" disabled={busy} onClick={() => {
             setPatient(undefined)
             setSelected(undefined)
             setSlots(undefined)
-          }}>Changer de patient</Button>
+          }}>Changer de patient</Button></div>
           {!filters && !error && <p role="status">Chargement des filtres…</p>}
           {filters && (
-            <form className="grid gap-3" onSubmit={submitSlots}>
+            <form className={styles.filters} onSubmit={submitSlots}>
               <TextField id="booking-date" name="date" label="Date en Tunisie" type="date" required />
-              <label>Spécialité <select name="specialtyId">
+              <Select label="Spécialité" name="specialtyId" disabled={busy}>
                 <option value="">Toutes</option>{filters.specialties.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-              </select></label>
-              <label>Clinique <select name="clinicId">
+              </Select>
+              <Select label="Clinique" name="clinicId" disabled={busy}>
                 <option value="">Toutes</option>{filters.clinics.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-              </select></label>
-              <label>Praticien <select name="practitionerId">
+              </Select>
+              <Select label="Praticien" name="practitionerId" disabled={busy}>
                 <option value="">Tous</option>{filters.practitioners.map((item) => (
                   <option key={item.id} value={item.id}>{item.firstName} {item.lastName}</option>
                 ))}
-              </select></label>
+              </Select>
               <Button disabled={busy} type="submit">Chercher les créneaux</Button>
             </form>
           )}
           {slots && search && !selected && (
             <>
               {slots.total === 0 && <p>Aucun créneau disponible.</p>}
-              <ul>{slots.items.map((slot) => (
-                <li key={slot.slotId}><Button onClick={() => setSelected(slot)}>
+              <ul className={styles.choices} aria-label="Créneaux disponibles">{slots.items.map((slot) => (
+                <li key={slot.slotId}><Button variant="secondary" disabled={busy} onClick={() => setSelected(slot)}>
                   {dateTime.format(new Date(slot.startsAt))} · {slot.clinic.name} · {slot.practitioner.firstName} {slot.practitioner.lastName}
                 </Button></li>
               ))}</ul>
@@ -176,7 +180,8 @@ export default function StaffBookingPage() {
             </>
           )}
           {selected && (
-            <section aria-label="Vérification de la réservation">
+            <section className={styles.review} aria-label="Vérification de la réservation">
+              <h3>Vérifiez avant de confirmer</h3>
               <p>{dateTime.format(new Date(selected.startsAt))} · {selected.clinic.name} · {selected.practitioner.firstName}{' '}
                 {selected.practitioner.lastName}</p>
               <Button disabled={busy} onClick={() => void confirm()}>Confirmer la réservation</Button>
@@ -185,6 +190,7 @@ export default function StaffBookingPage() {
           )}
         </>
       )}
-    </Card>
+      </Card>
+    </div>
   )
 }

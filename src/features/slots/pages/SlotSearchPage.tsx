@@ -4,7 +4,7 @@ import { CalendarCheck, CalendarDays, CalendarX, ChevronLeft, ChevronRight, Cloc
 import { ApiError } from '@/shared/api/apiClient'
 import { fieldErrors, messageFor } from '@/shared/api/errors'
 import { paths } from '@/shared/config/paths'
-import { Alert, Button, Spinner } from '@/shared/ui'
+import { Alert, Button, Spinner, WorkflowSteps } from '@/shared/ui'
 import { bookSlot, fetchMyAppointments, fetchSlotFilters, rescheduleAppointment, searchSlots } from '../api'
 import { Dialog, DialogActions, DoneLine, FieldError, Summary } from '../components/Dialog'
 import type { Appointment, Slot, SlotFilters } from '../types'
@@ -212,6 +212,7 @@ export default function SlotSearchPage() {
     if (kept && id && kept.specialtyId !== id) setPractitionerId(undefined)
   }
 
+  const [view, setView] = useState<'week' | 'list'>('week')
   const week = new Date(monday)
   const days = Array.from({ length: DAYS_SHOWN }, (_, i) => addDays(week, i))
   const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate())
@@ -247,6 +248,7 @@ export default function SlotSearchPage() {
         )}
       </header>
 
+      <WorkflowSteps steps={['Recherche', 'Choix du créneau', 'Vérification', 'Confirmation']} current={booked ? 3 : choice ? 2 : 1} />
       <div className={styles.layout}>
         <aside className={styles.filters} aria-label="Filtres de la recherche">
           <Link to={paths.patient.appointments} className={styles.mine}>
@@ -412,6 +414,10 @@ export default function SlotSearchPage() {
                 </p>
               )}
             </div>
+            <div className={styles.viewSwitch} role="group" aria-label="Affichage des créneaux">
+              <Button variant="secondary" size="sm" aria-pressed={view === 'week'} onClick={() => setView('week')}>Semaine</Button>
+              <Button variant="secondary" size="sm" aria-pressed={view === 'list'} onClick={() => setView('list')}>Liste</Button>
+            </div>
             <span className={styles.zone}>
               <Clock size={14} aria-hidden="true" /> Heure locale
             </span>
@@ -436,7 +442,7 @@ export default function SlotSearchPage() {
           {!loading && result && result.total > 0 && (
             <>
               <div className={styles.scroller}>
-                <div className={styles.grid}>
+                <div className={styles.grid} data-view={view}>
                   {/* The times repeat what each card says: for the eye only */}
                   <div className={styles.times} style={{ gridRow: `1 / span ${rows.length + 1}` }} aria-hidden="true">
                     <span className={styles.timesHead}>Horaires</span>
@@ -457,6 +463,7 @@ export default function SlotSearchPage() {
                         style={{ gridRow: `1 / span ${rows.length + 1}` }}
                         aria-label={dayLabel(day)}
                         data-past={day < todayStart || undefined}
+                        data-empty={ofDay.length === 0 || undefined}
                       >
                         <p className={sameDay(day, today) ? `${styles.dayHead} ${styles.dayToday}` : styles.dayHead}>
                           <span className={styles.dayName}>{shortDayLabel(day)}</span>
@@ -465,7 +472,7 @@ export default function SlotSearchPage() {
                         {rows.map((row) => {
                           const here = ofDay.filter((s) => rowOf(s).key === row.key)
                           return (
-                            <div key={row.key} className={styles.cell}>
+                            <div key={row.key} className={styles.cell} data-empty={here.length === 0 || undefined}>
                               {here.length === 0 ? (
                                 <span className={styles.none} aria-hidden="true">
                                   —
