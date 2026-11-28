@@ -32,6 +32,7 @@ export default function SpaceLayout({ role }: { role: Role }) {
   ]
   const appointments = [
     { to: paths.patient.appointments, label: 'Mes consultations' },
+    { to: paths.patient.slots, label: 'Réserver un créneau' },
     { to: paths.patient.reassignments, label: 'Propositions de transfert' },
   ]
   const sectionNav = role === 'PATIENT'

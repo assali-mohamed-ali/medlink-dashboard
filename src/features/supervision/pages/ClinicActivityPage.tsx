@@ -114,6 +114,7 @@ export default function ClinicActivityPage() {
   }
 
   function moveTo(day: string) {
+    if (day === monday) return
     setAgenda(null)
     setMonday(day)
   }

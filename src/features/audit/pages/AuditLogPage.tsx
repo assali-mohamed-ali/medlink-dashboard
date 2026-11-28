@@ -395,7 +395,7 @@ export default function AuditLogPage() {
         </form>
       </div>
 
-      <div className={styles.card}><div className={styles.outcomeToolbar}><h3>Événements</h3><Select label="Résultat sur cette page" value={outcomeFilter} onChange={event => setOutcomeFilter(event.target.value)}><option value="">Tous les résultats</option>{[...new Set(data?.items.map(entry => entry.outcome) ?? [])].map(value => <option key={value} value={value}>{outcomeView(value).label}</option>)}</Select></div>{content}</div>
+      <div className={styles.card}><div className={styles.outcomeToolbar}><h3>Événements</h3><Select label="Résultat sur cette page" value={outcomeFilter} onChange={event => setOutcomeFilter(event.target.value)}><option value="">Tous les résultats</option>{[...new Set([...(outcomeFilter ? [outcomeFilter] : []), ...(data?.items.map(entry => entry.outcome) ?? [])])].map(value => <option key={value} value={value}>{outcomeView(value).label}</option>)}</Select></div>{content}</div>
     </section>
   )
 }

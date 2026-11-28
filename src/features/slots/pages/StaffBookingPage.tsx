@@ -23,6 +23,7 @@ export default function StaffBookingPage() {
   const [slots, setSlots] = useState<Awaited<ReturnType<typeof searchStaffSlots>>>()
   const [selected, setSelected] = useState<Slot>()
   const [appointment, setAppointment] = useState<Appointment>()
+  const [bookingDate, setBookingDate] = useState('')
   const [clinicFilter, setClinicFilter] = useState('')
   const [specialtyFilter, setSpecialtyFilter] = useState('')
   const [doctorFilter, setDoctorFilter] = useState('')
@@ -117,6 +118,11 @@ export default function StaffBookingPage() {
             setPatients(undefined)
             setSlots(undefined)
             setSearch(undefined)
+            setSelected(undefined)
+            setBookingDate('')
+            setClinicFilter('')
+            setSpecialtyFilter('')
+            setDoctorFilter('')
           }}>Nouvelle réservation</Button>
           <Link to={paths.staff.activity}>Voir les rendez-vous des cliniques</Link>
         </>
@@ -156,7 +162,7 @@ export default function StaffBookingPage() {
           {!filters && !error && <p role="status">Chargement des filtres…</p>}
           {filters && (
             <form hidden={Boolean(selected)} className={styles.filters} onSubmit={submitSlots}>
-              <TextField id="booking-date" name="date" label="Date en Tunisie" type="date" required />
+              <TextField id="booking-date" name="date" label="Date en Tunisie" type="date" required disabled={busy} value={bookingDate} onChange={event => { setBookingDate(event.target.value); setSlots(undefined); setSearch(undefined); setSelected(undefined) }} />
               <Select label="Spécialité" name="specialtyId" disabled={busy} value={specialtyFilter} onChange={event => { setSpecialtyFilter(event.target.value); setDoctorFilter(''); setSelected(undefined); setSlots(undefined) }}>
                 <option value="">Toutes</option>{filters.specialties.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
               </Select>
