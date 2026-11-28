@@ -212,7 +212,7 @@ export default function SlotSearchPage() {
     if (kept && id && kept.specialtyId !== id) setPractitionerId(undefined)
   }
 
-  const [view, setView] = useState<'week' | 'list'>('week')
+  const [view, setView] = useState<'week' | 'list'>(() => typeof window !== 'undefined' && window.matchMedia?.('(max-width: 760px)').matches ? 'list' : 'week')
   const week = new Date(monday)
   const days = Array.from({ length: DAYS_SHOWN }, (_, i) => addDays(week, i))
   const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate())
@@ -248,7 +248,7 @@ export default function SlotSearchPage() {
         )}
       </header>
 
-      <WorkflowSteps steps={['Recherche', 'Choix du créneau', 'Vérification', 'Confirmation']} current={booked ? 3 : choice ? 2 : 1} />
+      <WorkflowSteps steps={['Recherche', 'Choix du créneau', 'Vérification', 'Confirmation']} current={booked ? 3 : choice ? 2 : loading || !result ? 0 : 1} />
       <div className={styles.layout}>
         <aside className={styles.filters} aria-label="Filtres de la recherche">
           <Link to={paths.patient.appointments} className={styles.mine}>

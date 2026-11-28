@@ -196,9 +196,8 @@
 .grid[data-view='list'] .cell { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); min-height:0; margin-top:8px; }
 .grid[data-view='list'] .cell[data-empty='true'] { display:none; }
 @media(max-width:760px) {
-  .grid { display:block; }
-  .grid .times, .grid .day[data-empty='true'], .grid .cell[data-empty='true'] {display:none;}
-  .grid .day {display:block;margin-bottom:16px;}
-  .grid .cell {display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));min-height:0;margin-top:8px;}
+  .grid[data-view='list'] .cell {grid-template-columns:repeat(auto-fit,minmax(min(100%,155px),1fr));}
   .weekText { min-width:0; }
 }
+
+.mine{background:var(--ux-green);color:var(--on-primary);}.mine:hover{background:var(--ux-dark);}.grid[data-view='list'] .dayHead{justify-content:start;gap:12px;}.grid[data-view='list'] .slot{min-height:104px;}

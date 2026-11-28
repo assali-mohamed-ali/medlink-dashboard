@@ -566,3 +566,14 @@ test('no promise the page cannot keep: no "Réservation en deux clics" line', as
 
   expect(screen.queryByText(/Réservation en deux clics/)).toBeNull()
 })
+
+test('switching to the list keeps the same bookable slots and does not refetch', async () => {
+  const user = userEvent.setup()
+  renderPage()
+  const tuesday = await screen.findByRole('region', { name: 'mardi 10 novembre' })
+  const calls = searchSlots.mock.calls.length
+  await user.click(screen.getByRole('button', { name: 'Liste' }))
+  expect(screen.getByRole('button', { name: 'Liste' })).toHaveAttribute('aria-pressed', 'true')
+  expect(within(tuesday).getByRole('button', { name: 'Réserver' })).toBeInTheDocument()
+  expect(searchSlots.mock.calls).toHaveLength(calls)
+})
